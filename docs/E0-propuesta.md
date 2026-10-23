@@ -95,7 +95,7 @@ El script siembra a propósito los cinco errores que pide E1: nulos, negativos, 
 ## 6. Arranque técnico
 
 - **Proveedor de nube:** Amazon Web Services (AWS, capa gratuita), que se mantendrá todo el proyecto.
-- **Alerta de presupuesto:** [PENDIENTE: captura de la alerta activa en AWS Budgets, de $0 a $5 USD]
+- **Alerta de presupuesto:** presupuesto mensual de 1 USD ("My Zero-Spend Budget") con alerta cuando el costo real supera 0.01 USD, enviada al correo verificado del Cloud Lead. Evidencia: ![Alerta de presupuesto en AWS Budgets](evidencias/alerta-presupuesto-aws.png)
 - **Repositorio en GitHub:** [PENDIENTE: enlace, con commits de ambos integrantes]
 - **Estructura inicial:** carpetas `docs/`, `data/sample/`, `scripts/` ya creadas; faltan `notebooks/`, `services/`, `infra/terraform/`, `k8s/` y `tests/`.
 

@@ -96,7 +96,7 @@ El script siembra a propósito los cinco errores que pide E1: nulos, negativos, 
 
 - **Proveedor de nube:** Amazon Web Services (AWS, capa gratuita), que se mantendrá todo el proyecto.
 - **Alerta de presupuesto:** presupuesto mensual de 1 USD ("My Zero-Spend Budget") con alerta cuando el costo real supera 0.01 USD, enviada al correo verificado del Cloud Lead. Evidencia: ![Alerta de presupuesto en AWS Budgets](evidencias/alerta-presupuesto-aws.png)
-- **Repositorio en GitHub:** [PENDIENTE: enlace, con commits de ambos integrantes]
+- **Repositorio en GitHub:** https://github.com/Carlosvzc/data-startup-minetrac (repositorio privado, con ambos integrantes como colaboradores)
 - **Estructura inicial:** carpetas `docs/`, `data/sample/`, `scripts/` ya creadas; faltan `notebooks/`, `services/`, `infra/terraform/`, `k8s/` y `tests/`.
 
 ## 7. Uso de IA generativa

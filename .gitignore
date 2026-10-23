@@ -1,0 +1,10 @@
+# Datos completos: nunca se suben (solo la muestra anonimizada en data/sample/)
+data/*.csv
+*.env
+.env
+*.pem
+*.tfstate
+*.tfstate.*
+.terraform/
+__pycache__/
+.ipynb_checkpoints/

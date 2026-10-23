@@ -1,0 +1,61 @@
+fecha,equipo_id,tipo_equipo,horometro,horas_operadas,horas_fuera_servicio,tipo_evento,componente,falla,dias_espera_pieza,costo_reparacion_mxn,validado
+2024-11-01,CAM-02,Camión,8138.2,16.6,0.0,Operación,,No,,,Sí
+2025-07-24,EXC-01,Excavadora,12191.0,15.1,0.0,Operación,,No,,,Sí
+2025-03-15,PER-01,Perforadora,6467.8,16.0,0.0,Operación,,No,,,Sí
+2026-07-29,CAM-02,Camión,16289.5,16.4,0.0,Operación,,No,,,Sí
+2025-10-07,MOT-01,Motoconformadora,11680.3,12.9,0.0,Operación,,No,,,Sí
+2025-09-05,MOT-01,Motoconformadora,11345.2,0.0,24.0,Fuera de servicio,,No,,,Sí
+2025-03-11,PER-01,Perforadora,6404.4,19.3,0.0,Operación,,No,,,Sí
+2025-04-13,EXC-02,Excavadora,6336.0,8.3,0.0,Operación,,No,,,Sí
+2025-10-02,MOT-01,Motoconformadora,11610.6,19.8,0.0,Operación,,No,,,Sí
+2025-03-26,EXC-02,Excavadora,6075.1,13.8,0.0,Operación,,No,,,Sí
+2025-11-04,CAR-01,Cargador,9873.8,17.1,0.0,Operación,,No,,,Sí
+2026-04-25,PER-01,Perforadora,12378.9,16.0,0.0,Operación,,No,,,Sí
+2025-02-23,RET-01,Retroexcavadora,5475.5,,0.0,Operación,,No,,,Sí
+2025-08-01,PER-01,Perforadora,8415.0,18.3,0.0,Operación,,No,,,Sí
+2025-09-10,PER-01,Perforadora,9004.5,15.9,0.5,Preventivo,,No,,,Sí
+2026-01-14,MOT-01,Motoconformadora,13002.6,14.0,0.5,Preventivo,,No,,,Sí
+2024-11-26,CAR-02,Cargador,6338.5,16.5,0.0,Operación,,No,,,Sí
+2025-09-04,EXC-01,Excavadora,12591.2,0.0,24.0,Fuera de servicio,,No,,,Sí
+2025-08-11,RET-01,Retroexcavadora,7907.1,18.7,0.0,Operación,,No,,,Sí
+2026-02-05,CAR-02,Cargador,11777.6,0.0,24.0,Fuera de servicio,,No,,,Sí
+2026-05-30,CAM-02,Camión,15468.1,0.0,24.0,Fuera de servicio,,No,,,Sí
+2025-07-13,CAR-01,Cargador,8857.8,10.7,0.0,Operación,,No,,,Sí
+2026-04-19,CAM-01,Camión,10623.6,11.5,0.0,Operación,,No,,,Sí
+2026-01-18,CAM-03,Camión,12010.8,11.8,0.5,Preventivo,,No,,,Sí
+2026-05-07,PER-01,Perforadora,12546.6,0.0,24.0,Fuera de servicio,,No,,,Sí
+2024-11-19,CAR-02,Cargador,6275.9,0.0,24.0,Fuera de servicio,,No,,,Sí
+2026-01-29,CAR-01,Cargador,11158.0,17.2,0.0,Operación,,No,,,Sí
+2026-09-26,CAM-02,Camión,16772.1,15.9,0.0,Operación,,No,,,Sí
+2026-05-31,CAR-01,Cargador,12459.8,8.2,0.0,Operación,,No,,,Sí
+2025-10-17,CAR-02,Cargador,10415.6,17.2,5.0,Correctivo,Manguera,Sí,0.0,2288.15,Sí
+2026-04-01,RET-01,Retroexcavadora,10297.4,14.2,0.0,Operación,,No,,,Sí
+2025-01-02,CAR-01,Cargador,6529.5,14.6,0.0,Operación,,No,,,Sí
+2025-04-08,CAM-03,Camión,9576.7,18.5,0.0,Operación,,No,,,Sí
+2024-12-12,PER-01,Perforadora,5294.1,20.3,0.0,Operación,,No,,,Sí
+2024-12-05,EXC-02,Excavadora,4499.0,15.9,0.0,Operación,,No,,,Sí
+2024-10-31,CAR-01,Cargador,6105.5,15.2,0.0,Operación,,No,,,Sí
+2026-05-10,CAM-01,Camión,10959.1,9.7,0.0,Operación,,No,,,Sí
+2026-01-05,RET-01,Retroexcavadora,9598.1,17.5,0.0,Operación,,No,,,Sí
+2024-12-26,RET-01,Retroexcavadora,4560.6,13.0,11.6,Correctivo,Aceite/fugas,Sí,0.0,3223.1,Sí
+2024-12-18,MOT-01,Motoconformadora,8354.9,17.9,0.0,Operación,,No,,,Sí
+2025-09-27,CAR-02,Cargador,10089.0,18.6,0.0,Operación,,No,,,Sí
+2024-12-21,RET-01,Retroexcavadora,4488.9,13.4,0.0,Operación,,No,,,Sí
+2025-07-01,PER-01,Perforadora,8045.1,15.2,0.0,Operación,,No,,,Sí
+2025-01-18,PER-01,Perforadora,5838.8,15.5,0.0,Operación,,No,,,Sí
+2025-07-19,CAR-01,Cargador,8951.8,15.0,0.0,Operación,,No,,,Sí
+2024-12-11,PER-01,Perforadora,5273.8,14.9,0.0,Operación,,No,,,Sí
+2025-04-05,CAM-01,Camión,6379.9,17.7,0.0,Operación,,No,,,Sí
+2026-07-27,CAM-03,Camión,14680.0,13.7,0.0,Operación,,No,,,Sí
+2025-05-24,CAR-01,Cargador,8375.4,0.0,24.0,Fuera de servicio,,No,,,Sí
+2026-06-16,CAR-01,Cargador,12699.0,10.8,0.0,Operación,,No,,,Sí
+2024-10-13,EXC-02,Excavadora,3703.2,8.4,0.0,Operación,,No,,,Sí
+2025-12-23,EXC-02,Excavadora,9767.1,18.8,0.5,Preventivo,,No,,,Sí
+2026-06-20,CAM-02,Camión,15675.2,15.0,0.0,Operación,,No,,,Sí
+2026-07-28,CAM-03,Camión,14695.1,15.2,0.0,Operación,,No,,,Sí
+2025-09-12,PER-01,Perforadora,9037.3,16.6,0.0,Operación,,No,,,Sí
+2025-03-26,CAM-03,Camión,9519.6,0.0,24.0,Fuera de servicio,,No,,,Sí
+2025-02-11,MOT-01,Motoconformadora,9055.9,0.0,24.0,Fuera de servicio,,No,,,Sí
+2025-11-02,CAM-03,Camión,11571.6,10.6,0.0,Operación,,No,,,Sí
+2026-09-01,EXC-01,Excavadora,17221.1,15.3,0.0,Operación,,No,,,Sí
+2025-04-10,RET-01,Retroexcavadora,6048.7,16.3,0.0,Operación,,No,,,Sí

@@ -94,8 +94,8 @@ El script siembra a propósito los cinco errores que pide E1: nulos, negativos, 
 
 ## 6. Arranque técnico
 
-- **Proveedor de nube:** Microsoft Azure (Azure for Students), que se mantendrá todo el proyecto.
-- **Alerta de presupuesto:** [PENDIENTE: captura de la alerta activa en Cost Management, de $0 a $5 USD]
+- **Proveedor de nube:** Amazon Web Services (AWS, capa gratuita), que se mantendrá todo el proyecto.
+- **Alerta de presupuesto:** [PENDIENTE: captura de la alerta activa en AWS Budgets, de $0 a $5 USD]
 - **Repositorio en GitHub:** [PENDIENTE: enlace, con commits de ambos integrantes]
 - **Estructura inicial:** carpetas `docs/`, `data/sample/`, `scripts/` ya creadas; faltan `notebooks/`, `services/`, `infra/terraform/`, `k8s/` y `tests/`.
 

@@ -5,7 +5,7 @@ Tecnológico Nacional de México campus Colima · Ingeniería en Inteligencia Ar
 
 **Qué es:** plataforma en la nube para llevar el historial de fallas y reparaciones de maquinaria minera, con tablero y pronóstico de horas fuera de servicio y riesgo de falla por equipo.
 **Cliente:** Máquinas Centella S.A. de C.V.
-**Nube:** Microsoft Azure (Azure for Students)
+**Nube:** Amazon Web Services (AWS, capa gratuita)
 **URL pública:** pendiente (se publica a partir de E1/E3)
 
 ## Equipo

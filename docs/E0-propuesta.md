@@ -35,7 +35,7 @@ Lo que les duele es muy concreto: **el historial de cada máquina vive en un blo
 ## 3. Entrevista
 
 **Entrevistado:** Andrés Figueroa, Máquinas Centella S.A. de C.V. Aceptó que la entrevista se use con fines académicos.
-**Duración de la grabación:** 13 min 12 s. **Evidencia:** `Entrevista.mp4` en Google Drive: https://drive.google.com/drive/folders/1d7c4lOYiHCY4asrMK04gyO5NY8HFD5wh?usp=sharing.
+**Duración de la grabación:** 13 min 12 s. **Evidencia:** `Entrevista.mp4` en Google Drive: https://drive.google.com/file/d/1T08lxQsw4fgzoZnzMQLRWwu1T9PTHPg2/view?usp=sharing.
 
 **Pregunta 1. ¿Cuál es su papel y cómo participa cuando un problema operativo afecta compromisos con el cliente?**
 Representa a la empresa, propone ideas o soluciones y apoya en las negociaciones. La decisión final es de la directora general.

@@ -77,7 +77,7 @@
         ]
       }
     },
-    "DashboardInstance": {
+    "DashboardInstanceUI": {
       "Type": "AWS::EC2::Instance",
       "Properties": {
         "ImageId": {
@@ -136,7 +136,7 @@
             "http://",
             {
               "Fn::GetAtt": [
-                "DashboardInstance",
+                "DashboardInstanceUI",
                 "PublicIp"
               ]
             },
@@ -147,8 +147,9 @@
     },
     "InstanceId": {
       "Value": {
-        "Ref": "DashboardInstance"
+        "Ref": "DashboardInstanceUI"
       }
     }
   }
 }
+

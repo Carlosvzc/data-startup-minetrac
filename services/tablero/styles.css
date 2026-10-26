@@ -1,0 +1,53 @@
+
+:root {--mt-ink:#183342;--mt-muted:#607687;--mt-teal:#0b857a;}
+html,body,[class*="css"]{font-family:"Segoe UI",Arial,sans-serif}
+.stApp{background:#f3f6f8;color:#183342}
+.block-container{max-width:1480px;padding:3.7rem 3rem 3.5rem}
+[data-testid="stSidebar"]{background:#102b37;color:#eaf4f5;border-right:0}
+[data-testid="stSidebar"] p,[data-testid="stSidebar"] label,[data-testid="stSidebar"] h2,[data-testid="stSidebar"] h3{color:#eaf4f5!important}
+[data-testid="stSidebar"] [data-testid="stCaptionContainer"]{color:#b8cdd5!important}
+[data-testid="stSidebar"] .stButton button{border:1px solid #43606c;background:#193b48;color:#fff}
+[data-testid="stSidebar"] [data-baseweb="select"]>div{background:#fff;color:#183342}
+[data-testid="stSidebar"] [data-baseweb="input"]{background:#fff}
+[data-testid="stSidebar"] [data-testid="stDateInput"] input{color:#183342}
+[data-testid="stSidebar"] [data-testid="stExpander"]{border-color:#43606c}
+.mt-brand{font-size:24px;letter-spacing:-.8px;font-weight:800;color:white;margin:4px 0 5px}
+.mt-brand span{display:inline-grid;place-items:center;width:32px;height:32px;background:#13a291;border-radius:9px;margin-right:8px;font-size:17px}
+.mt-sidebar-sub{font-size:12px;color:#b5cbd3;margin-bottom:28px}
+.mt-eyebrow{font-size:11px;letter-spacing:1.5px;color:#66808e;font-weight:700;margin-bottom:6px}
+.mt-hero h1{font-size:34px;line-height:1.2;letter-spacing:-1.1px;color:#173342;margin:0 0 9px;font-weight:750}
+.mt-hero p{font-size:15px;color:#607687;margin:0 0 22px}
+.mt-badge{display:inline-block;font-size:12px;font-weight:600;padding:7px 12px;background:#e4f3ee;color:#1c7368;border-radius:20px;margin:4px 0}
+.mt-simulation{background:#fff6e5;border:1px solid #f0dcae;color:#775517;border-radius:10px;font-size:13px;padding:12px 16px;margin:2px 0 22px}
+.mt-simulation b{font-weight:700}
+[data-testid="stMetric"]{background:white;border:1px solid #e0e8ec;border-top:3px solid #0b857a;padding:19px 20px 16px;border-radius:12px;box-shadow:0 2px 7px rgba(18,53,68,.025)}
+[data-testid="stMetricLabel"]{color:#526e7c;font-size:13px;font-weight:600}
+[data-testid="stMetricValue"]{color:#173342;font-size:34px;letter-spacing:-1px;font-weight:750}
+[data-testid="stMetricDelta"]{color:#607687}
+.mt-kpi-note{font-size:11px;color:#748894;margin:7px 6px 14px;line-height:1.4}
+.mt-context{color:#627b88;font-size:12px;margin:3px 0 20px}
+[data-baseweb="tab-list"]{gap:20px;background:transparent;border-bottom:1px solid #dbe5e9;padding:0;margin-bottom:16px}
+button[data-baseweb="tab"]{font-size:14px;font-weight:600;padding:12px 2px;color:#637e8c;background:transparent}
+button[data-baseweb="tab"][aria-selected="true"]{color:#087d72}
+[data-baseweb="tab-highlight"]{background:#0b857a;height:3px}
+h2{color:#173342;font-size:22px!important;font-weight:700!important;letter-spacing:-.4px}
+h3{color:#173342;font-size:17px!important;font-weight:650!important;line-height:1.45!important}
+[data-testid="stVerticalBlockBorderWrapper"]>div{border-radius:12px!important;border-color:#e0e8ec!important;background:#fff}
+[data-testid="stCaptionContainer"]{color:#6a818d;font-size:12px}
+.mt-action{background:#fff;border:1px solid #e0e8ec;border-radius:12px;padding:18px 20px;min-height:182px}
+.mt-action-tag{font-size:10px;letter-spacing:1.2px;color:#0b857a;font-weight:750;margin-bottom:8px}
+.mt-action h4{color:#173342;font-size:16px;line-height:1.35;margin:0 0 9px}
+.mt-action p{color:#607687;font-size:13px;line-height:1.6;margin:0}
+.mt-action .mt-number{color:#173342;font-weight:700}
+.mt-notice{background:#eaf3f6;color:#486674;border-radius:9px;padding:12px 15px;font-size:13px;margin:10px 0}
+.mt-flow{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0 24px}
+.mt-flow div{background:#fff;border:1px solid #e0e8ec;border-radius:10px;padding:16px 20px;flex:1;min-width:150px}
+.mt-flow strong{display:block;color:#173342;font-size:27px}
+.mt-flow span{color:#67808c;font-size:12px}
+.stButton button,.stDownloadButton button{border-radius:9px;font-weight:600}
+[data-testid="stExpander"]{border-color:#dce6ea;border-radius:10px;background:transparent}
+footer{visibility:hidden}
+@media(max-width:1000px){.block-container{padding:1.4rem 1.4rem 3rem}[data-testid="stMetricValue"]{font-size:27px}.mt-hero h1{font-size:28px}}
+@media(max-width:650px){.block-container{padding:1.1rem .8rem 2rem}[data-baseweb="tab-list"]{gap:12px}.mt-action{min-height:unset}.mt-hero h1{font-size:26px}}
+
+

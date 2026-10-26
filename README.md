@@ -6,7 +6,7 @@ Tecnológico Nacional de México campus Colima · Ingeniería en Inteligencia Ar
 **Qué es:** plataforma en la nube para llevar el historial de fallas y reparaciones de maquinaria minera, con tablero y pronóstico de horas fuera de servicio y riesgo de falla por equipo.
 **Cliente:** Máquinas Centella S.A. de C.V.
 **Nube:** Amazon Web Services (AWS, capa gratuita)
-**URL pública:** [Dashboard E1 en AWS](http://54.235.37.63:8501/) · escenario simulado
+**URL pública:** [Dashboard E1 en AWS](http://67.202.18.79:8501/) · escenario simulado
 
 ## Equipo
 - Carlos Alejandro Vizcaino Anguiano · Cloud Lead
@@ -47,3 +47,8 @@ Modo local: se muestra expresamente como demostración local. Modo nube: configu
 ### Infraestructura y presupuesto
 La plantilla [infra/minetrac-ec2.json](infra/minetrac-ec2.json) reproduce la demostración. El puerto público 8501 muestra solo datos simulados. El bucket mantiene bloqueo público. Es HTTP para demostración E1; no debe recibir credenciales ni datos reales confidenciales.
 La alerta existente notifica gasto real superior a 0.01 USD. EC2, disco e IPv4 pueden consumir créditos mientras estén provisionados. Detener la instancia tras la evaluación reduce consumo; el disco sigue provisionado. No se cambió el plan de la cuenta.
+
+
+### Diseño del tablero
+Cinco secciones: Vista general, Equipos y costos, Ciclos de operación, Calidad de datos y Explorar datos. Los filtros se aplican a los cuatro indicadores y a las gráficas. La FFT se presenta en días, con explicación accesible y detalle del método. Los periodos menores de 30 días conservan las otras cinco gráficas y muestran la limitación de FFT.
+

@@ -1,9 +1,9 @@
 {
   "estado": "verificado_en_navegador",
-  "url": "http://54.235.37.63:8501/",
+  "url": "http://67.202.18.79:8501/",
   "stack": "minetrac-e1-demo",
   "stack_status": "UPDATE_COMPLETE",
-  "instance_id": "i-0e873f09948835a3d",
+  "instance_id": "i-0bd91ac261d838a6b",
   "bucket": "minetrac-e1-251869518832",
   "region": "us-east-1",
   "fuente_dashboard": "s3://minetrac-e1-251869518832/clean/operacion.csv",

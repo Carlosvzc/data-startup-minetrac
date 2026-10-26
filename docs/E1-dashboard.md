@@ -138,11 +138,11 @@ NumPy FFT: https://numpy.org/doc/stable/reference/routines.fft.html
 
 ## URL y evidencia del despliegue
 
-Dashboard verificado: http://54.235.37.63:8501/
+Dashboard verificado: http://67.202.18.79:8501/
 
 Repositorio del equipo: https://github.com/Carlosvzc/data-startup-minetrac (privado, requiere acceso del docente).
 
-Instancia: i-0e873f09948835a3d. Stack: minetrac-e1-demo. Región: us-east-1. Bucket: minetrac-e1-251869518832. Estado observado: UPDATE_COMPLETE. La pantalla confirmó fuente Amazon S3 y los mismos cuatro KPIs que la prueba local.
+Instancia: i-0bd91ac261d838a6b. Stack: minetrac-e1-demo. Región: us-east-1. Bucket: minetrac-e1-251869518832. Estado observado: UPDATE_COMPLETE. La pantalla confirmó fuente Amazon S3 y los mismos cuatro KPIs que la prueba local.
 
 ![Dashboard conectado a S3](dashboard_aws.jpg)
 
@@ -151,3 +151,4 @@ Instancia: i-0e873f09948835a3d. Stack: minetrac-e1-demo. Región: us-east-1. Buc
 ![FFT y recomendaciones en el dashboard](dashboard_fft.jpg)
 
 ![Separación raw y clean en AWS](aws_raw_clean.jpg)
+

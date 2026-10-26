@@ -1,0 +1,9 @@
+services:
+  tablero:
+    build: .
+    ports:
+      - "8501:8501"
+    environment:
+      MINETRAC_STORAGE: local
+    restart: unless-stopped
+

@@ -1,0 +1,17 @@
+{
+  "estado": "verificado_en_navegador",
+  "url": "http://54.235.37.63:8501/",
+  "stack": "minetrac-e1-demo",
+  "stack_status": "UPDATE_COMPLETE",
+  "instance_id": "i-0e873f09948835a3d",
+  "bucket": "minetrac-e1-251869518832",
+  "region": "us-east-1",
+  "fuente_dashboard": "s3://minetrac-e1-251869518832/clean/operacion.csv",
+  "identidad_despliegue": "IAM individual",
+  "public_access_block": true,
+  "budget_usd": 1,
+  "alerta_actual_usd": 0.01,
+  "destinatario_alerta": "EMAIL",
+  "costos": "EC2, EBS e IPv4 consumen créditos mientras se mantienen provisionados",
+  "datos_operativos": "simulados"
+}

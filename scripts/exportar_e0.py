@@ -2,19 +2,25 @@ from pathlib import Path
 from reportlab.platypus import SimpleDocTemplate,Paragraph,Spacer,LongTable,TableStyle,Image
 from reportlab.lib.styles import getSampleStyleSheet,ParagraphStyle
 from reportlab.lib import colors
+from reportlab.lib.enums import TA_LEFT,TA_JUSTIFY
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 import html,re,shutil
 from pdf_portada import portada
 import matplotlib
 R=Path(__file__).resolve().parents[1]
-for n,f,alt in [('A','arial.ttf','DejaVuSans.ttf'),('AB','arialbd.ttf','DejaVuSans-Bold.ttf')]:
- pfont=Path('C:/Windows/Fonts')/f
- if not pfont.exists():pfont=Path(matplotlib.get_data_path())/'fonts/ttf'/alt
- pdfmetrics.registerFont(TTFont(n,str(pfont)))
+def buscar_fuente(candidatas):
+ for c in candidatas:
+  if Path(c).exists():return c
+ raise SystemExit('No encontramos Arial ni una fuente equivalente: '+', '.join(candidatas))
+# Arial en Windows; en Linux usamos Liberation Sans, que tiene las mismas medidas que Arial.
+for n,rutas in [('A',['C:/Windows/Fonts/arial.ttf','/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf']),('AB',['C:/Windows/Fonts/arialbd.ttf','/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf'])]:
+ pdfmetrics.registerFont(TTFont(n,buscar_fuente(rutas)))
+pdfmetrics.registerFontFamily('A',normal='A',bold='AB',italic='A',boldItalic='AB')
 st=getSampleStyleSheet()
-st.add(ParagraphStyle(name='BodyM',fontName='A',fontSize=9.5,leading=14,spaceAfter=8,textColor=colors.HexColor('#000000')))
-st.add(ParagraphStyle(name='SmallM',parent=st['BodyM'],fontSize=8,leading=11,spaceAfter=3))
+st.add(ParagraphStyle(name='BodyM',fontName='A',alignment=TA_JUSTIFY,fontSize=9.5,leading=14,spaceAfter=8,textColor=colors.HexColor('#000000')))
+st.add(ParagraphStyle(name='BodyL',parent=st['BodyM'],alignment=TA_LEFT))
+st.add(ParagraphStyle(name='SmallM',parent=st['BodyM'],alignment=TA_LEFT,fontSize=8,leading=11,spaceAfter=3))
 for lev,size in [(1,24),(2,14),(3,11)]:
  st.add(ParagraphStyle(name='H'+str(lev)+'M',fontName='AB',fontSize=size,leading=size*1.3,spaceBefore=14,spaceAfter=9,textColor=colors.HexColor('#000000'),keepWithNext=True))
 def inline(t):
@@ -48,7 +54,8 @@ while i<len(lines):
  if h:story.append(Paragraph(inline(h[2]),st['H'+str(len(h[1]))+'M']));i+=1;continue
  block=[t.lstrip('> ')]
  i+=1
- while i<len(lines) and lines[i].strip() and not lines[i].startswith(('#','|','- ')):
+ while i<len(lines) and lines[i].strip() and not lines[i].startswith(('#','|','- ','**')):
   block.append(lines[i].strip());i+=1
- story.append(Paragraph(inline(' '.join(block)),st['BodyM']))
+ texto=' '.join(block)
+ story.append(Paragraph(inline(texto),st['BodyL' if 'http' in texto else 'BodyM']))
 SimpleDocTemplate(str(R/'docs/E0-propuesta.pdf'),pagesize=(595.28,841.89),leftMargin=44,rightMargin=44,topMargin=39,bottomMargin=55,title='MineTrac E0 - Propuesta de negocio',author='Equipo MineTrac').build(story,onFirstPage=foot,onLaterPages=foot)

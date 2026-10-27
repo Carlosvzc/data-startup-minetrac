@@ -5,16 +5,24 @@ from pdf_portada import portada
 from reportlab.platypus import SimpleDocTemplate,Paragraph,Spacer,Image,PageBreak,KeepTogether
 from reportlab.lib.styles import getSampleStyleSheet,ParagraphStyle
 from reportlab.lib import colors
-from reportlab.lib.enums import TA_LEFT
+from reportlab.lib.enums import TA_LEFT,TA_JUSTIFY
+import re
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 ROOT=Path(__file__).resolve().parents[1]
-import matplotlib
-_dj = Path(matplotlib.get_data_path()) / 'fonts/ttf'
-for nombre, win, alt in [('Arial', r'C:/Windows/Fonts/arial.ttf', 'DejaVuSans.ttf'), ('ArialBold', r'C:/Windows/Fonts/arialbd.ttf', 'DejaVuSans-Bold.ttf')]:
-    pdfmetrics.registerFont(TTFont(nombre, win if Path(win).exists() else str(_dj / alt)))
+def buscar_fuente(candidatas):
+    for c in candidatas:
+        if Path(c).exists():
+            return c
+    raise SystemExit('No encontramos Arial ni una fuente equivalente: '+', '.join(candidatas))
+# Arial en Windows; en Linux usamos Liberation Sans, que tiene las mismas medidas que Arial.
+for nombre, rutas in [('Arial', ['C:/Windows/Fonts/arial.ttf', '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf']),
+                      ('ArialBold', ['C:/Windows/Fonts/arialbd.ttf', '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf'])]:
+    pdfmetrics.registerFont(TTFont(nombre, buscar_fuente(rutas)))
+pdfmetrics.registerFontFamily('Arial',normal='Arial',bold='ArialBold',italic='Arial',boldItalic='ArialBold')
 styles=getSampleStyleSheet()
-styles.add(ParagraphStyle(name='BodyX',fontName='Arial',fontSize=10,leading=15,spaceAfter=10,textColor=colors.HexColor('#000000')))
+styles.add(ParagraphStyle(name='BodyX',fontName='Arial',alignment=TA_JUSTIFY,fontSize=10,leading=15,spaceAfter=10,textColor=colors.HexColor('#000000')))
+styles.add(ParagraphStyle(name='BodyL',fontName='Arial',alignment=TA_LEFT,fontSize=10,leading=15,spaceAfter=10,textColor=colors.HexColor('#000000')))
 styles.add(ParagraphStyle(name='TitleX',fontName='ArialBold',fontSize=25,leading=31,spaceAfter=20,textColor=colors.HexColor('#000000')))
 styles.add(ParagraphStyle(name='H2X',fontName='ArialBold',fontSize=15,leading=19,spaceBefore=16,spaceAfter=10,keepWithNext=True,textColor=colors.HexColor('#000000')))
 styles.add(ParagraphStyle(name='H3X',fontName='ArialBold',fontSize=11,leading=15,spaceBefore=12,spaceAfter=8,keepWithNext=True,textColor=colors.black))
@@ -25,7 +33,7 @@ for b in blocks:
  if not b: continue
  if b.startswith('!['):
   rel=b.split('](')[1][:-1];path=ROOT/'docs'/rel
-  if rel.startswith('evidencias/'):
+  if rel.startswith('evidencias/') and not rel.startswith('evidencias/tablero/'):
    story.append(Paragraph('Consultamos esta captura en el repositorio: '+html.escape(rel),styles['BodyX']))
    continue
   from PIL import Image as PILImage
@@ -35,8 +43,8 @@ for b in blocks:
  else:
   level=1 if b.startswith('# ') else 2 if b.startswith('## ') else 3 if b.startswith('### ') else 0
   text=b[level+1:] if level else b
-  style=styles['TitleX' if level==1 else 'H2X' if level==2 else 'H3X' if level==3 else 'BodyX']
-  story.append(Paragraph(html.escape(text),style))
+  style=styles['TitleX' if level==1 else 'H2X' if level==2 else 'H3X' if level==3 else 'BodyL' if 'http' in text else 'BodyX']
+  story.append(Paragraph(re.sub(r'(https?://[^\s)]*[^\s).;,])',r'<a href="\1" color="#000000"><u>\1</u></a>',html.escape(text)),style))
   tag='h'+str(level) if level else 'p'
   web.append('<'+tag+'>'+html.escape(text)+'</'+tag+'>')
 def foot(c,d):

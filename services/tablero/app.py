@@ -1,182 +1,222 @@
-
 from pathlib import Path
-import os,io,json,sys,html
-sys.path.insert(0,str(Path(__file__).resolve().parent))
+import os, io, json, sys, html
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import pandas as pd
 import streamlit as st
-from core import metrics
+from core import resumen, recomendaciones, ciclo_cercano
 from figures import views
 
-ROOT=Path(__file__).resolve().parents[2]
-HERE=Path(__file__).resolve().parent
-st.set_page_config(page_title='MineTrac | Control operativo',page_icon='⛏',layout='wide',initial_sidebar_state='expanded')
-st.markdown('<style>'+ (HERE/'styles.css').read_text(encoding='utf-8-sig')+'</style>',unsafe_allow_html=True)
-mode=os.environ.get('MINETRAC_STORAGE','local')
+ROOT = Path(__file__).resolve().parents[2]
+HERE = Path(__file__).resolve().parent
+st.set_page_config(page_title='MineTrac | Control de mantenimiento', page_icon='⛏', layout='wide', initial_sidebar_state='expanded')
+st.markdown('<style>' + (HERE / 'styles.css').read_text(encoding='utf-8-sig') + '</style>', unsafe_allow_html=True)
+mode = os.environ.get('MINETRAC_STORAGE', 'local')
+
+
 @st.cache_data(ttl=60)
-def load(mode,bucket,region):
-    if mode=='s3':
+def load(mode, bucket, region):
+    if mode == 's3':
         import boto3
-        client=boto3.client('s3',region_name=region)
-        def obj(key):return client.get_object(Bucket=bucket,Key=key)['Body'].read()
-        return pd.read_csv(io.BytesIO(obj('clean/operacion.csv'))),json.loads(obj('clean/resultados.json')),'Amazon S3 · '+bucket+'/clean/operacion.csv'
-    if mode!='local':raise ValueError('Modo de almacenamiento desconocido.')
-    return pd.read_csv(ROOT/'data/clean/operacion.csv'),json.loads((ROOT/'data/clean/resultados.json').read_text(encoding='utf-8')),'Demostración local'
+        client = boto3.client('s3', region_name=region)
+
+        def obj(key):
+            return client.get_object(Bucket=bucket, Key=key)['Body'].read()
+        return (pd.read_csv(io.BytesIO(obj('clean/mantenimiento.csv'))), pd.read_csv(io.BytesIO(obj('clean/inventario.csv'))),
+                json.loads(obj('clean/resultados.json')), 'Amazon S3 · ' + bucket + '/clean/')
+    if mode != 'local':
+        raise ValueError('Modo de almacenamiento desconocido.')
+    base = ROOT / 'data/clean'
+    return (pd.read_csv(base / 'mantenimiento.csv'), pd.read_csv(base / 'inventario.csv'),
+            json.loads((base / 'resultados.json').read_text(encoding='utf-8')), 'Demostración local · data/clean/')
+
+
 try:
-    d,result,source=load(mode,os.environ.get('MINETRAC_BUCKET',''),os.environ.get('AWS_DEFAULT_REGION','us-east-1'))
+    mant, inv, result, source = load(mode, os.environ.get('MINETRAC_BUCKET', ''), os.environ.get('AWS_DEFAULT_REGION', 'us-east-1'))
 except Exception:
     st.error('No pudimos cargar los datos. Revisa la conexión o solicita al responsable que verifique el acceso a la fuente.')
     if st.button('Volver a intentar'):
-        st.cache_data.clear();st.rerun()
+        st.cache_data.clear()
+        st.rerun()
     st.stop()
 
-def safe(v):return html.escape(str(v))
-def date_label(v):
-    months=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']
-    x=pd.Timestamp(v)
-    return f'{x.day:02d} {months[x.month-1]} {x.year}'
+
+def safe(v):
+    return html.escape(str(v))
+
+
 def money(v):
-    return '$'+(f'{v/1e6:,.2f} M' if abs(v)>=1e6 else f'{v:,.0f}')
+    return '$' + (f'{v / 1e6:,.2f} M' if abs(v) >= 1e6 else f'{v:,.0f}')
+
+
+def date_label(v):
+    months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
+    x = pd.Timestamp(v)
+    return f'{x.day:02d} {months[x.month - 1]} {x.year}'
+
+
 def reset_filters():
-    for key in ['category','equipment','location','billing','period']:
-        st.session_state.pop(key,None)
-def chart(title,fig,caption,key):
+    for key in ['period', 'trucks', 'system']:
+        st.session_state.pop(key, None)
+
+
+def chart(title, fig, caption, key):
     with st.container(border=True):
         st.subheader(title)
         st.caption(caption)
-        st.plotly_chart(fig,width='stretch',key=key,config={'displayModeBar':False,'responsive':True})
+        if fig is None:
+            st.info('No hay datos suficientes en esta selección para esta gráfica.')
+        else:
+            st.plotly_chart(fig, width='stretch', key=key, config={'displayModeBar': False, 'responsive': True})
+
 
 with st.sidebar:
-    st.markdown('<div class="mt-brand"><span>M</span>MineTrac</div><div class="mt-sidebar-sub">CONTROL DE MAQUINARIA</div>',unsafe_allow_html=True)
+    st.markdown('<div class="mt-brand"><span>M</span>MineTrac</div><div class="mt-sidebar-sub">CONTROL DE MAQUINARIA</div>', unsafe_allow_html=True)
     st.subheader('Tu selección')
-    begin,end=pd.Timestamp(d.fecha.min()).date(),pd.Timestamp(d.fecha.max()).date()
-    period=st.date_input('Periodo de análisis',value=(begin,end),min_value=begin,max_value=end,key='period',format='DD/MM/YYYY')
-    category=st.selectbox('Tipo de maquinaria',['Toda la maquinaria']+sorted(d.categoria.unique()),key='category')
-    options=sorted(d.loc[d.categoria.eq(category) if category!='Toda la maquinaria' else pd.Series(True,index=d.index),'equipo_id'].unique())
-    if 'equipment' in st.session_state:
-        st.session_state['equipment']=[x for x in st.session_state['equipment'] if x in options]
-    equipment=st.multiselect('Equipos específicos',options,default=[],key='equipment',placeholder='Toda la flota',help='Déjalo vacío para incluir todos los equipos del tipo elegido.')
-    with st.expander('Ubicación y modalidad'):
-        location=st.selectbox('Ubicación',['Todas las ubicaciones']+sorted(d.ubicacion.unique()),key='location')
-        billing=st.selectbox('Modalidad de cobro',['Todas las modalidades']+sorted(d.modalidad_cobro.unique()),key='billing',format_func=lambda x:{'hora':'Por hora','tonelada':'Por tonelada'}.get(x,x))
-    st.button('Restablecer filtros',on_click=reset_filters,width='stretch')
+    begin, end = pd.Timestamp(mant.fecha.min()).date(), pd.Timestamp(mant.fecha.max()).date()
+    period = st.date_input('Periodo de análisis', value=(begin, end), min_value=begin, max_value=end, key='period', format='DD/MM/YYYY')
+    trucks = st.multiselect('Camiones', sorted(mant.camion_id.unique()), default=[], key='trucks', placeholder='Los 7 camiones',
+                            help='Déjalo vacío para incluir todos los camiones.')
+    system = st.selectbox('Sistema', ['Todos los sistemas'] + sorted(mant.sistema.unique()), key='system')
+    st.button('Restablecer filtros', on_click=reset_filters, width='stretch')
     st.divider()
     st.caption('FUENTE DE INFORMACIÓN')
-    st.markdown('<span class="mt-badge">'+('Datos conectados a AWS' if mode=='s3' else 'Demostración local')+'</span>',unsafe_allow_html=True)
-    if st.button('Recargar datos',width='stretch'):
-        st.cache_data.clear();st.rerun()
+    st.markdown('<span class="mt-badge">' + ('Datos conectados a AWS' if mode == 's3' else 'Demostración local') + '</span>', unsafe_allow_html=True)
+    if st.button('Recargar datos', width='stretch'):
+        st.cache_data.clear()
+        st.rerun()
     st.caption('MineTrac · Evidencia 1')
     st.caption('Todos los importes se muestran en MXN.')
 
-st.markdown('<div class="mt-eyebrow">OPERACIÓN / PANEL EMPRESARIAL</div><div class="mt-hero"><h1>Resumen de operación</h1><p>Entiende cuánto genera tu flota, qué cuesta mantenerla y dónde enfocar la revisión.</p></div>',unsafe_allow_html=True)
-st.markdown('<div class="mt-simulation"><b>ESCENARIO SIMULADO · E1</b> &nbsp; Horas, costos e ingresos sintéticos. Catálogo provisional de 21 equipos.</div>',unsafe_allow_html=True)
-if len(period)!=2:
+st.markdown('<div class="mt-eyebrow">MANTENIMIENTO / PANEL EMPRESARIAL</div><div class="mt-hero"><h1>Resumen de mantenimiento</h1>'
+            '<p>Entiende qué se repara, cuánto cuesta y dónde enfocar la revisión de la flota.</p></div>', unsafe_allow_html=True)
+st.markdown('<div class="mt-simulation"><b>DATOS REALES · E1</b> &nbsp; Catálogo de 21 equipos y bitácora de reparaciones de los 7 camiones de Máquinas Centella. '
+            '<b>Pendiente de entrega por la empresa:</b> horas trabajadas, toneladas, tarifas e ingresos. No se simula ni se estima nada de eso.</div>', unsafe_allow_html=True)
+if len(period) != 2:
     st.info('Elige la fecha de inicio y la fecha de fin para consultar el periodo.')
     st.stop()
-mask=d.fecha.between(str(period[0]),str(period[1]))
-if category!='Toda la maquinaria':mask &= d.categoria.eq(category)
-if equipment:mask &= d.equipo_id.isin(equipment)
-if location!='Todas las ubicaciones':mask &= d.ubicacion.eq(location)
-if billing!='Todas las modalidades':mask &= d.modalidad_cobro.eq(billing)
-selection=d.loc[mask].copy()
-if selection.empty:
-    st.info('No hay registros para esta combinación. Cambia el periodo o restablece los filtros.')
+mm = mant[mant.fecha.between(str(period[0]), str(period[1]))]
+if trucks:
+    mm = mm[mm.camion_id.isin(trucks)]
+if system != 'Todos los sistemas':
+    mm = mm[mm.sistema.eq(system)]
+if mm.empty:
+    st.info('No hay intervenciones para esta combinación. Cambia el periodo o restablece los filtros.')
     st.stop()
-k=metrics(selection)
-cards=st.columns(4)
-metric_specs=[
- ('Ingresos del periodo',money(k['ingresos_mxn']),'MXN acumulados','Suma de ingresos. Cada registro cobra por hora o por tonelada, según su modalidad.'),
- ('Margen directo',f"{k['margen_directo_pct']:.2f}%" if k['margen_directo_pct'] is not None else 'Sin base','Después de operación y mantenimiento','Porcentaje de ingresos que queda al restar costos operativos y mantenimiento. No es utilidad neta contable.'),
- ('Mantenimiento por hora','$'+f"{k['mantenimiento_mxn_h']:.2f}" if k['mantenimiento_mxn_h'] is not None else 'Sin base','MXN por hora trabajada','Costo total de mantenimiento dividido entre las horas trabajadas de la selección.'),
- ('Disponibilidad',f"{k['disponibilidad_pct']:.2f}%" if k['disponibilidad_pct'] is not None else 'Sin base','Tiempo programado sin paro','Horas programadas menos horas de paro, divididas entre horas programadas. No equivale a utilización.')
+
+k = resumen(mm)
+cards = st.columns(4)
+specs = [
+    ('Intervenciones', f"{k['intervenciones']:,}", 'Reparaciones y servicios registrados', 'Cada intervención cuenta una vez, aunque toque varios sistemas.'),
+    ('Gasto registrado', money(k['gasto_mxn']), 'MXN con monto anotado (parcial)', 'Suma solo los montos anotados en la bitácora. No se estima lo que falta, así que es un piso del gasto real.'),
+    ('Costo promedio', '$' + f"{k['promedio_mxn']:,.0f}" if k['promedio_mxn'] is not None else 'Sin base', 'Por intervención con monto', 'Gasto registrado dividido entre las intervenciones que tienen monto.'),
+    ('Repeticiones / 100 interv.', f"{k['pct_reincidencia']:.1f}", 'Mismo componente en hasta 30 días', 'Razón: repeticiones por componente y fecha divididas entre intervenciones. No es porcentaje de intervenciones fallidas ni mide fallas confirmadas.'),
 ]
-for col,(label,value,note,help_text) in zip(cards,metric_specs):
+for col, (label, value, note, help_text) in zip(cards, specs):
     with col:
-        st.metric(label,value,help=help_text)
-        st.markdown('<div class="mt-kpi-note">'+note+'</div>',unsafe_allow_html=True)
-st.markdown('<div class="mt-context">'+safe(date_label(period[0]))+' — '+safe(date_label(period[1]))+' &nbsp; · &nbsp; '+str(selection.equipo_id.nunique())+' equipos &nbsp; · &nbsp; '+f'{len(selection):,}'+' registros &nbsp; · &nbsp; Filtros aplicados a todos los indicadores y gráficas</div>',unsafe_allow_html=True)
-charts,agg=views(selection)
-eq=agg['equipment']
-costly=eq.loc[eq.mant_h.idxmax()] if eq.mant_h.notna().any() else None
-lowest=eq.loc[eq.margen_pct.idxmin()] if eq.margen_pct.notna().any() else None
-overview,equipments,cycles,quality,detail=st.tabs(['Vista general','Equipos y costos','Ciclos de operación','Calidad de datos','Explorar datos'])
+        st.metric(label, value, help=help_text)
+        st.markdown('<div class="mt-kpi-note">' + note + '</div>', unsafe_allow_html=True)
+st.markdown('<div class="mt-context">' + safe(date_label(period[0])) + ' — ' + safe(date_label(period[1])) + ' &nbsp; · &nbsp; '
+            + str(mm.camion_id.nunique()) + ' camiones &nbsp; · &nbsp; ' + f"{k['con_monto']:,}" + ' intervenciones con monto de ' + f"{k['intervenciones']:,}"
+            + ' &nbsp; · &nbsp; Filtros aplicados a todos los indicadores y gráficas</div>', unsafe_allow_html=True)
+st.caption('Fechas analíticas: 15 heredadas y 3 con año corregido; 01/01/2022 representa solo el año conocido. Consulta Calidad de datos antes de interpretar los ciclos.')
+charts, aux = views(mm)
+overview, maintenance, cycles, fleet, quality, detail = st.tabs(
+    ['Vista general', 'Mantenimiento y refacciones', 'Ciclos', 'Flota y operación', 'Calidad de datos', 'Explorar datos'])
 
 with overview:
-    st.subheader('Cómo se generan los ingresos')
-    left,right=st.columns([1.55,1],gap='medium')
-    with left:
-        chart(charts[0][0],charts[0][1],'La línea más intensa muestra el promedio de 7 días para facilitar la lectura de la tendencia.','chart0')
-    with right:
-        chart(charts[1][0],charts[1][1],'Participación por tipo de maquinaria en el periodo elegido.','chart1')
-    st.subheader('Tres decisiones para revisar')
-    st.caption('Acciones sugeridas para este escenario simulado. Contrástalas con registros reales antes de aplicarlas a la empresa.')
-    p=agg['peaks']
-    cycle_text=f"{p[0]['periodo_dias']:.0f} y {p[1]['periodo_dias']:.0f} días" if len(p)>1 else 'un periodo más amplio'
-    actions=[
-      ('01 / MANTENIMIENTO',f'Revisar el equipo {safe(costly.equipo_id)}' if costly is not None else 'Revisar captura de mantenimiento',
-       f"Registra el mayor costo: <span class='mt-number'>$"+f"{costly.mant_h:.2f} MXN/h</span>. Conciliar órdenes de trabajo antes de decidir reemplazos." if costly is not None else 'Se requieren horas trabajadas para comparar el costo por hora.'),
-      ('02 / CAPACIDAD','Preparar personal e insumos',f"Revisar la programación en ciclos de <span class='mt-number'>{cycle_text}</span>. Los patrones de la simulación deben validarse con partes reales."),
-      ('03 / CONTRATOS',f'Revisar la tarifa de {safe(lowest.equipo_id)}' if lowest is not None else 'Revisar ingresos y costos',
-       f"Presenta el menor margen directo: <span class='mt-number'>{lowest.margen_pct:.1f}%</span>. Comparar trabajos y contratos equivalentes antes de renegociar." if lowest is not None else 'Se necesitan ingresos distintos de cero para calcular el margen.')
-    ]
-    for col,(tag,title,text) in zip(st.columns(3),actions):
+    st.subheader('Qué cuesta y dónde se concentra')
+    l, r = st.columns([1.2, 1], gap='medium')
+    with l:
+        chart(charts[0][0], charts[0][1], 'Gasto por componente, solo con intervenciones que tienen monto. Si una intervención toca varios sistemas, el monto se reparte en partes iguales.', 'c0')
+    with r:
+        chart(charts[1][0], charts[1][1], 'Intervenciones por camión; en gris, las que no tienen monto anotado.', 'c1')
+    st.subheader('Tres recomendaciones para revisar')
+    st.caption('Se calculan con tu selección. El gasto es parcial: solo incluye los montos que alguien anotó.')
+    for col, (tag, title, text) in zip(st.columns(3), recomendaciones(mm, aux)):
         with col:
-            st.markdown(f'<div class="mt-action"><div class="mt-action-tag">{tag}</div><h4>{title}</h4><p>{text}</p></div>',unsafe_allow_html=True)
+            st.markdown(f'<div class="mt-action"><div class="mt-action-tag">{safe(tag)}</div><h4>{safe(title)}</h4><p>{safe(text)}</p></div>', unsafe_allow_html=True)
 
-with equipments:
-    st.subheader('Compara equipos con la misma selección')
-    st.caption('Las barras horizontales permiten leer cada equipo sin girar las etiquetas. El color destaca el valor más alto, sin clasificarlo automáticamente como bueno o malo.')
-    l,r=st.columns(2,gap='medium')
-    with l:chart(charts[2][0],charts[2][1],'Margen después de costos directos y mantenimiento; no incluye impuestos, depreciación ni financiamiento.','chart2')
-    with r:chart(charts[3][0],charts[3][1],'Razón de costos totales entre horas totales; un valor alto requiere revisión, no demuestra una falla.','chart3')
-    with st.expander('Ver cifras exactas por equipo'):
-        display=eq[['equipo_id','ingreso_mxn','margen_pct','horas','mantenimiento','mant_h']].rename(columns={'equipo_id':'Equipo','ingreso_mxn':'Ingresos (MXN)','margen_pct':'Margen directo (%)','horas':'Horas trabajadas','mantenimiento':'Mantenimiento (MXN)','mant_h':'Mantenimiento (MXN/h)'})
-        st.dataframe(display,hide_index=True,width='stretch',column_config={c:st.column_config.NumberColumn(format='%.2f') for c in display.columns if c!='Equipo'})
+with maintenance:
+    st.subheader('Qué se ha reparado y cuándo')
+    st.caption('Bitácora real de los 7 camiones, limpiada y con proveedores anonimizados. Solo se suman montos que alguien anotó; no se estima lo que falta.')
+    l, r = st.columns(2, gap='medium')
+    with l:
+        chart(charts[2][0], charts[2][1], 'Cada punto es una intervención; el tamaño es el costo cuando existe.', 'c2')
+    with r:
+        chart(charts[3][0], charts[3][1], 'Número de intervenciones registradas por mes.', 'c3')
+    chart(charts[4][0], charts[4][1], 'Días entre trabajos registrados del mismo componente. Solo intervalos mayores de 30 días y componentes con al menos tres intervalos; no demuestra reemplazos ni vida útil.', 'c4')
+    st.markdown('<div class="mt-notice"><b>Pendiente de capturar:</b> tipo de pieza (original o genérica), proveedor real y lectura del horómetro al cambio. '
+                'Con esos tres datos el tablero calculará el costo por hora útil de cada opción, como pide el cliente.</div>', unsafe_allow_html=True)
+    if len(aux['componentes']):
+        with st.expander('Gasto por componente (cifras exactas)'):
+            comp = aux['componentes'].rename(columns={'componente': 'Componente', 'costo_mxn': 'Gasto registrado (MXN)'})
+            st.dataframe(comp, hide_index=True, width='stretch', column_config={'Gasto registrado (MXN)': st.column_config.NumberColumn(format='%.0f')})
 
 with cycles:
     st.subheader('Cuándo se repite la actividad')
-    st.caption('Compara los días de la semana y consulta cada cuántos días aparece un patrón en las horas trabajadas.')
-    l,r=st.columns([1,1.15],gap='medium')
-    with l:chart(charts[4][0],charts[4][1],'Promedio de horas diarias; evita comparar totales de días que aparecen un número diferente de veces.','chart4')
-    with r:
-        if charts[5][1] is None:
-            with st.container(border=True):
-                st.subheader('FFT · amplía el periodo')
-                st.info('Selecciona al menos 30 días completos y consecutivos para calcular los ciclos. Las otras cinco gráficas siguen disponibles.')
-        else:
-            chart(charts[5][0],charts[5][1],'El eje está expresado en días: un pico más alto indica un patrón más marcado.','chart5')
-    st.markdown('<div class="mt-notice"><b>Cómo leerlo:</b> un ciclo de 7 días indica repetición semanal; uno de 15 días, repetición cada quince días. No indica que una máquina falle con esa frecuencia.</div>',unsafe_allow_html=True)
-    with st.expander('Método FFT y alcance de la simulación'):
-        st.write('Se agregan las horas por día, se verifica un calendario sin huecos, se retira la tendencia lineal y se aplica ventana Hann antes de la transformada rápida de Fourier. Frecuencia de muestreo: una observación por día.')
-        if agg['peaks']:
-            st.dataframe(pd.DataFrame(agg['peaks'][:2]).rename(columns={'periodo_dias':'Periodo (días)','amplitud_h':'Amplitud (h)','frecuencia_ciclos_dia':'Frecuencia (ciclos/día)'}),hide_index=True)
-        st.write('Los ciclos de 7 y 15 días fueron introducidos por diseño. Recuperarlos verifica el procedimiento; no descubre estacionalidad real ni diagnostica vibraciones mecánicas.')
+    st.caption('Análisis de Fourier (FFT) sobre las intervenciones registradas por día, desde el 1 de abril de 2024.')
+    if charts[5][1] is None:
+        with st.container(border=True):
+            st.subheader('FFT · amplía el periodo')
+            st.info('Selecciona al menos 30 días completos y consecutivos para calcular los ciclos. Las otras gráficas siguen disponibles.')
+    else:
+        chart(charts[5][0], charts[5][1], 'El eje está expresado en días: un pico más alto indica un patrón más marcado.', 'c5')
+        p7, p15 = ciclo_cercano(aux['spectrum'], 7), ciclo_cercano(aux['spectrum'], 15)
+        if p7 and p15:
+            st.markdown(f'<div class="mt-notice"><b>Ciclo de 7 días:</b> su fuerza es {p7["veces_mediana"]:.1f} veces la mediana del espectro. '
+                        f'<b>Ciclo de 15 días:</b> {p15["veces_mediana"]:.1f} veces la mediana, es decir, '
+                        + ('no supera el umbral descriptivo de 2.5 veces la mediana (no es prueba estadística).' if p15['veces_mediana'] < 2.5 else 'supera el umbral descriptivo de 2.5 veces la mediana (no es prueba estadística).') + '</div>', unsafe_allow_html=True)
+    with st.expander('Método FFT y límites'):
+        st.write('Se cuenta cuántas intervenciones se registraron por día (con ceros en los días sin registro), se retira la tendencia lineal y se aplica ventana Hann antes de la transformada rápida de Fourier.')
+        st.write('Es un patrón de cuándo se registran o se atienden reparaciones, no de cuándo fallan las máquinas. Con 257 intervenciones en unos 900 días, la señal es débil; sirve para ver el ritmo semanal del taller, no para predecir fallas.')
+        if aux['peaks']:
+            st.dataframe(pd.DataFrame(aux['peaks'][:3]).rename(columns={'periodo_dias': 'Periodo (días)', 'amplitud': 'Amplitud', 'frecuencia_ciclos_dia': 'Frecuencia (ciclos/día)'}), hide_index=True)
+
+with fleet:
+    st.subheader('Catálogo de equipos')
+    st.caption('21 equipos de Máquinas Centella según el catálogo entregado (pendiente de validación por la empresa).')
+    c = inv.groupby('categoria').size().reset_index(name='Equipos').rename(columns={'categoria': 'Tipo'})
+    st.dataframe(c, hide_index=True, width='stretch')
+    st.dataframe(inv[['equipo_id', 'categoria', 'modelo']].rename(columns={'equipo_id': 'Equipo', 'categoria': 'Tipo', 'modelo': 'Modelo'}), hide_index=True, width='stretch')
+    st.markdown('<div class="mt-notice"><b>Operación y balance financiero: pendiente.</b> En su carta del 25 de octubre de 2026, Máquinas Centella informa que está '
+                'recopilando, revisando y consolidando la información en un archivo de Excel con sus departamentos. Cuando llegue (horas trabajadas por turno, toneladas, tarifas, '
+                'horómetro), este tablero agregará los ingresos, el margen operativo neto por equipo y el indicador de tarifas para contratos.</div>', unsafe_allow_html=True)
 
 with quality:
-    a=result['auditoria']
+    b = result['auditoria_bitacora']
+    f = b['formato']
     st.subheader('Datos revisados antes del análisis')
-    st.caption('Esta auditoría corresponde a la base completa del escenario, independientemente de los filtros de consulta.')
-    st.markdown(f'<div class="mt-flow"><div><strong>{a["filas_raw"]:,}</strong><span>registros recibidos</span></div><div><strong>{sum(a[x] for x in ["nulos","duplicados","negativos","atipicos","formato"]):,}</strong><span>incidencias corregidas</span></div><div><strong>{a["filas_clean"]:,}</strong><span>registros depurados</span></div><div><strong>0</strong><span>errores residuales en los cinco controles</span></div></div>',unsafe_allow_html=True)
-    fixes=['Interpolación por equipo y fecha','Eliminación de copias idénticas','Conversión a faltante e interpolación','Límite físico del turno e interpolación','ID en mayúsculas, sin espacios']
-    audit=pd.DataFrame({'Error':['Nulos','Duplicados','Negativos','Atípicos','Formato'],'Detectados':[a[x] for x in ['nulos','duplicados','negativos','atipicos','formato']],'Corrección aplicada':fixes,'Residuales':[0]*5})
-    st.dataframe(audit,hide_index=True,width='stretch')
-    with st.expander('Procedencia y reglas de limpieza'):
-        st.write('El catálogo procede del Excel provisional de la empresa. Los 8,820 registros operativos son sintéticos, con semilla 42; no son datos reales de horas, costos o ingresos. Los errores de práctica se sembraron deliberadamente.')
-        st.write('Las horas nulas, negativas o fuera del turno se interpolan dentro del mismo equipo y se acotan por horas programadas menos paro. En los extremos se usa el valor válido más cercano. Ingresos y costos variables se reconstruyen únicamente en este escenario simulado. La limpieza no consulta la base anterior a la corrupción.')
+    st.caption('La auditoría corresponde a la bitácora completa, independientemente de los filtros de consulta.')
+    st.markdown(f'<div class="mt-flow"><div><strong>{b["intervenciones_leidas"]:,}</strong><span>intervenciones leídas</span></div><div><strong>{b["registros_clean"]:,}</strong><span>registros por sistema</span></div><div><strong>{b["formato_total"] + b["nulos_fecha_imputados"]:,}</strong><span>fechas y formatos corregidos</span></div><div><strong>{b["nulos_costo"]:,}</strong><span>sin monto (no se inventan)</span></div></div>', unsafe_allow_html=True)
+    st.dataframe(pd.DataFrame({
+        'Error': ['Nulos', 'Duplicados', 'Negativos', 'Atípicos', 'Formato'],
+        'Detectados': [b['nulos_costo'] + b['nulos_fecha_imputados'], b['duplicados'], b['negativos'], b['atipicos'], b['formato_total']],
+        'Tratamiento': [f"{b['nulos_costo']} intervenciones sin monto se conservan sin monto; {b['nulos_fecha_imputados']} filas sin fecha heredan la de la fila anterior",
+                        'Control de duplicación dentro de la misma fila de origen: ninguno. No descarta registros duplicados en filas distintas.', 'Ningún monto negativo',
+                        f"1 monto sobre ${b['limite_atipico_mxn']:,.0f} (ajuste completo de motor) se conserva como monto anotado; pendiente de validar con comprobante",
+                        f"{f['fechas_texto_interpretadas']} fechas escritas a mano interpretadas, {f['fechas_anio_corregido'] + f['fechas_solo_anio']} años corregidos o aproximados, {f['costo_extraido_de_texto']} montos tomados del texto, {f['texto_en_columna_costo']} texto en la columna de costo y {f['costo_en_columna_servicio']} monto en la columna de servicio"],
+        'Residuales': [b['nulos_costo'], 0, 0, b['atipicos'], 0]}), hide_index=True, width='stretch')
+    with st.expander('Procedencia, privacidad y reglas de limpieza'):
+        st.write('El catálogo y la bitácora proceden de los Excel de Máquinas Centella. No hay datos simulados en este tablero.')
+        st.write('En la bitácora se corrigen fechas por orden cronológico de la hoja, se reparten los montos entre los sistemas de cada intervención y se clasifica la pieza con palabras clave del texto. El componente y la condición (nueva o reparada) son una interpretación que debe validar la empresa.')
+        st.write('Privacidad: no se muestra texto libre ni nombres. En este procesamiento no se identificaron proveedores: la columna conserva sin_dato; no se inventaron códigos ni identidades.')
+        st.write('Fechas derivadas, pendientes de validar: 15 intervenciones heredaron fecha, 3 cambiaron de año por orden de la hoja y 1 solo tenía el año 2022. En esta última, 01/01 es una referencia técnica, no un día observado. La columna Calidad de fecha permite distinguirlas. La FFT excluye fechas anteriores a abril de 2024; depende de una captura completa, que aún no está confirmada.')
+        st.write('El reparto igual del monto entre sistemas es una asignación analítica, no un desglose facturado. Días entre trabajos no equivale a vida útil de una pieza ni confirma que se reemplazó. Un monto atípico se conserva por estar anotado: no se verificó con factura.')
     with st.expander('Cómo se calculan los cuatro indicadores'):
-        st.write('Ingresos: suma de horas × tarifa o toneladas × tarifa, según modalidad. Un registro utiliza una sola modalidad.')
-        st.write('Margen directo (%) = 100 × (ingresos − operación directa − mantenimiento) / ingresos.')
-        st.write('Mantenimiento (MXN/h) = suma de mantenimiento / suma de horas trabajadas.')
-        st.write('Disponibilidad (%) = 100 × (horas programadas − horas de paro) / horas programadas. No equivale a utilización.')
+        st.write('Intervenciones: eventos distintos de la bitácora. Gasto registrado: suma de montos anotados. Costo promedio: gasto registrado ÷ intervenciones con monto.')
+        st.write('Repeticiones por 100 intervenciones = 100 × repeticiones por camión, componente y fecha en hasta 30 días ÷ intervenciones. Es una razón entre unidades distintas, no el porcentaje de reparaciones fallidas.')
     with st.expander('Conexión y trazabilidad'):
         st.caption(source)
         st.write('En modo AWS, el tablero lee la fuente privada con credenciales temporales del rol de instancia. Si la fuente falla, informa el error y no la reemplaza por una copia local.')
-    st.download_button('Descargar auditoría del escenario',json.dumps(result,ensure_ascii=False,indent=2),'auditoria_minetrac.json','application/json')
+    st.download_button('Descargar auditoría', json.dumps(b, ensure_ascii=False, indent=2), 'auditoria_minetrac.json', 'application/json')
 
 with detail:
-    st.subheader('Registros de tu selección')
-    st.caption(f'{len(selection):,} filas. Usa la búsqueda de la tabla o descarga el detalle para revisarlo.')
-    display=selection[['fecha','equipo_id','categoria','ubicacion','horas_trabajadas_h','ingreso_mxn','costo_operativo_mxn','costo_mantenimiento_mxn','margen_directo_mxn']].rename(columns={'fecha':'Fecha','equipo_id':'Equipo','categoria':'Tipo','ubicacion':'Ubicación','horas_trabajadas_h':'Horas','ingreso_mxn':'Ingresos (MXN)','costo_operativo_mxn':'Operación (MXN)','costo_mantenimiento_mxn':'Mantenimiento (MXN)','margen_directo_mxn':'Margen directo (MXN)'})
-    st.dataframe(display,hide_index=True,width='stretch',column_config={c:st.column_config.NumberColumn(format='%.2f') for c in display.columns if '(MXN)' in c or c=='Horas'})
-    st.download_button('Descargar selección en CSV',selection.to_csv(index=False).encode('utf-8-sig'),'minetrac_seleccion.csv','text/csv',type='primary')
-st.caption('MineTrac · E1 Data Startup · Importes en MXN · Resultados del escenario simulado')
-
+    st.subheader('Intervenciones de camiones en tu selección')
+    st.caption(f'{len(mm):,} filas (una por intervención y sistema). Sin texto libre; proveedores anonimizados.')
+    cols = ['fecha', 'fecha_calidad', 'camion_id', 'sistema', 'componente', 'condicion_pieza', 'proveedor_codigo', 'costo_mxn', 'costo_origen', 'vida_util_dias', 'reincidencia_30d']
+    dm = mm[cols].rename(columns={'fecha': 'Fecha analítica', 'fecha_calidad': 'Calidad de fecha', 'camion_id': 'Camión', 'sistema': 'Sistema', 'componente': 'Componente', 'condicion_pieza': 'Condición',
+                                  'proveedor_codigo': 'Proveedor', 'costo_mxn': 'Monto (MXN)', 'costo_origen': 'Origen del monto', 'vida_util_dias': 'Días desde cambio anterior (>30)',
+                                  'reincidencia_30d': 'Repite en 30 días'})
+    st.dataframe(dm, hide_index=True, width='stretch', column_config={'Monto (MXN)': st.column_config.NumberColumn(format='%.0f')})
+    st.download_button('Descargar mantenimiento en CSV', mm.to_csv(index=False).encode('utf-8-sig'), 'minetrac_mantenimiento.csv', 'text/csv', type='primary')
+st.caption('MineTrac · E1 Data Startup · Importes en MXN · Información real de Máquinas Centella; operación pendiente')

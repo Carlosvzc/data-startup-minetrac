@@ -2,6 +2,8 @@
 
 Entregamos el análisis construido con el catálogo de 21 equipos y la bitácora de 257 intervenciones de los siete camiones que proporcionó Máquinas Centella. Solo 75 intervenciones incluyen monto: $928,832 MXN registrados. No completamos los 182 montos faltantes con estimaciones.
 
+Recibimos además 35 fotos de una libreta manuscrita de 14 equipos que no son camiones. Está en proceso de transcripción y no se incluye en las cifras de esta entrega. En el catálogo, K1 está descontinuado y M2 es nuevo, sin historial de mantenimiento todavía.
+
 Los profesores indicaron verbalmente al equipo que se podía entregar E0 y E1 con la información recibida y completar después los datos pendientes.
 
 La empresa informó por carta (25 de octubre de 2026) que está consolidando la información en un Excel. La carta se entregó por separado en Classroom y no forma parte del repositorio.

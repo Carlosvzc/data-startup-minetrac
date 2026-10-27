@@ -166,9 +166,13 @@ Pruebas automáticas (pytest): indicadores de un caso pequeño hecho a mano; cal
 
 ## Pendientes con el cliente
 
+Libreta manuscrita: 35 fotos de 14 equipos que no son camiones, recibidas y en proceso de transcripción. No entran en las cifras de esta entrega.
+
 Excel consolidado de la empresa (horas trabajadas por turno, toneladas, tarifas y horómetro); tipo de pieza (original o genérica) y proveedor en cada compra; lectura del horómetro al cambiar una pieza; fecha de falla y de regreso a operación de cada paro (para medir las horas fuera de servicio que pidió la empresa en la entrevista); montos de las intervenciones sin costo; y validar la clasificación de componentes. Con esos datos el tablero podrá calcular el costo por hora útil de cada refacción y el balance financiero por equipo, que son los módulos 1 y 3 del documento de contexto.
 
 ## Límites de interpretación y entrega parcial
+
+La empresa también nos pasó 35 fotos de una libreta manuscrita con registros de 14 equipos que no son camiones. Está recibida en fotos, en proceso de transcripción y no se incluye en las cifras de esta entrega. K1 está descontinuado y M2 es nuevo, sin historial de mantenimiento todavía; por eso el catálogo incluye la columna estado.
 
 Los profesores indicaron verbalmente al equipo que se podía entregar E0 y E1 con la información recibida y completar después los datos pendientes.
 

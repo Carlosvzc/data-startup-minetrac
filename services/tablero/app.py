@@ -178,7 +178,9 @@ with fleet:
     st.caption('21 equipos de Máquinas Centella según el catálogo entregado (pendiente de validación por la empresa).')
     c = inv.groupby('categoria').size().reset_index(name='Equipos').rename(columns={'categoria': 'Tipo'})
     st.dataframe(c, hide_index=True, width='stretch')
-    st.dataframe(inv[['equipo_id', 'categoria', 'modelo']].rename(columns={'equipo_id': 'Equipo', 'categoria': 'Tipo', 'modelo': 'Modelo'}), hide_index=True, width='stretch')
+    cols = ['equipo_id', 'categoria', 'modelo'] + (['estado'] if 'estado' in inv.columns else [])
+    st.dataframe(inv[cols].rename(columns={'equipo_id': 'Equipo', 'categoria': 'Tipo', 'modelo': 'Modelo', 'estado': 'Estado'}), hide_index=True, width='stretch')
+    st.caption('K1 está descontinuado y M2 es nuevo, sin historial de mantenimiento todavía. Para los demás equipos la empresa no indicó su estado.')
     st.markdown('<div class="mt-notice"><b>Operación y balance financiero: pendiente.</b> Máquinas Centella nos informó por carta del 25 de octubre de 2026 que está '
                 'recopilando, revisando y consolidando la información en un archivo de Excel con sus departamentos. Cuando llegue (horas trabajadas por turno, toneladas, tarifas, '
                 'horómetro), podremos agregar los ingresos, el margen operativo neto por equipo y el indicador de tarifas para contratos. La carta se entregó por separado en Classroom.</div>', unsafe_allow_html=True)

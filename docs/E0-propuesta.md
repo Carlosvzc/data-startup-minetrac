@@ -13,7 +13,7 @@ Tecnológico Nacional de México campus Colima · Ingeniería en Inteligencia Ar
 | Cloud Lead | Carlos Alejandro Vizcaino Anguiano · matrícula 25460343 |
 | Data Lead | Diego Reyes Natilla · matrícula 25460331 |
 
-> Estado de la información: este documento se basa solo en el catálogo de equipos, la bitácora de reparaciones de los camiones, el documento de contexto, la carta y la entrevista que entregó o dio la empresa. No usamos datos simulados. Lo que todavía falta se lista en la sección 8.
+> Estado de la información: este documento se basa solo en el catálogo de equipos, la bitácora de reparaciones de los camiones, el documento de contexto, la carta y la entrevista que entregó o dio la empresa. No usamos datos simulados. Además recibimos fotos de una libreta manuscrita que todavía no transcribimos y que no entra en las cifras. Lo que todavía falta se lista en la sección 8.
 
 ---
 
@@ -97,12 +97,14 @@ Usamos la información que recibimos de la empresa. No simulamos datos.
 
 | Fuente | Contenido | Periodo | Volumen |
 |---|---|---|---|
-| `EQUIPOS MAQ CENTELLA.xlsx` | Catálogo: 11 cargadores (950H, 950K, 966H, 966K, 966M, 972M), 2 minicargadores (236, 226), 1 retroexcavadora (416) y 7 camiones (Sterling, International y Loresa) | Actual | 21 equipos |
+| `EQUIPOS MAQ CENTELLA.xlsx` | Catálogo (K1 descontinuado; M2 nuevo, sin historial todavía): 11 cargadores (950H, 950K, 966H, 966K, 966M, 972M), 2 minicargadores (236, 226), 1 retroexcavadora (416) y 7 camiones (Sterling, International y Loresa) | Actual | 21 equipos |
 | `CAMIONES 12M3 Y 14M3.xlsx` | Bitácora de reparaciones de los 7 camiones: una hoja por camión, columnas por sistema (motor, electrónico, transmisión y dirección, caja y frenos, A/C y eléctrico, estético, llantas y servicio), costo y comentarios | Principalmente abril de 2024 a octubre de 2026; también hay registros de 2023 y uno con solo el año 2022 | 257 intervenciones, 317 registros por sistema |
 | `Maquina Centella Contexto.txt` | Descripción de los tres módulos que quiere la empresa | Actual | Documento |
 | Carta de Máquinas Centella (25 de octubre de 2026) | Informa que está recopilando y consolidando el resto de la información en un Excel | Actual | Documento |
 
 **Cumplimiento del mínimo de la guía.** Revisamos que la guía pide al menos 12 meses o 5,000 registros. La bitácora cubre 30 meses, así que cumplimos por periodo, aunque tiene pocos registros (317). La señal es limitada para modelos de series de tiempo; lo decimos desde ahora para no exagerar los resultados.
+
+**Libreta manuscrita.** La empresa también nos pasó 35 fotos de una libreta manuscrita con registros de 14 equipos que no son camiones. Está recibida en fotos, en proceso de transcripción y no se incluye en las cifras de esta entrega.
 
 **Pendiente de entrega por la empresa:** horas trabajadas por turno, toneladas, tarifas por hora y por tonelada, lectura del horómetro, tipo de pieza (original o genérica) y proveedor real. La empresa los captura en papel y los está consolidando en un Excel. Mientras tanto no los simulamos: el tablero lo indica claramente y esos módulos quedan en espera.
 
@@ -115,6 +117,7 @@ Usamos la información que recibimos de la empresa. No simulamos datos.
 | `equipo_id` | Clave del equipo (K, M, C) | Completa, 21 de 21 |
 | `categoria` | Cargador, minicargador, retroexcavadora o camión; sale del encabezado del bloque | Completa |
 | `modelo` | Modelo o marca que anotó la empresa | Completa |
+| `estado` | K1 descontinuado, M2 nuevo (sin mantenimiento todavía); en los demás, `sin_indicacion` | Dato que nos dio la empresa para dos equipos |
 | `naturaleza_dato` | Marca interna: dato real | Interna |
 | `validacion` | Marca interna: pendiente de validar por la empresa | Interna |
 
@@ -144,6 +147,7 @@ Se usó Claude para ordenar el documento de contexto, proponer el borrador del L
 ## 8. Información pendiente
 
 - **Entrevista:** confirmar si el caso del gato hidráulico que cuenta Andrés es el del camión C4 (la fecha no coincide con la bitácora).
+- **Libreta manuscrita:** transcribir las 35 fotos (14 equipos que no son camiones) y validarlas con la empresa antes de usarlas en el análisis.
 - **De la empresa:** Excel consolidado (horas y toneladas por turno, tarifas, horómetro), fecha de falla y de regreso a operación de cada paro, tipo de pieza (original o genérica) y proveedor en cada compra, lectura del horómetro al cambiar una pieza y los montos de las intervenciones sin costo.
 
 

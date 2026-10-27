@@ -55,6 +55,7 @@ def main():
     (ROOT / 'data/raw/mapa_proveedores_PRIVADO.json').write_text(json.dumps(mapa, ensure_ascii=False, indent=1), encoding='utf-8')
 
     cat = leer_catalogo(a.equipos)
+    cat['estado'] = cat.equipo_id.map({'K1': 'descontinuado', 'M2': 'nuevo'}).fillna('sin_indicacion')
     cat.assign(naturaleza_dato='real', validacion='pendiente_empresa').to_csv(ROOT / 'data/clean/inventario.csv', index=False, encoding='utf-8-sig')
 
     serie = serie_diaria(mant, inicio='2024-04-01')

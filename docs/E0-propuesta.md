@@ -45,7 +45,7 @@ En la bitácora encontramos un ejemplo de un paro largo. El camión C4 registra 
 
 **Entrevistado (según la documentación del equipo):** Andrés Figueroa, representante y subdirector de Máquinas Centella S.A. de C.V.; participa en las negociaciones. La decisión final la toma la directora general, Fabiola Rodríguez.
 **Fecha y duración reportadas por el equipo:** jueves 22 de octubre de 2026 · 15 min 12 s
-**Evidencia:** grabación de video (https://drive.google.com/file/d/1T08lxQsw4fgzoZnzMQLRWwu1T9PTHPg2/view?usp=sharing) y transcripción completa.
+**Evidencia:** grabación de video (https://drive.google.com/file/d/1T08lxQsw4fgzoZnzMQLRWwu1T9PTHPg2/view?usp=sharing) y transcripción completa en `docs/evidencias/entrevista_transcripcion.md` (https://github.com/Carlosvzc/data-startup-minetrac/blob/main/docs/evidencias/entrevista_transcripcion.md).
 **Consentimiento:** al inicio se le preguntó si aceptaba que la entrevista se usara con fines académicos y respondió que sí.
 
 ### Pregunta 1. ¿Cuál es tu papel en las negociaciones y cómo participas cuando un problema operativo afecta los compromisos con el cliente?
@@ -107,6 +107,16 @@ Usamos la información que recibimos de la empresa. No simulamos datos.
 **Pendiente de entrega por la empresa:** horas trabajadas por turno, toneladas, tarifas por hora y por tonelada, lectura del horómetro, tipo de pieza (original o genérica) y proveedor real. La empresa los captura en papel y los está consolidando en un Excel. Mientras tanto no los simulamos: el tablero lo indica claramente y esos módulos quedan en espera.
 
 **Calidad de la bitácora.** Solo 75 de 257 intervenciones traen monto (29%). Hay fechas escritas a mano (`01/se/25`, `077sep/26`), años equivocados (una fecha de 2029), filas sin fecha, montos escritos dentro del texto y un ajuste de motor de $149,000 que es un monto atípico anotado, pendiente de comprobar. Las fechas inferidas se identifican con fecha_calidad. Documentamos cada transformación y los datos que faltan en la auditoría de E1.
+
+**Columnas del catálogo (`EQUIPOS MAQ CENTELLA.xlsx`).** Una sola hoja (Hoja2) con tres bloques: cargadores (clave K1 a K11 y modelo), minicargadores (clave M1 y M2 y modelo), retroexcavadora (clave R1 y modelo 416) y camiones (clave C1 a C7 y marca). El archivo no trae año, serie, horómetro ni fecha de compra. En `inventario.csv` lo ordenamos así:
+
+| Columna | Descripción | Estado |
+|---|---|---|
+| `equipo_id` | Clave del equipo (K, M, C) | Completa, 21 de 21 |
+| `categoria` | Cargador, minicargador, retroexcavadora o camión; sale del encabezado del bloque | Completa |
+| `modelo` | Modelo o marca que anotó la empresa | Completa |
+| `naturaleza_dato` | Marca interna: dato real | Interna |
+| `validacion` | Marca interna: pendiente de validar por la empresa | Interna |
 
 | Columna de la bitácora limpia (`mantenimiento.csv`) | Descripción |
 |---|---|

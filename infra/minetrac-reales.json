@@ -1,0 +1,173 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "MineTrac E1 datos entregados por empresa. Bucket privado independiente.",
+  "Parameters": {
+    "VpcId": {
+      "Type": "AWS::EC2::VPC::Id"
+    },
+    "SubnetId": {
+      "Type": "AWS::EC2::Subnet::Id"
+    },
+    "AmiId": {
+      "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+      "Default": "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
+    }
+  },
+  "Resources": {
+    "ReadRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "ec2.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "MineTracRealRead",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": "s3:GetObject",
+                  "Resource": [
+                    "arn:aws:s3:::minetrac-reales-251869518832-20261026/clean/mantenimiento.csv",
+                    "arn:aws:s3:::minetrac-reales-251869518832-20261026/clean/inventario.csv",
+                    "arn:aws:s3:::minetrac-reales-251869518832-20261026/clean/resultados.json",
+                    "arn:aws:s3:::minetrac-reales-251869518832-20261026/deploy/minetrac.zip"
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "s3:ListBucket",
+                  "Resource": "arn:aws:s3:::minetrac-reales-251869518832-20261026",
+                  "Condition": {
+                    "StringLike": {
+                      "s3:prefix": [
+                        "clean/*",
+                        "deploy/minetrac.zip"
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "Profile": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "Properties": {
+        "Roles": [
+          {
+            "Ref": "ReadRole"
+          }
+        ]
+      }
+    },
+    "Group": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "MineTrac approved dashboard only, no SSH",
+        "VpcId": {
+          "Ref": "VpcId"
+        },
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": 8501,
+            "ToPort": 8501,
+            "CidrIp": "0.0.0.0/0"
+          }
+        ]
+      }
+    },
+    "DashboardReady": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "ImageId": {
+          "Ref": "AmiId"
+        },
+        "InstanceType": "t3.micro",
+        "IamInstanceProfile": {
+          "Ref": "Profile"
+        },
+        "MetadataOptions": {
+          "HttpTokens": "required"
+        },
+        "NetworkInterfaces": [
+          {
+            "DeviceIndex": "0",
+            "AssociatePublicIpAddress": true,
+            "SubnetId": {
+              "Ref": "SubnetId"
+            },
+            "GroupSet": [
+              {
+                "Ref": "Group"
+              }
+            ]
+          }
+        ],
+        "BlockDeviceMappings": [
+          {
+            "DeviceName": "/dev/xvda",
+            "Ebs": {
+              "VolumeSize": 8,
+              "VolumeType": "gp3",
+              "Encrypted": true,
+              "DeleteOnTermination": true
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "MineTrac-E1-datos-empresa"
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": "#!/bin/bash\nset -euxo pipefail\nsleep 25\nfor attempt in {1..10}; do dnf install -y python3.11 python3.11-pip unzip && break; sleep 15; done\ncommand -v python3.11\nmkdir -p /opt/minetrac\nfor attempt in {1..10}; do aws s3 cp s3://minetrac-reales-251869518832-20261026/deploy/minetrac.zip /opt/minetrac/app.zip --region us-east-1 && break; sleep 15; done\ncd /opt/minetrac\nunzip -oq app.zip\npython3.11 -m venv venv\nvenv/bin/pip install -r requirements.txt\ncat > /etc/systemd/system/minetrac.service <<'SERVICE'\n[Unit]\nDescription=MineTrac E1 datos empresa\nAfter=network-online.target\nWants=network-online.target\n[Service]\nUser=ec2-user\nWorkingDirectory=/opt/minetrac\nEnvironment=MINETRAC_STORAGE=s3\nEnvironment=MINETRAC_BUCKET=minetrac-reales-251869518832-20261026\nEnvironment=AWS_DEFAULT_REGION=us-east-1\nExecStart=/opt/minetrac/venv/bin/python -m streamlit run services/tablero/app.py --server.address 0.0.0.0 --server.port 8501 --server.headless true --browser.gatherUsageStats false\nRestart=on-failure\n[Install]\nWantedBy=multi-user.target\nSERVICE\nsystemctl daemon-reload\nsystemctl enable --now minetrac\n"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "DashboardUrl": {
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "http://",
+            {
+              "Fn::GetAtt": [
+                "DashboardReady",
+                "PublicIp"
+              ]
+            },
+            ":8501/"
+          ]
+        ]
+      }
+    },
+    "InstanceId": {
+      "Value": {
+        "Ref": "DashboardReady"
+      }
+    },
+    "ReadRoleName": {
+      "Value": {
+        "Ref": "ReadRole"
+      }
+    }
+  }
+}

@@ -1,0 +1,61 @@
+evento_id,camion_id,fecha,fecha_calidad,sistema,componente,condicion_pieza,proveedor_codigo,costo_mxn_intervencion,costo_mxn,costo_origen,n_sistemas,intervalo_servicio_h,dias_desde_cambio_anterior,reincidencia_30d,vida_util_dias,atipico,tipo_pieza
+C1-001,C1,2023-08-04,ok,"Caja, frenos y suspensión neumática",Clutch,reparada,sin_dato,,,sin_dato,1,,,False,,False,por_capturar
+C1-002,C1,2024-04-15,ok,Estético y cabina,Cabina y estética,no_especificada,sin_dato,,,sin_dato,1,,,False,,False,por_capturar
+C1-003,C1,2024-05-15,ok,Estético y cabina,Cabina y estética,nueva,sin_dato,,,sin_dato,1,,,False,,False,por_capturar
+C1-004,C1,2024-07-15,ok,A/C y eléctrico,"Cabeza, monobloc y motor mayor",no_especificada,sin_dato,2500.0,2500.0,extraido_de_texto,1,,,False,,False,por_capturar
+C1-005,C1,2024-09-11,ok,"Caja, frenos y suspensión neumática","Transmisión, flecha y diferencial",nueva,sin_dato,,,sin_dato,1,,,False,,False,por_capturar
+C1-006,C1,2024-09-30,ok,Transmisión y dirección,Clutch,reparada,sin_dato,20000.0,20000.0,extraido_de_texto,1,,423.0,False,423.0,False,por_capturar
+C1-007,C1,2024-12-04,ok,Electrónico,Computadora y sensores,no_especificada,sin_dato,,,sin_dato,1,,,False,,False,por_capturar
+C1-008,C1,2024-12-19,ok,Servicio preventivo,Servicio preventivo,no_especificada,sin_dato,,,sin_dato,1,,,False,,False,por_capturar
+C1-009,C1,2025-01-25,ok,"Caja, frenos y suspensión neumática",Muelles y bolsas de aire,no_especificada,sin_dato,,,sin_dato,1,,,False,,False,por_capturar
+C1-010,C1,2025-03-01,ok,Motor,"Motor (soportes, polea, turbo y otros)",nueva,sin_dato,,,sin_dato,1,,,False,,False,por_capturar
+C1-011,C1,2025-05-13,ok,"Caja, frenos y suspensión neumática",Chamber y frenos,no_especificada,sin_dato,,,sin_dato,1,,,False,,False,por_capturar
+C1-012,C1,2025-05-22,ok,Servicio preventivo,Servicio preventivo,no_especificada,sin_dato,,,sin_dato,1,,,False,,False,por_capturar
+C1-013,C1,2025-06-13,ok,"Caja, frenos y suspensión neumática","Transmisión, flecha y diferencial",no_especificada,sin_dato,,,sin_dato,1,,275.0,False,275.0,False,por_capturar
+C1-014,C1,2025-06-23,ok,Motor,"Transmisión, flecha y diferencial",nueva,sin_dato,,,sin_dato,1,,10.0,True,,False,por_capturar
+C1-015,C1,2025-07-14,ok,Motor,Fan clutch (ventilador),nueva,sin_dato,8000.0,8000.0,extraido_de_texto,1,,,False,,False,por_capturar
+C1-016,C1,2025-07-14,ok,A/C y eléctrico,"Motor (soportes, polea, turbo y otros)",nueva,sin_dato,,,sin_dato,1,,135.0,False,135.0,False,por_capturar
+C1-017,C1,2025-08-04,ok,A/C y eléctrico,Sistema eléctrico (otros),no_especificada,sin_dato,,,sin_dato,1,,,False,,False,por_capturar
+C1-018,C1,2025-08-07,ok,A/C y eléctrico,Sistema eléctrico (otros),no_especificada,sin_dato,,,sin_dato,1,,3.0,True,,False,por_capturar
+C1-019,C1,2025-08-08,ok,Electrónico,Computadora y sensores,no_especificada,sin_dato,,,sin_dato,1,,247.0,False,247.0,False,por_capturar
+C1-020,C1,2025-08-14,ok,Estético y cabina,Cabina y estética,no_especificada,sin_dato,,,sin_dato,1,,,False,,False,por_capturar
+C1-021,C1,2025-09-01,texto_interpretado,A/C y eléctrico,Alternador,reparada,sin_dato,,,sin_dato,3,,,False,,False,por_capturar
+C1-021,C1,2025-09-01,texto_interpretado,Estético y cabina,Cabina y estética,no_especificada,sin_dato,,,sin_dato,3,,,False,,False,por_capturar
+C1-021,C1,2025-09-01,texto_interpretado,Servicio preventivo,Servicio preventivo,no_especificada,sin_dato,,,sin_dato,3,,,False,,False,por_capturar
+C1-022,C1,2025-09-12,ok,Transmisión y dirección,"Transmisión, flecha y diferencial",no_especificada,sin_dato,,,sin_dato,1,,81.0,False,81.0,False,por_capturar
+C1-023,C1,2025-09-18,ok,Transmisión y dirección,"Transmisión, flecha y diferencial",no_especificada,sin_dato,1200.0,1200.0,extraido_de_texto,1,,6.0,True,,False,por_capturar
+C1-024,C1,2025-09-18,ok,Estético y cabina,Piso y caja de volteo,nueva,sin_dato,,,sin_dato,1,,,False,,False,por_capturar
+C1-025,C1,2025-09-18,ok,Estético y cabina,Cabina y estética,nueva,sin_dato,3500.0,3500.0,extraido_de_texto,1,,,False,,False,por_capturar
+C1-026,C1,2025-11-01,ok,Transmisión y dirección,"Transmisión, flecha y diferencial",no_especificada,sin_dato,,,sin_dato,1,,44.0,False,44.0,False,por_capturar
+C1-027,C1,2025-11-03,ok,Motor,"Enfriamiento (radiador, bomba de agua)",no_especificada,sin_dato,,,sin_dato,1,,,False,,False,por_capturar
+C1-028,C1,2025-11-03,ok,Motor,"Enfriamiento (radiador, bomba de agua)",nueva,sin_dato,,,sin_dato,1,,,False,,False,por_capturar
+C1-029,C1,2025-12-15,ok,Llantas,Llantas y rines,no_especificada,sin_dato,,,sin_dato,1,,,False,,False,por_capturar
+C2-002,C2,2022-01-01,solo_anio,Motor,"Cabeza, monobloc y motor mayor",reparada,sin_dato,,,sin_dato,1,,,False,,False,por_capturar
+C2-001,C2,2024-04-16,ok,Transmisión y dirección,"Transmisión, flecha y diferencial",no_especificada,sin_dato,,,sin_dato,1,,,False,,False,por_capturar
+C2-003,C2,2024-04-25,ok,"Caja, frenos y suspensión neumática",Chamber y frenos,no_especificada,sin_dato,,,sin_dato,1,,,False,,False,por_capturar
+C2-004,C2,2024-05-23,ok,Estético y cabina,Cabina y estética,no_especificada,sin_dato,,,sin_dato,3,,,False,,False,por_capturar
+C2-004,C2,2024-05-23,ok,Motor,Inyectores y bomba de diésel,no_especificada,sin_dato,,,sin_dato,3,,,False,,False,por_capturar
+C2-004,C2,2024-05-23,ok,Transmisión y dirección,"Transmisión, flecha y diferencial",no_especificada,sin_dato,,,sin_dato,3,,37.0,False,37.0,False,por_capturar
+C2-005,C2,2024-06-27,ok,"Caja, frenos y suspensión neumática",Chamber y frenos,no_especificada,sin_dato,,,sin_dato,1,,63.0,False,63.0,False,por_capturar
+C2-006,C2,2024-07-03,ok,Servicio preventivo,Servicio preventivo,no_especificada,sin_dato,,,sin_dato,1,,,False,,False,por_capturar
+C2-007,C2,2024-10-22,ok,Electrónico,Computadora y sensores,reparada,sin_dato,12000.0,12000.0,registrado,1,,,False,,False,por_capturar
+C2-008,C2,2025-01-05,ok,Electrónico,Computadora y sensores,nueva,sin_dato,,,sin_dato,1,,75.0,False,75.0,False,por_capturar
+C2-009,C2,2025-05-19,ok,Electrónico,Computadora y sensores,no_especificada,sin_dato,,,sin_dato,4,,134.0,False,134.0,False,por_capturar
+C2-009,C2,2025-05-19,ok,Estético y cabina,Cabina y estética,no_especificada,sin_dato,,,sin_dato,4,,,False,,False,por_capturar
+C2-009,C2,2025-05-19,ok,Llantas,Llantas y rines,nueva,sin_dato,,,sin_dato,4,,,False,,False,por_capturar
+C2-009,C2,2025-05-19,ok,Transmisión y dirección,Computadora y sensores,no_especificada,sin_dato,,,sin_dato,4,,134.0,False,134.0,False,por_capturar
+C2-010,C2,2025-05-22,ok,"Caja, frenos y suspensión neumática","Motor (soportes, polea, turbo y otros)",no_especificada,sin_dato,,,sin_dato,2,,,False,,False,por_capturar
+C2-010,C2,2025-05-22,ok,Electrónico,"Cabeza, monobloc y motor mayor",no_especificada,sin_dato,,,sin_dato,2,,1237.0,False,1237.0,False,por_capturar
+C2-011,C2,2025-07-08,ok,A/C y eléctrico,Marcha y arranque,no_especificada,sin_dato,,,sin_dato,2,,,False,,False,por_capturar
+C2-011,C2,2025-07-08,ok,"Caja, frenos y suspensión neumática",Muelles y bolsas de aire,no_especificada,sin_dato,,,sin_dato,2,,,False,,False,por_capturar
+C2-012,C2,2025-07-15,ok,A/C y eléctrico,Marcha y arranque,no_especificada,sin_dato,,,sin_dato,1,,7.0,True,,False,por_capturar
+C2-013,C2,2025-09-25,ok,A/C y eléctrico,Alternador,reparada,sin_dato,,,sin_dato,1,,,False,,False,por_capturar
+C2-014,C2,2025-10-09,ok,A/C y eléctrico,Baterías,nueva,sin_dato,5400.0,5400.0,registrado,1,,,False,,False,por_capturar
+C2-015,C2,2025-10-29,ok,A/C y eléctrico,Marcha y arranque,no_especificada,sin_dato,,,sin_dato,1,,106.0,False,106.0,False,por_capturar
+C2-016,C2,2025-11-05,ok,A/C y eléctrico,Marcha y arranque,reparada,sin_dato,,,sin_dato,1,,7.0,True,,False,por_capturar
+C2-017,C2,2025-11-26,ok,"Caja, frenos y suspensión neumática",Clutch,no_especificada,sin_dato,,,sin_dato,1,,,False,,False,por_capturar
+C2-018,C2,2025-11-29,ok,"Caja, frenos y suspensión neumática",Clutch,no_especificada,sin_dato,16000.0,16000.0,registrado,1,,3.0,True,,False,por_capturar
+C2-019,C2,2025-12-14,ok,Llantas,Llantas y rines,no_especificada,sin_dato,,,sin_dato,1,,209.0,False,209.0,False,por_capturar
+C2-020,C2,2025-12-29,ok,A/C y eléctrico,Inyectores y bomba de diésel,nueva,sin_dato,,,sin_dato,1,,585.0,False,585.0,False,por_capturar
+C2-021,C2,2026-01-08,ok,A/C y eléctrico,Aire acondicionado,no_especificada,sin_dato,,,sin_dato,1,,,False,,False,por_capturar
+C2-022,C2,2026-02-09,ok,"Caja, frenos y suspensión neumática",Chamber y frenos,no_especificada,sin_dato,,,sin_dato,2,,592.0,False,592.0,False,por_capturar

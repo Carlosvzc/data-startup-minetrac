@@ -7,6 +7,8 @@ def test_ui_real_filters_and_limits():
  assert not a.exception
  assert [m.value for m in a.metric]==['257','$928,832','$12,384','26.8']
  assert len(a.get('plotly_chart'))==6
+ assert a.date_input[0].value[0]==date(2023,8,4)
+ assert a.checkbox[0].value is True
  a.multiselect[0].set_value(['C5']).run()
  assert not a.exception and a.metric[0].value=='57'
  a.date_input[0].set_value((date(2026,10,1),date(2026,10,14))).run()

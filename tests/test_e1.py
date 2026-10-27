@@ -58,3 +58,34 @@ def test_datos_reales_cuadran():
     figs, aux = views(m)
     assert len(figs) == 6 and all(f is not None for _, f in figs)
     assert len(recomendaciones(m, aux)) == 3
+
+
+@necesita_datos
+def test_fecha_con_solo_anio_no_amplia_periodo_ni_ejes():
+    from core import tiene_dia, rango_periodo, filtrar_periodo
+    m = pd.read_csv(CLEAN)
+    inicio, fin = rango_periodo(m)
+    assert str(inicio) == '2023-08-04'
+    seleccion = filtrar_periodo(m, inicio, fin)
+    k = resumen(seleccion)
+    assert k['intervenciones'] == 257 and k['con_monto'] == 75
+    assert k['gasto_mxn'] == 928832 and k['intervenciones'] - k['con_monto'] == 182
+    assert len(pd.read_csv(ROOT / 'data/clean/inventario.csv')) == 21
+    figs, aux = views(seleccion)
+    assert len(aux['eventos_con_dia']) == 256
+    assert aux['por_mes'].index.min().year == 2023
+    assert int(aux['por_mes'].sum()) == 256
+    for trace in figs[2][1].data:
+        assert all(pd.Timestamp(x).year >= 2023 for x in trace.x)
+    unknown = m.loc[~tiene_dia(m)]
+    assert resumen(unknown)['intervenciones'] == 1
+    assert len(serie_diaria(unknown)) == 0
+
+
+@necesita_datos
+def test_seleccion_con_solo_anio_explica_la_falta_de_graficas_temporales():
+    m = pd.read_csv(CLEAN)
+    unknown = m[m.fecha_calidad.eq('solo_anio')]
+    figs, aux = views(unknown)
+    assert figs[2][1] is None and figs[3][1] is None and figs[5][1] is None
+    assert aux['por_mes'].empty

@@ -5,5 +5,7 @@ services:
       - "8501:8501"
     environment:
       MINETRAC_STORAGE: local
+    volumes:
+      - ./data/clean:/app/data/clean:ro
     restart: unless-stopped
 

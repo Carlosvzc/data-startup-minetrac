@@ -149,7 +149,7 @@ A('Pruebas automáticas (pytest): indicadores de un caso pequeño hecho a mano; 
 A('## Defensa individual')
 A('¿Qué proviene de la empresa? El catálogo y la bitácora. Los indicadores son cálculos; las fechas inferidas y la clasificación de piezas requieren validación. ¿Qué falta? Horas, toneladas, tarifas e ingresos; la empresa los está consolidando en un Excel.')
 A(f'¿Por qué dejamos vacíos los montos que faltan? Porque {sin_monto:.0f}% de las intervenciones no trae monto y rellenarlo cambiaría las conclusiones. Reportamos cuánto nos falta.')
-A('¿Qué significa 0.142857 ciclos/día? Un ciclo cada 7 días. No significa que una máquina falle cada semana.')
+A(f'¿Qué significa {peaks[0]["frecuencia_ciclos_dia"]:.6f} ciclos/día? Un ciclo cada {peaks[0]["periodo_dias"]:.2f} días, es decir, alrededor de 7 días. No significa que una máquina falle cada semana.')
 A('¿Por qué el ciclo de 15 días no aparece? Porque en la bitácora real no supera ese umbral descriptivo. La guía lo pide como ejemplo de lo que se debe buscar, y reportamos el resultado honesto.')
 A('¿Por qué raw y clean? raw conserva los originales para auditar; clean tiene el esquema listo para los indicadores.')
 A('## Pendientes con el cliente')

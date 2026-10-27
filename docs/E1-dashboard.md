@@ -158,7 +158,7 @@ Pruebas automáticas (pytest): indicadores de un caso pequeño hecho a mano; cal
 
 ¿Por qué dejamos vacíos los montos que faltan? Porque 71% de las intervenciones no trae monto y rellenarlo cambiaría las conclusiones. Reportamos cuánto nos falta.
 
-¿Qué significa 0.142857 ciclos/día? Un ciclo cada 7 días. No significa que una máquina falle cada semana.
+¿Qué significa 0.142549 ciclos/día? Un ciclo cada 7.02 días, es decir, alrededor de 7 días. No significa que una máquina falle cada semana.
 
 ¿Por qué el ciclo de 15 días no aparece? Porque en la bitácora real no supera ese umbral descriptivo. La guía lo pide como ejemplo de lo que se debe buscar, y reportamos el resultado honesto.
 

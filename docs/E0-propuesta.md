@@ -19,11 +19,11 @@ Tecnológico Nacional de México campus Colima · Ingeniería en Inteligencia Ar
 
 ## 1. Problema y cliente
 
-El cliente es una empresa que compra, opera y mantiene maquinaria pesada para minería. Su catálogo tiene 21 equipos: 11 cargadores, 2 minicargadores, 1 retroexcavadora y 7 camiones de 12 y 14 m³. Quiere un sistema que le permita evaluar la rentabilidad de cada equipo, comparar la durabilidad de las refacciones según su origen (original de fábrica o genérica de proveedor local) y generar balances financieros para decidir en sus contratos.
+Trabajamos con una empresa que compra, opera y mantiene maquinaria pesada para minería. Revisamos su catálogo de 21 equipos: 11 cargadores, 2 minicargadores, 1 retroexcavadora y 7 camiones de 12 y 14 m³. Quiere un sistema que le permita evaluar la rentabilidad de cada equipo, comparar la durabilidad de las refacciones según su origen (original de fábrica o genérica de proveedor local) y generar balances financieros para decidir en sus contratos.
 
-Hoy esa información está dispersa. Según el documento de contexto, las horas trabajadas se capturan en papel o a mano y no hay un registro digital de horómetro, toneladas ni ingresos por equipo; la empresa nos informó por carta (25 de octubre de 2026) que está consolidando esa información en un Excel. Lo único que existe digitalmente es una bitácora de reparaciones de los 7 camiones, una hoja por camión, con fechas, trabajos realizados y, solo a veces, el monto. La bitácora cubre 257 intervenciones principalmente entre abril de 2024 y octubre de 2026, con registros previos de 2023 y uno que solo indica el año 2022. Únicamente 75 traen monto anotado y suman $928,832 MXN, por lo que el costo total no se puede calcular ni conciliar todavía.
+Hoy esa información está dispersa. Según el documento de contexto, las horas trabajadas se capturan en papel o a mano y no hay un registro digital de horómetro, toneladas ni ingresos por equipo; la empresa nos informó por carta (25 de octubre de 2026) que está consolidando esa información en un Excel. Recibimos una bitácora digital de reparaciones de los 7 camiones, una hoja por camión, con fechas, trabajos realizados y, solo a veces, el monto. La bitácora cubre 257 intervenciones principalmente entre abril de 2024 y octubre de 2026, con registros previos de 2023 y uno que solo indica el año 2022. Únicamente 75 traen monto anotado y suman $928,832 MXN, por lo que el costo total no se puede calcular ni conciliar todavía.
 
-La bitácora también muestra lo que cuesta un paro largo. El camión C4 registra el 9 de marzo de 2026 que se rompió la base del gato hidráulico y se volteó la caja en la peña; entró a taller en abril y se anotó como entregado el 6 de mayo, casi dos meses después. El entrevistado (sección 3) cuenta un caso muy parecido: el gato perdió presión por una fuga de aceite, el camión se volteó sin lesionados, la pieza nueva tardó cerca de mes y medio en llegar y además hubo que rehacer una parte de la caja. La fecha que él da ("hace unos dos meses") no cuadra con la bitácora, que ubica el caso del C4 entre marzo y mayo de 2026; falta confirmar con la empresa si es el mismo evento. En otro ejemplo, el camión C5 acumula 57 intervenciones, y en 69 ocasiones se volvió a trabajar el mismo componente de un camión en hasta 30 días.
+En la bitácora encontramos un ejemplo de un paro largo. El camión C4 registra el 9 de marzo de 2026 que se rompió la base del gato hidráulico y se volteó la caja en la peña; entró a taller en abril y se anotó como entregado el 6 de mayo, casi dos meses después. El entrevistado (sección 3) cuenta un caso muy parecido: el gato perdió presión por una fuga de aceite, el camión se volteó sin lesionados, la pieza nueva tardó cerca de mes y medio en llegar y además hubo que rehacer una parte de la caja. La fecha que él da ("hace unos dos meses") no cuadra con la bitácora, que ubica el caso del C4 entre marzo y mayo de 2026; falta confirmar con la empresa si es el mismo evento. En otro ejemplo, el camión C5 acumula 57 intervenciones, y en 69 ocasiones se volvió a trabajar el mismo componente de un camión en hasta 30 días.
 
 **Decisión de negocio que queremos ayudar a tomar:** si una refacción barata o local compensa frente a una original, qué equipo conviene atender primero y con qué refacciones, y si la tarifa de un contrato debe subirse, mantenerse o descartarse, con datos reales y no a ojo.
 
@@ -93,7 +93,7 @@ Con la bitácora se responden hoy las filas 2 y 5, que alimentan E1, E2 y E3 (AR
 
 ## 5. Inventario de datos
 
-Solo usamos información real que entregó la empresa. No hay datos simulados.
+Usamos la información que recibimos de la empresa. No simulamos datos.
 
 | Fuente | Contenido | Periodo | Volumen |
 |---|---|---|---|
@@ -102,11 +102,11 @@ Solo usamos información real que entregó la empresa. No hay datos simulados.
 | `Maquina Centella Contexto.txt` | Descripción de los tres módulos que quiere la empresa | Actual | Documento |
 | Carta de Máquinas Centella (25 de octubre de 2026) | Informa que está recopilando y consolidando el resto de la información en un Excel | Actual | Documento |
 
-**Cumplimiento del mínimo de la guía.** La guía pide al menos 12 meses o 5,000 registros. La bitácora cubre 30 meses, así que cumple por periodo, aunque tiene pocos registros (317). La señal es limitada para modelos de series de tiempo; lo decimos desde ahora para no exagerar los resultados.
+**Cumplimiento del mínimo de la guía.** Revisamos que la guía pide al menos 12 meses o 5,000 registros. La bitácora cubre 30 meses, así que cumplimos por periodo, aunque tiene pocos registros (317). La señal es limitada para modelos de series de tiempo; lo decimos desde ahora para no exagerar los resultados.
 
 **Pendiente de entrega por la empresa:** horas trabajadas por turno, toneladas, tarifas por hora y por tonelada, lectura del horómetro, tipo de pieza (original o genérica) y proveedor real. La empresa los captura en papel y los está consolidando en un Excel. Mientras tanto no los simulamos: el tablero lo indica claramente y esos módulos quedan en espera.
 
-**Calidad de la bitácora.** Solo 75 de 257 intervenciones traen monto (29%). Hay fechas escritas a mano (`01/se/25`, `077sep/26`), años equivocados (una fecha de 2029), filas sin fecha, montos escritos dentro del texto y un ajuste de motor de $149,000 que es un monto atípico anotado, pendiente de comprobar. Las fechas inferidas se identifican con fecha_calidad. Todo se transforma o se reporta en la auditoría de E1.
+**Calidad de la bitácora.** Solo 75 de 257 intervenciones traen monto (29%). Hay fechas escritas a mano (`01/se/25`, `077sep/26`), años equivocados (una fecha de 2029), filas sin fecha, montos escritos dentro del texto y un ajuste de motor de $149,000 que es un monto atípico anotado, pendiente de comprobar. Las fechas inferidas se identifican con fecha_calidad. Documentamos cada transformación y los datos que faltan en la auditoría de E1.
 
 | Columna de la bitácora limpia (`mantenimiento.csv`) | Descripción |
 |---|---|
@@ -139,6 +139,10 @@ Se usó Claude para ordenar el documento de contexto, proponer el borrador del L
 
 ## 9. Alcance de la entrega al 26 de octubre de 2026
 
-El equipo informa que los profesores autorizaron entregar E0 y E1 con la información recibida y completar después los datos pendientes. La carta de la empresa se adjunta como respaldo de su proceso de consolidación, sin atribuirle aprobación académica. No se utilizan registros simulados de la versión anterior.
+Los profesores indicaron verbalmente al equipo que se podía entregar E0 y E1 con la información recibida y completar después los datos pendientes.
+
+La empresa informó por carta (25 de octubre de 2026) que está consolidando la información en un Excel. La carta se entregó por separado en Classroom y no forma parte del repositorio.
+
+
 
 Las cifras derivan de los Excel originales, sin inventar montos. Algunas fechas se infieren por orden de la hoja; una fecha con solo año 2022 usa 01/01 como referencia técnica, no como día conocido. Se conserva fecha_calidad para auditar estas decisiones. La clasificación de piezas y la asignación igual de costos entre sistemas son criterios analíticos por validar. El indicador de 26.8 repeticiones por 100 intervenciones no representa porcentaje de fallas confirmadas.

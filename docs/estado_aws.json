@@ -19,7 +19,7 @@
   "presupuesto_objetivo_usd": 0,
   "alerta_presupuesto_usd": 1,
   "umbral_alerta_real_usd": 0.01,
-  "simulacion_previa": "no se reutiliza en esta entrega",
   "stack_status": "UPDATE_COMPLETE",
-  "servidor_simulado_anterior": "detenido, no utilizado como fuente"
+  "app_sha256": "eae48be09515bf896d1355b2cbd4d78ad8a146d50df7daaf0b3408ec5d868c7b",
+  "permiso_ssm_temporal": "retirado tras actualizar el tablero"
 }

@@ -2,11 +2,11 @@
 
 ## Contexto y procedencia
 
-MineTrac apoya a Máquinas Centella S.A. de C.V. a controlar costos, mantenimiento y operación de su maquinaria pesada. Esta es la entrega E1 (26 de octubre de 2026) del Proyecto Integrador Data Startup del TecNM campus Colima.
+Con MineTrac buscamos ayudar a Máquinas Centella S.A. de C.V. a revisar el mantenimiento y los costos de su maquinaria. Presentamos la entrega E1 (26 de octubre de 2026) del Proyecto Integrador Data Startup del TecNM campus Colima.
 
 Datos reales que nos entregó la empresa: (1) el catálogo de 21 equipos (11 cargadores, 2 minicargadores, 1 retroexcavadora y 7 camiones) y (2) la bitácora de reparaciones de los 7 camiones, una hoja por camión, con 257 intervenciones y $928,832 MXN de gasto anotado. También recibimos un documento de contexto con tres módulos: refacciones e insumos, operación y registro de trabajo, y balance financiero por equipo.
 
-Este informe y el tablero usan únicamente esa información. No se generan registros simulados ni se imputan montos faltantes. Las fechas corregidas, las clasificaciones y el reparto de costos son transformaciones analíticas, identificadas y pendientes de validación. Las horas trabajadas, las toneladas, las tarifas y los ingresos todavía no existen en formato digital: la empresa los lleva en papel y, según su carta del 25 de octubre de 2026, está recopilando, revisando y consolidando la información con sus departamentos en un archivo de Excel. Por eso el balance financiero por equipo y el indicador de tarifas quedan pendientes y se incorporarán cuando llegue ese archivo.
+En el informe y el tablero usamos esa información. No simulamos registros ni completamos montos faltantes. Las fechas corregidas, las clasificaciones y el reparto de costos son transformaciones analíticas, identificadas y pendientes de validación. Las horas trabajadas, las toneladas, las tarifas y los ingresos todavía no existen en formato digital: la empresa los lleva en papel y, según su carta del 25 de octubre de 2026, está recopilando, revisando y consolidando la información con sus departamentos en un archivo de Excel. Por eso el balance financiero por equipo y el indicador de tarifas quedan pendientes y se incorporarán cuando llegue ese archivo.
 
 ## Pregunta de negocio
 
@@ -14,13 +14,13 @@ Pregunta de negocio: ¿qué refacciones pesan más en el gasto de mantenimiento,
 
 ## Datos y procedimiento
 
-Cada fila del Excel es una intervención. Un módulo de limpieza (services/worker/etl_bitacora.py) la convierte en una tabla ordenada con una fila por intervención y sistema: 317 registros. Las fechas se corrigen con el orden cronológico de cada hoja, los montos se reparten en partes iguales entre los sistemas de una misma intervención, las piezas se clasifican con palabras clave del texto y se omiten nombres de proveedores; este procesamiento no detectó proveedores y conserva sin_dato. El texto libre y los nombres no salen del módulo hacia el tablero ni al repositorio. La clasificación de componente y la condición de la pieza (nueva o reparada) son una interpretación del texto y deben validarse con la empresa.
+Tomamos cada fila del Excel como una intervención. Con services/worker/etl_bitacora.py la convertimos en una tabla con una fila por intervención y sistema: 317 registros. Revisamos las fechas según el orden de cada hoja. Repartimos los montos en partes iguales entre sus sistemas y clasificamos las piezas con palabras clave. No identificamos proveedores, por lo que conservamos sin_dato. El texto libre y los nombres no salen del módulo hacia el tablero ni al repositorio. La clasificación de componente y la condición de la pieza (nueva o reparada) son una interpretación del texto y deben validarse con la empresa.
 
-Solo 29% de las intervenciones (75 de 257) trae monto, por lo que el gasto del tablero es una suma parcial y no el gasto total. Los montos que faltan no se inventan.
+Solo 29% de las intervenciones (75 de 257) trae monto, por lo que el gasto del tablero es una suma parcial y no el gasto total. Los montos que nos faltan quedan vacíos.
 
 ## Limpieza reproducible y auditoría
 
-La bitácora ya traía errores de captura. Se revisaron los cinco tipos que pide la guía. Nulos: 182 intervenciones sin monto (se dejan sin monto) y 15 filas sin fecha (heredan la de la fila anterior). Duplicados: 0. Negativos: 0. Atípicos: 1 (un ajuste completo de motor de $149,000 MXN en el camión C7, por encima del límite de $52,900; se conserva por estar anotado, pendiente de validar con comprobante). Formato: 16 problemas, entre ellos 4 fechas escritas a mano, 3 años equivocados (incluida una fecha de 2029), 1 fecha con solo el año, 6 montos escritos dentro del texto, 1 texto en la columna de costo y 1 monto en la columna de servicio. Filas recibidas: 317. Filas limpias: 317. Residuales: los 182 montos que nadie anotó y el atípico verificado.
+La bitácora ya traía errores de captura. Revisamos los cinco tipos que pide la guía. Nulos: 182 intervenciones sin monto (se dejan sin monto) y 15 filas sin fecha (heredan la de la fila anterior). Duplicados: 0. Negativos: 0. Atípicos: 1 (un ajuste completo de motor de $149,000 MXN en el camión C7, por encima del límite de $52,900; se conserva por estar anotado, pendiente de validar con comprobante). Formato: 16 problemas, entre ellos 4 fechas escritas a mano, 3 años equivocados (incluida una fecha de 2029), 1 fecha con solo el año, 6 montos escritos dentro del texto, 1 texto en la columna de costo y 1 monto en la columna de servicio. Filas recibidas: 317. Filas limpias: 317. Residuales: los 182 montos que nadie anotó y el monto atípico pendiente de comprobante.
 
 ## Cuatro KPIs visibles
 
@@ -32,7 +32,7 @@ La bitácora ya traía errores de captura. Se revisaron los cinco tipos que pide
 
 4. Repeticiones por 100 intervenciones: 26.8 (69 trabajos sobre el mismo componente del mismo camión en hasta 30 días). Es una razón por componente y fecha, no el porcentaje de intervenciones fallidas.
 
-Los valores corresponden a toda la bitácora; cada filtro del tablero (periodo, camión y sistema) los recalcula. Si una selección no tiene datos se muestra un aviso y no un indicador en cero.
+Calculamos estos valores con toda la bitácora. Los filtros de camión, sistema y periodo los actualizan. Conservamos aparte la intervención que solo indica 2022: sigue contando si dejamos marcada la opción de incluirla, pero no amplía el periodo ni aparece en las gráficas de fechas. Avisamos cuando una selección no tiene datos.
 
 ## Seis visualizaciones con hallazgos
 
@@ -52,19 +52,19 @@ Intervenciones por camión. En gris están las que no tienen monto: 71% del tota
 
 ![Gráfica 3](grafica_3.png)
 
-Cada punto es una intervención. Los puntos grises no tienen monto, lo que muestra qué tan incompleta es la captura de costos.
+Ubicamos solo los registros con día conocido. Los puntos grises muestran los que no tienen monto. La intervención que solo indica 2022 sigue en los totales, pero no la colocamos en esta gráfica.
 
 ### 4. 02/2026 fue el mes con más intervenciones: 20
 
 ![Gráfica 4](grafica_4.png)
 
-Intervenciones por mes en toda la flota. Sirve para ver cargas de trabajo del taller, no para predecir fallas.
+Contamos las intervenciones con día conocido de cada mes para revisar la carga de trabajo del taller. Nos faltan fechas de falla para estudiar cuándo fallan las máquinas.
 
 ### 5. Gato hidráulico y levante registra intervalos entre trabajos de 130 días en promedio
 
 ![Gráfica 5](grafica_5.png)
 
-Con las fechas de cambios repetidos se estima cada cuánto se vuelve a trabajar un componente. Es una aproximación: falta el horómetro al momento del cambio para medir horas de servicio.
+Revisamos los días entre trabajos del mismo componente. Nos falta el horómetro al cambio para medir las horas de servicio.
 
 ### 6. El ciclo dominante de las intervenciones es de 7.0 días
 
@@ -74,17 +74,17 @@ Análisis de Fourier de las intervenciones diarias. El ciclo de 7 días tiene un
 
 ## FFT e interpretación en días
 
-Se cuentan las intervenciones por día desde el 2024-04-02 hasta el 2026-10-14 (926 días, con ceros en los días sin registro), se resta la tendencia lineal y se aplica una ventana de Hann antes de la FFT. Frecuencia de muestreo: una observación por día. Primer pico: f=0.142549 ciclos/día, T=1/f=7.02 días. Un ciclo de 7 días significa que el registro de intervenciones se repite cada semana (por ejemplo, días de la semana en que el taller recibe o entrega camiones). No significa que un camión falle con esa frecuencia.
+Contamos las intervenciones por día desde el 2024-04-02 hasta el 2026-10-14 (926 días, con ceros en los días sin registro), restamos la tendencia lineal y aplicamos una ventana de Hann antes de la FFT. Frecuencia de muestreo: una observación por día. Primer pico: f=0.142549 ciclos/día, T=1/f=7.02 días. Un ciclo de 7 días significa que el registro de intervenciones se repite cada semana (por ejemplo, días de la semana en que el taller recibe o entrega camiones). No significa que un camión falle con esa frecuencia.
 
 El ciclo de 15 días (quincena) no supera el umbral descriptivo: su fuerza es 1.5 veces la mediana del espectro, es decir, no supera el umbral descriptivo de 2.5 veces la mediana, sin prueba formal de significancia. Lo reportamos tal cual: con 257 intervenciones en unos 900 días la señal es débil, y 15 fechas de la bitácora se completaron con la de la fila anterior, lo que puede suavizar o crear patrones. Cuando lleguen las horas trabajadas por día se repetirá el análisis sobre esa señal, que es la que sí permite hablar de ciclos de operación.
 
-## Tres recomendaciones gerenciales
+## Tres recomendaciones para la empresa
 
-1. Presupuestar cabeza, monobloc y motor mayor y cotizar con más de un proveedor. Concentra 30% del gasto con monto anotado ($281,538 MXN). Pedir cotizaciones comparables antes de la siguiente compra grande.
+1. Proponemos presupuestar cabeza, monobloc y motor mayor y comparar cotizaciones. Concentra 30% del gasto con monto anotado ($281,538 MXN). Proponemos comparar cotizaciones antes de la siguiente compra grande.
 
-2. Revisar el historial del camión C5 antes de otra reparación mayor. Acumula 57 intervenciones. En la flota, 69 repeticiones (26.8 por cada 100 intervenciones) se repitieron sobre el mismo componente en hasta 30 días: solicitar diagnóstico y validar si fueron continuaciones del mismo trabajo antes de reclamar garantía.
+2. Proponemos revisar el historial del camión C5. Acumula 57 intervenciones. En la flota, 69 repeticiones (26.8 por cada 100 intervenciones) corresponden al mismo componente en hasta 30 días. Proponemos pedir un diagnóstico y revisar si fueron continuaciones del mismo trabajo antes de reclamar garantía.
 
-3. Registrar monto, tipo de pieza y horómetro en cada reparación. Solo 29% de las intervenciones tiene monto anotado. Sin tipo de pieza (original o genérica) y horómetro al cambio no se puede calcular el costo por hora útil ni decidir qué refacción conviene.
+3. Nos falta registrar monto, tipo de pieza y horómetro en cada reparación. Solo 29% de las intervenciones tiene monto anotado. Sin tipo de pieza (original o genérica) y horómetro al cambio no se puede calcular el costo por hora útil ni decidir qué refacción conviene.
 
 ## Implementación del dashboard
 
@@ -94,7 +94,13 @@ El modo s3 lee clean/mantenimiento.csv, clean/inventario.csv y clean/resultados.
 
 ## Nube y presupuesto
 
-Arquitectura verificada el 26 de octubre de 2026: pipeline de limpieza -> bucket S3 privado minetrac-reales-251869518832-20261026 en us-east-1, con raw/ (dos Excel originales) y clean/ (cuatro archivos depurados) -> Streamlit en EC2 t3.micro. URL: http://54.204.60.100:8501/ . Stack: minetrac-e1-reales. Usuario de despliegue: admin-25460343; rol de instancia minetrac-e1-reales-ReadRole-XxCmmx32Dnlz, con lectura de tres tablas clean y del ZIP de aplicación; ListBucket limitado por prefijo. El rol no lee raw/. Bloqueo público de S3 activado y cifrado AES256; disco cifrado e IMDSv2. Puerto 8501 para el tablero, sin SSH público. No se guardan claves. Si S3 falla no se usan copias locales. Evidencias: evidencias/s3_raw_clean_real.png, evidencias/dashboard_real_aws.png, evidencias/iam_y_seguridad_real.png. Presupuesto objetivo $0; se conserva la alerta mensual de $1 USD con umbral real $0.01 USD. EC2, disco e IPv4 pueden consumir créditos o generar cargos; la alerta no detiene el consumo. La URL HTTP es para la entrega académica autorizada; no captura credenciales ni datos adicionales.
+Desplegamos MineTrac en AWS y verificamos la conexión el 26 de octubre de 2026. Usamos el bucket privado minetrac-reales-251869518832-20261026, en us-east-1. En raw/ guardamos los dos Excel originales y en clean/ los cuatro archivos depurados. El tablero corre en una instancia EC2 t3.micro y lee las tablas desde S3. URL: http://54.204.60.100:8501/ . El stack se llama minetrac-e1-reales.
+
+Trabajamos con el usuario admin-25460343. El rol minetrac-e1-reales-ReadRole-XxCmmx32Dnlz permite leer las tres tablas clean y el ZIP de la aplicación; limitamos ListBucket por prefijo. El rol no lee raw/. Conservamos el bloqueo público de S3, el cifrado AES256, el disco cifrado e IMDSv2. Solo publicamos el puerto 8501 del tablero; no abrimos SSH. No guardamos claves. Si falla S3, mostramos el error sin cargar copias locales.
+
+Conservamos un presupuesto objetivo de $0 y la alerta mensual de $1 USD, con aviso al superar $0.01 USD de gasto real. EC2, el disco y la dirección IPv4 pueden consumir créditos o generar cargos. La alerta avisa, pero no detiene el consumo. Usamos la URL HTTP para esta entrega; no pedimos credenciales ni capturamos datos adicionales.
+
+Guardamos las capturas en evidencias/s3_raw_clean_real.png, evidencias/dashboard_real_aws.png y evidencias/iam_y_seguridad_real.png.
 
 ![Evidencia de almacenamiento](evidencias/s3_raw_clean_real.png)
 
@@ -108,7 +114,7 @@ Pruebas automáticas (pytest): indicadores de un caso pequeño hecho a mano; cal
 
 ¿Qué proviene de la empresa? El catálogo y la bitácora. Los indicadores son cálculos; las fechas inferidas y la clasificación de piezas requieren validación. ¿Qué falta? Horas, toneladas, tarifas e ingresos; la empresa los está consolidando en un Excel.
 
-¿Por qué no se inventan los montos que faltan? Porque 71% de las intervenciones no trae monto y rellenarlo cambiaría las conclusiones. Se reporta cuánto falta.
+¿Por qué dejamos vacíos los montos que faltan? Porque 71% de las intervenciones no trae monto y rellenarlo cambiaría las conclusiones. Reportamos cuánto nos falta.
 
 ¿Qué significa 0.142857 ciclos/día? Un ciclo cada 7 días. No significa que una máquina falle cada semana.
 
@@ -122,14 +128,16 @@ Excel consolidado de la empresa (horas trabajadas por turno, toneladas, tarifas 
 
 ## Límites de interpretación y entrega parcial
 
-La entrega se presenta con la información disponible, conforme a lo acordado con los profesores según lo informado por el equipo. La carta del 25 de octubre acredita que la empresa consolida datos; no certifica cifras ni la aprobación académica. Se adjunta sin modificar.
+Los profesores indicaron verbalmente al equipo que se podía entregar E0 y E1 con la información recibida y completar después los datos pendientes.
 
-La bitácora limpia contiene una fecha 2022-01-01 creada como referencia al disponer solo del año 2022; ese día no fue observado. Hay 15 intervenciones con fecha heredada, 3 con año corregido y 4 con texto interpretado. fecha_calidad permite distinguirlas. Los totales monetarios no dependen de estas fechas, pero los filtros, intervalos y FFT sí. No se calculan ingresos, margen, disponibilidad ni costo por hora sin sus datos.
+La empresa informó por carta (25 de octubre de 2026) que está consolidando la información en un Excel. La carta se entregó por separado en Classroom y no forma parte del repositorio.
+
+Conservamos 2022-01-01 en el CSV para el registro que solo indica el año 2022. No conocemos su día: lo dejamos fuera del periodo por defecto y de las gráficas de fechas, pero sigue contando como intervención. Hay 15 intervenciones con fecha heredada, 3 con año corregido y 4 con texto interpretado. fecha_calidad permite distinguirlas. Los totales monetarios no dependen de estas fechas, pero los filtros, intervalos y FFT sí. No se calculan ingresos, margen, disponibilidad ni costo por hora sin sus datos.
 
 El control de duplicados del módulo identifica repeticiones dentro de una misma fila de origen; no permite afirmar que no haya intervenciones duplicadas entre filas distintas. Los 182 montos faltantes permanecen nulos. El monto atípico de $149,000 está anotado, pero no se verificó con factura. Los intervalos mayores de 30 días excluyen las repeticiones cortas y no representan vida útil. La ausencia de registro diario se representa con cero intervenciones registradas, no prueba ausencia de fallas ni captura completa.
 
 ## Referencias
 
-Guía oficial PROYECTO_INTEGRADOR_DATA_STARTUP_ALUMNOS: E1 y rúbrica. Documento de contexto Maquina Centella Contexto. Carta de Máquinas Centella del 25 de octubre de 2026.
+Guía oficial PROYECTO_INTEGRADOR_DATA_STARTUP_ALUMNOS: E1 y rúbrica. Documento de contexto Maquina Centella Contexto. Comunicación de Máquinas Centella por carta del 25 de octubre de 2026, entregada por separado en Classroom; no incluida en el repositorio.
 
 Documentación técnica: AWS S3 (https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html); Streamlit (https://docs.streamlit.io/develop/api-reference); NumPy FFT (https://numpy.org/doc/stable/reference/routines.fft.html).

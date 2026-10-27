@@ -13,4 +13,4 @@
 | Módulos del documento de contexto | 1) Refacciones e insumos: pestaña "Mantenimiento y refacciones" (falta tipo de pieza y horómetro al cambio). 2) Operación y 3) balance financiero: **pendientes** de la información que la empresa está consolidando |
 | Código en GitHub | Repositorio `data-startup-minetrac` |
 
-Procedencia: los originales vienen de la empresa; las fechas inferidas, la asignación de costos y las clasificaciones están documentadas como criterios analíticos (catálogo de equipos y bitácora de camiones de Máquinas Centella). No hay datos simulados. La carta de la empresa del 25 de octubre de 2026 informa que está consolidando el resto de la información en un archivo de Excel.
+Procedencia: los originales vienen de la empresa; las fechas inferidas, la asignación de costos y las clasificaciones están documentadas como criterios analíticos (catálogo de equipos y bitácora de camiones de Máquinas Centella). No hay datos simulados. La empresa informó por carta (25 de octubre de 2026) que está consolidando la información en un Excel. La carta se entregó por separado en Classroom y no forma parte del repositorio.

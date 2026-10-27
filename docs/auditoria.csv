@@ -1,6 +1,6 @@
 error,detectados,residuales
-nulos,40,0
-duplicados,30,0
-negativos,15,0
-atipicos,10,0
-formato,25,0
+nulos,197,182
+duplicados,0,0
+negativos,0,0
+atipicos,1,1
+formato,16,0

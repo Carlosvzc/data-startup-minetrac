@@ -1,0 +1,19 @@
+{
+  "titulos": [
+    "Cabeza, monobloc y motor mayor concentra el 30% del gasto registrado",
+    "C5 suma 57 intervenciones, la bitácora más activa",
+    "182 de 257 intervenciones no tienen monto anotado",
+    "02/2026 fue el mes con más intervenciones: 20",
+    "Gato hidráulico y levante registra intervalos entre trabajos de 130 días en promedio",
+    "El ciclo dominante de las intervenciones es de 7.0 días"
+  ],
+  "kpis": {
+    "intervenciones": 257,
+    "gasto_mxn": 928832.0,
+    "con_monto": 75,
+    "pct_con_monto": 29.18287937743191,
+    "promedio_mxn": 12384.426666666666,
+    "reincidencias": 69,
+    "pct_reincidencia": 26.848249027237355
+  }
+}

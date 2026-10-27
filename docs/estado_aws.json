@@ -1,17 +1,25 @@
 {
-  "estado": "verificado_en_navegador",
-  "url": "http://67.202.18.79:8501/",
-  "stack": "minetrac-e1-demo",
-  "stack_status": "UPDATE_COMPLETE",
-  "instance_id": "i-0bd91ac261d838a6b",
-  "bucket": "minetrac-e1-251869518832",
+  "fecha_verificacion": "2026-10-26",
+  "estado": "dashboard_verificado_en_navegador_leyendo_s3",
+  "url": "http://54.204.60.100:8501/",
+  "stack": "minetrac-e1-reales",
+  "instance_id": "i-081fa473088bece22",
+  "bucket": "minetrac-reales-251869518832-20261026",
   "region": "us-east-1",
-  "fuente_dashboard": "s3://minetrac-e1-251869518832/clean/operacion.csv",
-  "identidad_despliegue": "IAM individual",
+  "usuario": "admin-25460343",
+  "rol": "minetrac-e1-reales-ReadRole-XxCmmx32Dnlz",
+  "datos": "Excel de empresa con transformaciones analiticas documentadas",
+  "source_objects": [
+    "clean/mantenimiento.csv",
+    "clean/inventario.csv",
+    "clean/resultados.json"
+  ],
   "public_access_block": true,
-  "budget_usd": 1,
-  "alerta_actual_usd": 0.01,
-  "destinatario_alerta": "EMAIL",
-  "costos": "EC2, EBS e IPv4 consumen créditos mientras se mantienen provisionados",
-  "datos_operativos": "simulados"
+  "encryption": "AES256",
+  "presupuesto_objetivo_usd": 0,
+  "alerta_presupuesto_usd": 1,
+  "umbral_alerta_real_usd": 0.01,
+  "simulacion_previa": "no se reutiliza en esta entrega",
+  "stack_status": "UPDATE_COMPLETE",
+  "servidor_simulado_anterior": "detenido, no utilizado como fuente"
 }

@@ -1,0 +1,20 @@
+{
+  "corte": "2026-10-26",
+  "fuentes": [
+    {
+      "archivo": "CAMIONES 12M3 Y 14M3.xlsx",
+      "sha256": "04589fa53c29b78f7cc5641476c17e9ddd3d4028d1859693d7f780bb8909b62e",
+      "procedencia": "Excel entregado por la empresa",
+      "tratamiento": "original sin modificar"
+    },
+    {
+      "archivo": "EQUIPOS MAQ CENTELLA.xlsx",
+      "sha256": "3b47fa649ab64aa9f12ed6ae1c5ee2eaa31ca32f76b6a43c04d013a1ab4ffe57",
+      "procedencia": "Excel entregado por la empresa",
+      "tratamiento": "original sin modificar"
+    }
+  ],
+  "montos_imputados": 0,
+  "fechas_inferidas": "Ver fecha_calidad; pendiente de validacion de empresa",
+  "datos_operativos_simulados": false
+}

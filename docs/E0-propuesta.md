@@ -21,9 +21,9 @@ Tecnológico Nacional de México campus Colima · Ingeniería en Inteligencia Ar
 
 El cliente es una empresa que compra, opera y mantiene maquinaria pesada para minería. Su catálogo tiene 21 equipos: 11 cargadores, 2 minicargadores, 1 retroexcavadora y 7 camiones de 12 y 14 m³. Quiere un sistema que le permita evaluar la rentabilidad de cada equipo, comparar la durabilidad de las refacciones según su origen (original de fábrica o genérica de proveedor local) y generar balances financieros para decidir en sus contratos.
 
-Hoy esa información está dispersa. Según el documento de contexto, las horas trabajadas se capturan en papel o a mano y no hay un registro digital de horómetro, toneladas ni ingresos por equipo; la empresa nos informó por carta (25 de octubre de 2026) que está consolidando esa información en un Excel. Lo único que existe digitalmente es una bitácora de reparaciones de los 7 camiones, una hoja por camión, con fechas, trabajos realizados y, solo a veces, el monto. La bitácora cubre 257 intervenciones entre agosto de 2023 y octubre de 2026 (casi todas desde abril de 2024). Únicamente 75 traen monto anotado y suman $928,832 MXN, así que el costo real de mantener la flota es mayor y hoy no se puede calcular.
+Hoy esa información está dispersa. Según el documento de contexto, las horas trabajadas se capturan en papel o a mano y no hay un registro digital de horómetro, toneladas ni ingresos por equipo; la empresa nos informó por carta (25 de octubre de 2026) que está consolidando esa información en un Excel. Lo único que existe digitalmente es una bitácora de reparaciones de los 7 camiones, una hoja por camión, con fechas, trabajos realizados y, solo a veces, el monto. La bitácora cubre 257 intervenciones principalmente entre abril de 2024 y octubre de 2026, con registros previos de 2023 y uno que solo indica el año 2022. Únicamente 75 traen monto anotado y suman $928,832 MXN, por lo que el costo total no se puede calcular ni conciliar todavía.
 
-La bitácora también muestra lo que cuesta un paro largo. El camión C4 registra el 9 de marzo de 2026 que se rompió la base del gato hidráulico y se volteó la caja en la peña; entró a taller en abril y se anotó como entregado el 6 de mayo, casi dos meses después. El entrevistado (sección 3) cuenta un caso muy parecido: el gato perdió presión por una fuga de aceite, el camión se volteó sin lesionados, la pieza nueva tardó cerca de mes y medio en llegar y además hubo que rehacer una parte de la caja. La fecha que él da ("hace unos dos meses") no cuadra con la bitácora, que ubica el caso del C4 entre marzo y mayo de 2026; falta confirmar con la empresa si es el mismo evento. En otro ejemplo, el camión C5 acumula 57 intervenciones, y en 69 ocasiones se volvió a trabajar el mismo componente de un camión en menos de 30 días.
+La bitácora también muestra lo que cuesta un paro largo. El camión C4 registra el 9 de marzo de 2026 que se rompió la base del gato hidráulico y se volteó la caja en la peña; entró a taller en abril y se anotó como entregado el 6 de mayo, casi dos meses después. El entrevistado (sección 3) cuenta un caso muy parecido: el gato perdió presión por una fuga de aceite, el camión se volteó sin lesionados, la pieza nueva tardó cerca de mes y medio en llegar y además hubo que rehacer una parte de la caja. La fecha que él da ("hace unos dos meses") no cuadra con la bitácora, que ubica el caso del C4 entre marzo y mayo de 2026; falta confirmar con la empresa si es el mismo evento. En otro ejemplo, el camión C5 acumula 57 intervenciones, y en 69 ocasiones se volvió a trabajar el mismo componente de un camión en hasta 30 días.
 
 **Decisión de negocio que queremos ayudar a tomar:** si una refacción barata o local compensa frente a una original, qué equipo conviene atender primero y con qué refacciones, y si la tarifa de un contrato debe subirse, mantenerse o descartarse, con datos reales y no a ojo.
 
@@ -43,8 +43,8 @@ La bitácora también muestra lo que cuesta un paro largo. El camión C4 registr
 
 ## 3. Entrevista
 
-**Entrevistado:** Andrés Figueroa, representante y subdirector de Máquinas Centella S.A. de C.V.; participa en las negociaciones. La decisión final la toma la directora general, Fabiola Rodríguez.
-**Fecha y duración:** jueves 22 de octubre de 2026 · 15 min 12 s
+**Entrevistado (según la documentación del equipo):** Andrés Figueroa, representante y subdirector de Máquinas Centella S.A. de C.V.; participa en las negociaciones. La decisión final la toma la directora general, Fabiola Rodríguez.
+**Fecha y duración reportadas por el equipo:** jueves 22 de octubre de 2026 · 15 min 12 s
 **Evidencia:** grabación de video (https://drive.google.com/file/d/1T08lxQsw4fgzoZnzMQLRWwu1T9PTHPg2/view?usp=sharing) y transcripción completa.
 **Consentimiento:** al inicio se le preguntó si aceptaba que la entrevista se usara con fines académicos y respondió que sí.
 
@@ -83,7 +83,7 @@ Las cuatro primeras salen directamente de la entrevista.
 | Pregunta de negocio | Pregunta analítica | Variable a predecir | Datos |
 |---|---|---|---|
 | ¿Qué equipo acumula más horas fuera de servicio por fallas? | ¿Cuántos días pasa detenido cada equipo entre la falla y su regreso, incluida la espera de la pieza? | `horas_fuera_de_servicio` por equipo y por falla | **Pendiente:** fecha de falla y de regreso a operación (hoy solo el caso del camión C4) |
-| ¿Cuáles son las piezas que más se descomponen? | ¿Cuánto gasto y cuántas repeticiones concentra cada componente, y cuántos trabajos se repiten en menos de 30 días? | `reparacion_correctiva_30d` (Sí/No) por camión | Bitácora real (disponible) |
+| ¿Cuáles son las piezas que más se descomponen? | ¿Cuánto gasto y cuántas repeticiones concentra cada componente, y cuántos trabajos se repiten en hasta 30 días? | `reparacion_correctiva_30d` (Sí/No) por camión | Bitácora real (disponible) |
 | ¿Cómo cambia la frecuencia de fallas con las horas de uso? | ¿Cuántas fallas hay por cada 100 horas de horómetro en cada equipo? | `fallas_por_100h` | **Pendiente:** lectura del horómetro |
 | ¿Qué equipo es el que más dinero genera? | ¿Cuál es el margen operativo neto de cada equipo? | `margen_operativo_mxn` por equipo y por mes | **Pendiente:** horas, toneladas y tarifas |
 | ¿Cuándo debo preparar taller y refacciones? | ¿Cuántas intervenciones tendrá la flota por semana y por mes en los próximos 7 y 30 días? | `intervenciones_diarias` (conteo, horizonte 7 y 30 días) | Bitácora real (disponible, señal débil) |
@@ -98,7 +98,7 @@ Solo usamos información real que entregó la empresa. No hay datos simulados.
 | Fuente | Contenido | Periodo | Volumen |
 |---|---|---|---|
 | `EQUIPOS MAQ CENTELLA.xlsx` | Catálogo: 11 cargadores (950H, 950K, 966H, 966K, 966M, 972M), 2 minicargadores (236, 226), 1 retroexcavadora (416) y 7 camiones (Sterling, International y Loresa) | Actual | 21 equipos |
-| `CAMIONES 12M3 Y 14M3.xlsx` | Bitácora de reparaciones de los 7 camiones: una hoja por camión, columnas por sistema (motor, electrónico, transmisión y dirección, caja y frenos, A/C y eléctrico, estético, llantas y servicio), costo y comentarios | Abril de 2024 a octubre de 2026 (30 meses), más tres intervenciones de 2023 | 257 intervenciones, 317 registros por sistema |
+| `CAMIONES 12M3 Y 14M3.xlsx` | Bitácora de reparaciones de los 7 camiones: una hoja por camión, columnas por sistema (motor, electrónico, transmisión y dirección, caja y frenos, A/C y eléctrico, estético, llantas y servicio), costo y comentarios | Principalmente abril de 2024 a octubre de 2026; también hay registros de 2023 y uno con solo el año 2022 | 257 intervenciones, 317 registros por sistema |
 | `Maquina Centella Contexto.txt` | Descripción de los tres módulos que quiere la empresa | Actual | Documento |
 | Carta de Máquinas Centella (25 de octubre de 2026) | Informa que está recopilando y consolidando el resto de la información en un Excel | Actual | Documento |
 
@@ -106,7 +106,7 @@ Solo usamos información real que entregó la empresa. No hay datos simulados.
 
 **Pendiente de entrega por la empresa:** horas trabajadas por turno, toneladas, tarifas por hora y por tonelada, lectura del horómetro, tipo de pieza (original o genérica) y proveedor real. La empresa los captura en papel y los está consolidando en un Excel. Mientras tanto no los simulamos: el tablero lo indica claramente y esos módulos quedan en espera.
 
-**Calidad de la bitácora.** Solo 75 de 257 intervenciones traen monto (29%). Hay fechas escritas a mano (`01/se/25`, `077sep/26`), años equivocados (una fecha de 2029), filas sin fecha, montos escritos dentro del texto y un ajuste de motor de $149,000 que es un atípico real. Todo se corrige o se reporta en la auditoría de E1.
+**Calidad de la bitácora.** Solo 75 de 257 intervenciones traen monto (29%). Hay fechas escritas a mano (`01/se/25`, `077sep/26`), años equivocados (una fecha de 2029), filas sin fecha, montos escritos dentro del texto y un ajuste de motor de $149,000 que es un monto atípico anotado, pendiente de comprobar. Las fechas inferidas se identifican con fecha_calidad. Todo se transforma o se reporta en la auditoría de E1.
 
 | Columna de la bitácora limpia (`mantenimiento.csv`) | Descripción |
 |---|---|
@@ -135,3 +135,10 @@ Se usó Claude para ordenar el documento de contexto, proponer el borrador del L
 
 - **Entrevista:** confirmar si el caso del gato hidráulico que cuenta Andrés es el del camión C4 (la fecha no coincide con la bitácora).
 - **De la empresa:** Excel consolidado (horas y toneladas por turno, tarifas, horómetro), fecha de falla y de regreso a operación de cada paro, tipo de pieza (original o genérica) y proveedor en cada compra, lectura del horómetro al cambiar una pieza y los montos de las intervenciones sin costo.
+
+
+## 9. Alcance de la entrega al 26 de octubre de 2026
+
+El equipo informa que los profesores autorizaron entregar E0 y E1 con la información recibida y completar después los datos pendientes. La carta de la empresa se adjunta como respaldo de su proceso de consolidación, sin atribuirle aprobación académica. No se utilizan registros simulados de la versión anterior.
+
+Las cifras derivan de los Excel originales, sin inventar montos. Algunas fechas se infieren por orden de la hoja; una fecha con solo año 2022 usa 01/01 como referencia técnica, no como día conocido. Se conserva fecha_calidad para auditar estas decisiones. La clasificación de piezas y la asignación igual de costos entre sistemas son criterios analíticos por validar. El indicador de 26.8 repeticiones por 100 intervenciones no representa porcentaje de fallas confirmadas.

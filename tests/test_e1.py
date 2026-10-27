@@ -1,47 +1,60 @@
-
 from pathlib import Path
-import sys,json
+import sys
 import numpy as np
 import pandas as pd
-ROOT=Path(__file__).resolve().parents[1]
-sys.path.insert(0,str(ROOT/'services/tablero'))
-from core import clean_data,metrics,spectral
-def test_clean_reconciles():
- raw=pd.read_csv(ROOT/'data/raw/operacion_simulada_raw.csv');d,a=clean_data(raw)
- assert a=={'filas_raw':8850,'filas_clean':8820,'duplicados':30,'formato':25,'nulos':40,'negativos':15,'atipicos':10}
- assert not d.duplicated(['equipo_id','fecha']).any()
- assert d.horas_trabajadas_h.notna().all()
- assert d.horas_trabajadas_h.ge(0).all()
- assert d.horas_trabajadas_h.le(d.horas_programadas_h-d.horas_paro_h).all()
- assert d.equipo_id.eq(d.equipo_id.str.strip().str.upper()).all()
- assert np.allclose(d.ingreso_mxn-d.costo_operativo_mxn-d.costo_mantenimiento_mxn,d.margen_directo_mxn)
-def test_kpi_small_known_case():
- d=pd.DataFrame({'ingreso_mxn':[1000,2000],'margen_directo_mxn':[400,600],'horas_trabajadas_h':[2,8],'horas_programadas_h':[10,10],'horas_paro_h':[1,3],'costo_mantenimiento_mxn':[100,200]})
- m=metrics(d)
- assert m['ingresos_mxn']==3000 and np.isclose(m['margen_directo_pct'],100/3)
- assert m['mantenimiento_mxn_h']==30 and m['disponibilidad_pct']==80
-def test_fft_known_cycles():
- d=pd.DataFrame({'fecha':pd.date_range('2025-01-01',periods=420).strftime('%Y-%m-%d'),'horas_trabajadas_h':10+2*np.cos(2*np.pi*np.arange(420)/7)+np.cos(2*np.pi*np.arange(420)/15)})
- _,p=spectral(d);assert np.isclose(p[0]['periodo_dias'],7) and np.isclose(p[1]['periodo_dias'],15)
-def test_ui():
- from streamlit.testing.v1 import AppTest
- from datetime import date,timedelta
- a=AppTest.from_file(str(ROOT/'services/tablero/app.py'),default_timeout=40).run()
- assert not a.exception
- assert len(a.metric)==4 and len(a.get('plotly_chart'))==6
- assert [x.value for x in a.metric]==['$71.57 M','58.77%','$24.75','95.84%']
- category=lambda:next(x for x in a.selectbox if x.key=='category')
- location=lambda:next(x for x in a.selectbox if x.key=='location')
- category().set_value('Camión').run()
- assert not a.exception and len(a.get('plotly_chart'))==6
- assert a.metric[0].value!='$71.57 M'
- # A short period must keep five descriptive charts without a fake FFT.
- a.date_input[0].set_value((date(2025,8,1),date(2025,8,14))).run()
- assert not a.exception and len(a.get('plotly_chart'))==5 and len(a.metric)==4
- # R1 is the sole retroexcavator and works in Peña in this scenario.
- category().set_value('Retroexcavadora').run()
- location().set_value('Carretera').run()
- assert not a.exception and len(a.metric)==0
- # Reset restores the complete scenario rather than retaining stale selections.
- next(x for x in a.button if x.label=='Restablecer filtros').click().run()
- assert not a.exception and len(a.metric)==4 and len(a.get('plotly_chart'))==6
+import pytest
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'services/tablero'))
+from core import resumen, serie_diaria, spectral, ciclo_cercano, recomendaciones  # noqa: E402
+from figures import views  # noqa: E402
+
+CLEAN = ROOT / 'data/clean/mantenimiento.csv'
+necesita_datos = pytest.mark.skipif(not CLEAN.exists(), reason='Ejecuta primero: python scripts/pipeline_e1.py')
+
+
+def _m():
+    return pd.DataFrame({
+        'evento_id': ['A-1', 'A-2', 'A-2', 'B-1'], 'camion_id': ['A', 'A', 'A', 'B'], 'fecha': ['2025-01-01', '2025-01-10', '2025-01-10', '2025-02-01'],
+        'costo_mxn_intervencion': [1000, 500, 500, np.nan], 'costo_mxn': [1000, 250, 250, np.nan],
+        'componente': ['Clutch', 'Clutch', 'Motor', 'Clutch'], 'reincidencia_30d': [False, True, False, False]})
+
+
+def test_resumen_caso_conocido():
+    r = resumen(_m())
+    assert r['intervenciones'] == 3 and r['con_monto'] == 2 and r['gasto_mxn'] == 1500
+    assert np.isclose(r['pct_con_monto'], 200 / 3) and r['promedio_mxn'] == 750 and r['reincidencias'] == 1
+
+
+def test_serie_diaria_calendario_completo():
+    s = serie_diaria(_m())
+    assert len(s) == 32 and s.sum() == 3 and s.index.is_monotonic_increasing
+
+
+def test_fft_recupera_ciclos_conocidos():
+    idx = pd.date_range('2025-01-01', periods=420)
+    s = pd.Series(10 + 2 * np.cos(2 * np.pi * np.arange(420) / 7) + np.cos(2 * np.pi * np.arange(420) / 15), index=idx)
+    spec, p = spectral(s)
+    assert abs(p[0]['periodo_dias'] - 7) < .2 and any(abs(x['periodo_dias'] - 15) < .6 for x in p[:3])
+    assert ciclo_cercano(spec, 7)['veces_mediana'] > 5
+
+
+def test_fft_rechaza_serie_corta_o_con_huecos():
+    with pytest.raises(ValueError):
+        spectral(pd.Series(1.0, index=pd.date_range('2025-01-01', periods=10)))
+    with pytest.raises(ValueError):
+        spectral(pd.Series(1.0, index=pd.date_range('2025-01-01', periods=60, freq='2D')))
+
+
+@necesita_datos
+def test_datos_reales_cuadran():
+    m = pd.read_csv(CLEAN)
+    assert not m.naturaleza_dato.ne('real').any()
+    r = resumen(m)
+    assert r['intervenciones'] == 257 and r['con_monto'] == 75 and r['gasto_mxn'] == 928832
+    # El monto repartido entre sistemas suma el monto de la intervención.
+    ev = m.drop_duplicates(['camion_id', 'evento_id'])
+    assert np.isclose(m.costo_mxn.sum(), ev.costo_mxn_intervencion.sum())
+    figs, aux = views(m)
+    assert len(figs) == 6 and all(f is not None for _, f in figs)
+    assert len(recomendaciones(m, aux)) == 3

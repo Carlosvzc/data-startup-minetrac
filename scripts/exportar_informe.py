@@ -8,8 +8,10 @@ from reportlab.lib.enums import TA_LEFT
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 ROOT=Path(__file__).resolve().parents[1]
-pdfmetrics.registerFont(TTFont('Arial',r'C:/Windows/Fonts/arial.ttf'))
-pdfmetrics.registerFont(TTFont('ArialBold',r'C:/Windows/Fonts/arialbd.ttf'))
+import matplotlib
+_dj = Path(matplotlib.get_data_path()) / 'fonts/ttf'
+for nombre, win, alt in [('Arial', r'C:/Windows/Fonts/arial.ttf', 'DejaVuSans.ttf'), ('ArialBold', r'C:/Windows/Fonts/arialbd.ttf', 'DejaVuSans-Bold.ttf')]:
+    pdfmetrics.registerFont(TTFont(nombre, win if Path(win).exists() else str(_dj / alt)))
 styles=getSampleStyleSheet()
 styles.add(ParagraphStyle(name='BodyX',fontName='Arial',fontSize=10,leading=15,spaceAfter=10,textColor=colors.HexColor('#273e4a')))
 styles.add(ParagraphStyle(name='TitleX',fontName='ArialBold',fontSize=25,leading=31,spaceAfter=20,textColor=colors.HexColor('#165764')))
@@ -25,7 +27,7 @@ for b in blocks:
   from PIL import Image as PILImage
   iw,ih=PILImage.open(path).size
   img=Image(str(path),width=475,height=475*ih/iw);img.keepWithNext=True;gap=Spacer(1,10);gap.keepWithNext=True;story.extend([img,gap])
-  web.append('<img src="data:image/'+('jpeg' if path.suffix.lower()=='.jpg' else 'png')+';base64,'+base64.b64encode(path.read_bytes()).decode()+'" alt="Gráfica del escenario simulado">')
+  web.append('<img src="data:image/'+('jpeg' if path.suffix.lower()=='.jpg' else 'png')+';base64,'+base64.b64encode(path.read_bytes()).decode()+'" alt="Gráfica">')
  else:
   level=1 if b.startswith('# ') else 2 if b.startswith('## ') else 3 if b.startswith('### ') else 0
   text=b[level+1:] if level else b
@@ -36,13 +38,11 @@ for b in blocks:
 def foot(c,d):
  c.setStrokeColor(colors.HexColor('#c9e1e6'));c.line(42,39,552,39)
  c.setFont('Arial',8);c.setFillColor(colors.HexColor('#5c7480'))
- c.drawString(42,26,'MineTrac · E1 · Datos operativos simulados · semilla 42')
+ c.drawString(42,26,'MineTrac · E1 · Información real de Máquinas Centella · operación pendiente')
  c.drawRightString(552,26,str(d.page))
-doc=SimpleDocTemplate(str(ROOT.parent/'E1_MineTrac_COMPLETA.pdf'),pagesize=(595.28,841.89),leftMargin=47,rightMargin=47,topMargin=42,bottomMargin=55,title='MineTrac E1 - Dashboard empresarial',author='Equipo MineTrac')
+doc=SimpleDocTemplate(str(ROOT/'docs/E1-informe.pdf'),pagesize=(595.28,841.89),leftMargin=47,rightMargin=47,topMargin=42,bottomMargin=55,title='MineTrac E1 - Dashboard empresarial',author='Equipo MineTrac')
 doc.build(story,onFirstPage=foot,onLaterPages=foot)
-style='body{margin:0;background:#eaf1f4;color:#263d49;font:16px/1.65 Segoe UI,Arial}main{max-width:1000px;margin:30px auto;background:white;padding:45px}h1,h2{color:#155765}h2{margin-top:35px;border-bottom:2px solid #cee4e7}img{width:100%;margin:20px 0}p{margin:12px 0}h3{margin-top:30px}@media print{body{background:white}main{margin:0;padding:0}img{break-inside:avoid}}'
-(ROOT.parent/'E1_MineTrac_COMPLETA.html').write_text('<!doctype html><html lang="es"><meta charset="utf-8"><title>MineTrac E1 completa</title><style>'+style+'</style><main>'+''.join(web)+'</main></html>',encoding='utf-8')
-print('PDF y HTML creados')
+print('PDF creado en docs/E1-informe.pdf')
 
 
 

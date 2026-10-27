@@ -1,10 +1,10 @@
-"""Cálculos del tablero: indicadores de la bitácora real de mantenimiento y análisis espectral (FFT)."""
+"""Calculamos los indicadores de mantenimiento y revisamos sus ciclos con FFT."""
 import numpy as np
 import pandas as pd
 
 
 def eventos(m):
-    """Una fila por intervención (la tabla limpia trae una fila por intervención y sistema)."""
+    """Contamos una vez cada intervención, aunque incluya varios sistemas."""
     return m.drop_duplicates(['camion_id', 'evento_id'])
 
 
@@ -22,9 +22,29 @@ def resumen(m):
             'pct_reincidencia': 100 * rep / n if n else 0.0}
 
 
+def tiene_dia(m):
+    """Separamos los registros con solo año de los que tienen día de referencia."""
+    return m.get('fecha_calidad', pd.Series('ok', index=m.index)).ne('solo_anio')
+
+
+def rango_periodo(m):
+    """Tomamos el periodo de los registros con día."""
+    fechas = pd.to_datetime(m.loc[tiene_dia(m), 'fecha'])
+    return fechas.min().date(), fechas.max().date()
+
+
+def filtrar_periodo(m, inicio, fin, incluir_sin_dia=True):
+    """Filtramos por fecha y conservamos aparte las intervenciones sin día conocido."""
+    con_dia = tiene_dia(m)
+    seleccion = con_dia & m.fecha.between(str(inicio), str(fin))
+    if incluir_sin_dia:
+        seleccion = seleccion | ~con_dia
+    return m.loc[seleccion]
+
+
 def serie_diaria(m, inicio=None, fin=None):
-    """Intervenciones por día en un calendario completo (con ceros)."""
-    ev = eventos(m).copy()
+    """Contamos las intervenciones con día y completamos el calendario con ceros."""
+    ev = eventos(m.loc[tiene_dia(m)]).copy()
     ev['fecha'] = pd.to_datetime(ev.fecha)
     if inicio is not None:
         ev = ev[ev.fecha >= pd.Timestamp(inicio)]
@@ -37,7 +57,7 @@ def serie_diaria(m, inicio=None, fin=None):
 
 
 def spectral(serie):
-    """FFT de una serie diaria: quita la tendencia lineal, aplica ventana Hann y busca máximos locales."""
+    """Quitamos la tendencia, aplicamos una ventana Hann y buscamos los picos de la FFT."""
     if len(serie) < 30 or not (np.diff(serie.index.values).astype('timedelta64[D]').astype(int) == 1).all():
         raise ValueError('Se requieren al menos 30 días completos y consecutivos.')
     t = np.arange(len(serie))
@@ -57,23 +77,23 @@ def spectral(serie):
 
 
 def recomendaciones(m, aux):
-    """Tres recomendaciones de negocio calculadas con la selección actual (texto plano)."""
+    """Proponemos tres acciones a partir de la selección actual."""
     r = resumen(m)
     out = []
     comp = aux['componentes']
     if len(comp):
         top = comp.iloc[0]
-        out.append(('01 / REFACCIONES', f"Presupuestar {top.componente.lower()} y cotizar con más de un proveedor",
+        out.append(('01 / REFACCIONES', f"Proponemos presupuestar {top.componente.lower()} y comparar cotizaciones",
                     f"Concentra {100 * top.costo_mxn / comp.costo_mxn.sum():.0f}% del gasto con monto anotado (${top.costo_mxn:,.0f} MXN). "
-                    "Pedir cotizaciones comparables antes de la siguiente compra grande."))
+                    "Proponemos comparar cotizaciones antes de la siguiente compra grande."))
     else:
         out.append(('01 / REFACCIONES', 'Anotar el monto de cada reparación', 'Esta selección no tiene montos anotados, así que no se puede priorizar el gasto.'))
     por = aux['por_camion']
     lider = por.index[-1]
-    out.append(('02 / FLOTA', f"Revisar el historial del camión {lider} antes de otra reparación mayor",
+    out.append(('02 / FLOTA', f"Proponemos revisar el historial del camión {lider}",
                 f"Acumula {int(por.total.iloc[-1])} intervenciones. En la flota, {r['reincidencias']} repeticiones ({r['pct_reincidencia']:.1f} por cada 100 intervenciones) "
-                "se repitieron sobre el mismo componente en hasta 30 días: solicitar diagnóstico y validar si fueron continuaciones del mismo trabajo antes de reclamar garantía."))
-    out.append(('03 / DATOS', 'Registrar monto, tipo de pieza y horómetro en cada reparación',
+                "corresponden al mismo componente en hasta 30 días. Proponemos pedir un diagnóstico y revisar si fueron continuaciones del mismo trabajo antes de reclamar garantía."))
+    out.append(('03 / DATOS', 'Nos falta registrar monto, tipo de pieza y horómetro en cada reparación',
                 f"Solo {r['pct_con_monto']:.0f}% de las intervenciones tiene monto anotado. Sin tipo de pieza (original o genérica) y horómetro al cambio "
                 "no se puede calcular el costo por hora útil ni decidir qué refacción conviene."))
     return out

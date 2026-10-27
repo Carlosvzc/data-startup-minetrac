@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-from core import eventos, resumen, serie_diaria, spectral
+from core import eventos, resumen, serie_diaria, spectral, tiene_dia
 
 TEAL = '#0b857a'
 BLUE = '#4d84b5'
@@ -30,10 +30,11 @@ def _fmt_fecha(x):
 
 
 def views(m):
-    """Seis visualizaciones de la bitácora real. Devuelve [(titulo, figura)], datos auxiliares."""
+    """Preparamos seis gráficas de la bitácora y sus datos de apoyo."""
     ev = eventos(m).copy()
     ev['fecha'] = pd.to_datetime(ev.fecha)
-    aux = {}
+    ev_dia = ev.loc[tiene_dia(ev)]
+    aux = {'eventos_con_dia': ev_dia}
     # 1) Gasto por componente (solo intervenciones con monto)
     comp = m.groupby('componente', as_index=False).costo_mxn.sum().query('costo_mxn>0').sort_values('costo_mxn', ascending=False)
     aux['componentes'] = comp
@@ -68,7 +69,7 @@ def views(m):
     lider = por.index[-1]
     t1 = f"{lider} suma {int(por.total.iloc[-1])} intervenciones, la bitácora más activa"
     # 3) Línea de tiempo
-    sin, con = ev[ev.costo_mxn_intervencion.isna()], ev[ev.costo_mxn_intervencion.notna()]
+    sin, con = ev_dia[ev_dia.costo_mxn_intervencion.isna()], ev_dia[ev_dia.costo_mxn_intervencion.notna()]
     f2 = go.Figure()
     f2.add_trace(go.Scatter(x=sin.fecha, y=sin.camion_id, mode='markers', name='Sin monto registrado',
                             marker=dict(color=GRAY, size=7, line=dict(color='white', width=.5)), customdata=sin.componente,
@@ -80,17 +81,21 @@ def views(m):
                             hovertemplate='%{y} · %{x|%d/%m/%Y}<br>%{customdata[0]}<br>$%{customdata[1]:,.0f} MXN<extra></extra>'))
     f2.update_yaxes(categoryorder='array', categoryarray=sorted(ev.camion_id.unique(), reverse=True), automargin=True)
     f2.update_xaxes(title=None, nticks=7)
-    t2 = f"{len(sin)} de {len(ev)} intervenciones no tienen monto anotado"
+    t2 = f"{int(ev.costo_mxn_intervencion.isna().sum())} de {len(ev)} intervenciones no tienen monto anotado"
     # 4) Intervenciones por mes
-    mes = ev.assign(mes=ev.fecha.dt.to_period('M').dt.to_timestamp()).groupby('mes').size()
-    mes = mes.reindex(pd.date_range(mes.index.min(), mes.index.max(), freq='MS'), fill_value=0)
+    mes = ev_dia.assign(mes=ev_dia.fecha.dt.to_period('M').dt.to_timestamp()).groupby('mes').size()
+    if len(mes):
+        mes = mes.reindex(pd.date_range(mes.index.min(), mes.index.max(), freq='MS'), fill_value=0)
+        pico = mes.idxmax()
+        f3 = go.Figure(go.Bar(x=mes.index, y=mes.values, marker_color=[TEAL if x == pico else SOFT for x in mes.index],
+                              hovertemplate='%{x|%b %Y}<br>Intervenciones: %{y}<extra></extra>'))
+        f3.update_yaxes(title='Intervenciones por mes')
+        f3.update_xaxes(title=None, nticks=8)
+        t3 = f"{pico.strftime('%m/%Y')} fue el mes con más intervenciones: {int(mes.max())}"
+    else:
+        f2, f3 = None, None
+        t3 = 'Nos falta el día para ubicar estas intervenciones por mes'
     aux['por_mes'] = mes
-    pico = mes.idxmax()
-    f3 = go.Figure(go.Bar(x=mes.index, y=mes.values, marker_color=[TEAL if x == pico else SOFT for x in mes.index],
-                          hovertemplate='%{x|%b %Y}<br>Intervenciones: %{y}<extra></extra>'))
-    f3.update_yaxes(title='Intervenciones por mes')
-    f3.update_xaxes(title=None, nticks=8)
-    t3 = f"{pico.strftime('%m/%Y')} fue el mes con más intervenciones: {int(mes.max())}"
     # 5) Días entre cambios del mismo componente
     vida = (m.dropna(subset=['vida_util_dias']).drop_duplicates(['camion_id', 'componente', 'fecha'])
             .groupby('componente').vida_util_dias.agg(['mean', 'count']).reset_index().query('count>=3'))
@@ -134,7 +139,8 @@ def views(m):
     for i in (3, 5):
         if figs[i] is not None:
             figs[i].update_yaxes(showgrid=True, gridcolor='#e9eff3')
-    f2.update_xaxes(showgrid=True, gridcolor='#e9eff3')
+    if f2 is not None:
+        f2.update_xaxes(showgrid=True, gridcolor='#e9eff3')
     for i, f in enumerate(figs):
         if f is not None:
             f.update_layout(showlegend=i in (1, 2), legend=dict(orientation='h', x=0, y=1.15, font_size=11))

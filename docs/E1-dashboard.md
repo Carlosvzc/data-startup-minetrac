@@ -92,7 +92,49 @@ Streamlit muestra una franja que indica qué datos son reales y qué está pendi
 
 El modo s3 lee clean/mantenimiento.csv, clean/inventario.csv y clean/resultados.json con boto3 y credenciales temporales de la instancia. No hay contraseñas ni claves en el repositorio. Si la lectura falla, el tablero lo informa y no la sustituye con una copia local.
 
+## Capturas del tablero por pestaña
+
+Estas capturas salen del tablero de Streamlit ejecutado con los mismos archivos de clean/ que están en S3, por eso la franja lateral dice Demostración local. La captura del tablero ya desplegado en AWS, con su URL, está en evidencias/dashboard_real_aws.png.
+
+### Pestaña Vista general
+
+![Pestaña Vista general](evidencias/tablero/01-vista-general.png)
+
+Gasto por componente, intervenciones por camión y tres recomendaciones calculadas con la selección de filtros.
+
+### Pestaña Mantenimiento y refacciones
+
+![Pestaña Mantenimiento y refacciones](evidencias/tablero/02-mantenimiento-refacciones.png)
+
+Línea de tiempo de intervenciones, carga por mes y días entre cambios de cada componente.
+
+### Pestaña Ciclos
+
+![Pestaña Ciclos](evidencias/tablero/03-ciclos.png)
+
+Análisis de Fourier de las intervenciones diarias, con el ciclo dominante expresado en días.
+
+### Pestaña Flota y operación
+
+![Pestaña Flota y operación](evidencias/tablero/04-flota-operacion.png)
+
+Catálogo de 21 equipos y aviso de que la operación y el balance financiero están pendientes de la empresa.
+
+### Pestaña Calidad de datos
+
+![Pestaña Calidad de datos](evidencias/tablero/05-calidad-datos.png)
+
+Auditoría de nulos, duplicados, negativos, atípicos y problemas de formato, con la procedencia de cada fuente.
+
+### Pestaña Explorar datos
+
+![Pestaña Explorar datos](evidencias/tablero/06-explorar-datos.png)
+
+Tabla de intervenciones de la selección, sin texto libre y con proveedores anonimizados, y descarga en CSV.
+
 ## Nube y presupuesto
+
+El tablero está conectado a la nube con credenciales seguras: lee sus tablas de un bucket privado de S3 mediante el rol de la instancia, con permisos de solo lectura y sin claves en el código ni en el repositorio. Su dirección pública solo sirve para que lo revisen.
 
 Desplegamos MineTrac en AWS y verificamos la conexión el 26 de octubre de 2026. Usamos el bucket privado minetrac-reales-251869518832-20261026, en us-east-1. En raw/ guardamos los dos Excel originales y en clean/ los cuatro archivos depurados. El tablero corre en una instancia EC2 t3.micro y lee las tablas desde S3. URL: http://54.204.60.100:8501/ . El stack se llama minetrac-e1-reales.
 
@@ -138,6 +180,8 @@ El control de duplicados del módulo identifica repeticiones dentro de una misma
 
 ## Referencias
 
+Repositorio del proyecto: https://github.com/Carlosvzc/data-startup-minetrac. Entrevista a Andrés Figueroa (grabación): https://drive.google.com/file/d/1T08lxQsw4fgzoZnzMQLRWwu1T9PTHPg2/view?usp=sharing. Transcripción: docs/evidencias/entrevista_transcripcion.md.
+
 Guía oficial PROYECTO_INTEGRADOR_DATA_STARTUP_ALUMNOS: E1 y rúbrica. Documento de contexto Maquina Centella Contexto. Comunicación de Máquinas Centella por carta del 25 de octubre de 2026, entregada por separado en Classroom; no incluida en el repositorio.
 
-Documentación técnica: AWS S3 (https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html); Streamlit (https://docs.streamlit.io/develop/api-reference); NumPy FFT (https://numpy.org/doc/stable/reference/routines.fft.html).
+Documentación técnica: AWS S3 (https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html); Streamlit (https://docs.streamlit.io/develop/api-reference); NumPy FFT (https://numpy.org/doc/stable/reference/routines.fft.html).

@@ -9,8 +9,7 @@ data/*.csv
 __pycache__/
 .ipynb_checkpoints/
 # E1: originales, datos completos y credenciales locales
-data/raw/operacion*
-data/raw/*.xlsx
+data/raw/
 data/clean/
 .streamlit/secrets.toml
 .venv/

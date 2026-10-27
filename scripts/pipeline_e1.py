@@ -1,11 +1,11 @@
 """Pipeline E1 de MineTrac (solo información real de Máquinas Centella).
 
-1) Lee la bitácora de reparaciones de los camiones y la limpia (services/worker/etl_bitacora.py).
-2) Lee el catálogo de equipos (EQUIPOS MAQ CENTELLA.xlsx).
-3) Calcula indicadores y FFT de las intervenciones diarias.
-4) Escribe data/raw, data/clean, data/sample y docs/auditoria.csv.
+1) Leemos la bitácora de reparaciones de los camiones y la limpia (services/worker/etl_bitacora.py).
+2) Leemos el catálogo de equipos (EQUIPOS MAQ CENTELLA.xlsx).
+3) Calculamos indicadores y FFT de las intervenciones diarias.
+4) Guardamos data/raw, data/clean, data/sample y docs/auditoria.csv.
 
-No se genera ningún dato simulado: la operación (horas, toneladas, tarifas, ingresos) está pendiente de entrega por la empresa.
+No simulamos datos: la operación (horas, toneladas, tarifas, ingresos) está pendiente de entrega por la empresa.
 
 Uso (desde la raíz del repositorio):
     python scripts/pipeline_e1.py --equipos "EQUIPOS MAQ CENTELLA.xlsx" --camiones "CAMIONES 12M3 Y 14M3.xlsx"

@@ -5,26 +5,31 @@ from reportlab.lib import colors
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 import html,re,shutil
+from pdf_portada import portada
+import matplotlib
 R=Path(__file__).resolve().parents[1]
-for n,f in [('A','arial.ttf'),('AB','arialbd.ttf')]:pdfmetrics.registerFont(TTFont(n,'C:/Windows/Fonts/'+f))
+for n,f,alt in [('A','arial.ttf','DejaVuSans.ttf'),('AB','arialbd.ttf','DejaVuSans-Bold.ttf')]:
+ pfont=Path('C:/Windows/Fonts')/f
+ if not pfont.exists():pfont=Path(matplotlib.get_data_path())/'fonts/ttf'/alt
+ pdfmetrics.registerFont(TTFont(n,str(pfont)))
 st=getSampleStyleSheet()
-st.add(ParagraphStyle(name='BodyM',fontName='A',fontSize=9.5,leading=14,spaceAfter=8,textColor=colors.HexColor('#263f49')))
+st.add(ParagraphStyle(name='BodyM',fontName='A',fontSize=9.5,leading=14,spaceAfter=8,textColor=colors.HexColor('#000000')))
 st.add(ParagraphStyle(name='SmallM',parent=st['BodyM'],fontSize=8,leading=11,spaceAfter=3))
 for lev,size in [(1,24),(2,14),(3,11)]:
- st.add(ParagraphStyle(name='H'+str(lev)+'M',fontName='AB',fontSize=size,leading=size*1.3,spaceBefore=14,spaceAfter=9,textColor=colors.HexColor('#126f72'),keepWithNext=True))
+ st.add(ParagraphStyle(name='H'+str(lev)+'M',fontName='AB',fontSize=size,leading=size*1.3,spaceBefore=14,spaceAfter=9,textColor=colors.HexColor('#000000'),keepWithNext=True))
 def inline(t):
  t=html.escape(t.strip())
  t=re.sub(r'\*\*(.*?)\*\*',r'<b>\1</b>',t)
  t=re.sub(r'`(.*?)`',r'\1',t)
- t=re.sub(r'\[([^\]]+)\]\((https?://[^)]+)\)',r'<link href="\2" color="#126f72">\1</link>',t)
+ t=re.sub(r'\[([^\]]+)\]\((https?://[^)]+)\)',r'<link href="\2" color="#000000">\1</link>',t)
  return t
 def foot(c,d):
- c.setStrokeColor(colors.HexColor('#ceddde'));c.line(44,40,551,40)
- c.setFont('A',8);c.setFillColor(colors.HexColor('#5c7480'))
- c.drawString(44,27,'MineTrac | E0 | Información disponible al 26 de octubre de 2026')
+ c.setStrokeColor(colors.HexColor('#000000'));c.line(44,40,551,40)
+ c.setFont('A',8);c.setFillColor(colors.HexColor('#000000'))
+ c.drawString(44,27,'MineTrac · E0')
  c.drawRightString(551,27,str(d.page))
 lines=(R/'docs/E0-propuesta.md').read_text(encoding='utf-8-sig').splitlines()
-story=[];i=0
+story=portada('E0','A','AB');i=0
 while i<len(lines):
  t=lines[i].strip()
  if not t or t=='---':i+=1;continue
@@ -37,7 +42,7 @@ while i<len(lines):
   n=max(map(len,rows)); widths={2:[122,385],3:[132,185,190],4:[110,160,110,127]}.get(n,[507/n]*n)
   data=[[Paragraph(inline(c),st['SmallM']) for c in row]+['']*(n-len(row)) for row in rows]
   table=LongTable(data,colWidths=widths,repeatRows=1,hAlign='LEFT')
-  table.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),colors.HexColor('#e5f0ef')),('VALIGN',(0,0),(-1,-1),'TOP'),('LEFTPADDING',(0,0),(-1,-1),7),('RIGHTPADDING',(0,0),(-1,-1),7),('TOPPADDING',(0,0),(-1,-1),6),('BOTTOMPADDING',(0,0),(-1,-1),6),('LINEBELOW',(0,0),(-1,-1),.4,colors.HexColor('#d8e3e6'))]))
+  table.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),colors.HexColor('#f2f2f2')),('VALIGN',(0,0),(-1,-1),'TOP'),('LEFTPADDING',(0,0),(-1,-1),7),('RIGHTPADDING',(0,0),(-1,-1),7),('TOPPADDING',(0,0),(-1,-1),6),('BOTTOMPADDING',(0,0),(-1,-1),6),('LINEBELOW',(0,0),(-1,-1),.4,colors.HexColor('#000000'))]))
   story.extend([table,Spacer(1,10)]);continue
  h=re.match(r'^(#{1,3}) (.+)',t)
  if h:story.append(Paragraph(inline(h[2]),st['H'+str(len(h[1]))+'M']));i+=1;continue

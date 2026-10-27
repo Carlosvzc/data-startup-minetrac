@@ -3,102 +3,135 @@
 **Proyecto Integrador DATA STARTUP** · Cómputo en la Nube (IAD-2408) y Analítica de Datos (IAD-2403)
 Tecnológico Nacional de México campus Colima · Ingeniería en Inteligencia Artificial
 
-**Equipo:** MineTrac (`data-startup-minetrac`)
-**Integrantes:** Carlos Alejandro Vizcaino Anguiano (matrícula 25460343) · Diego Reyes Natilla (matrícula 25460331)
-**Roles:** Carlos Alejandro Vizcaino Anguiano, Cloud Lead · Diego Reyes Natilla, Data Lead
-**Cliente:** Máquinas Centella S.A. de C.V.
+| Campo | Información |
+|---|---|
+| Proyecto | MineTrac · `data-startup-minetrac` |
+| Institución | Tecnológico Nacional de México, campus Colima |
+| Carrera | Ingeniería en Inteligencia Artificial |
+| Asignaturas | Cómputo en la Nube (IAD-2408) y Analítica de Datos (IAD-2403) |
+| Cliente | Máquinas Centella S.A. de C.V. |
+| Cloud Lead | Carlos Alejandro Vizcaino Anguiano · matrícula 25460343 |
+| Data Lead | Diego Reyes Natilla · matrícula 25460331 |
+
+> Estado de la información: este documento se basa solo en el catálogo de equipos, la bitácora de reparaciones de los camiones, el documento de contexto, la carta y la entrevista que entregó o dio la empresa. No usamos datos simulados. Lo que todavía falta se lista en la sección 8.
 
 ---
 
 ## 1. Problema y cliente
 
-El cliente es una empresa que adquiere, opera y mantiene maquinaria pesada para minería (camiones, cargadores, excavadoras y equipos similares). Su dirección general está a cargo de Fabiola Rodríguez, quien toma la decisión final en cada caso, y nuestro contacto operativo es Andrés Figueroa, que participa en las negociaciones y propone soluciones.
+El cliente es una empresa que compra, opera y mantiene maquinaria pesada para minería. Su catálogo tiene 21 equipos: 11 cargadores, 2 minicargadores, 1 retroexcavadora y 7 camiones de 12 y 14 m³. Quiere un sistema que le permita evaluar la rentabilidad de cada equipo, comparar la durabilidad de las refacciones según su origen (original de fábrica o genérica de proveedor local) y generar balances financieros para decidir en sus contratos.
 
-Lo que les duele es muy concreto: **el historial de cada máquina vive en un bloc de notas dentro del celular de la directora**. Cuando un equipo falla no hay un lugar único donde consultar qué piezas ya se cambiaron, qué falló antes y qué sigue pendiente. Cada hora que una máquina está detenida deja de producir y, además, otro equipo tiene que cubrirla. En la entrevista nos contaron un caso de hace unos dos meses: un gato hidráulico con una fuga pequeña de aceite perdió presión al levantar la carga y el camión se volcó de lado. Reparar el gato y la caja dañada tomó cerca de mes y medio, casi todo esperando la refacción.
+Hoy esa información está dispersa. Según el documento de contexto, las horas trabajadas se capturan en papel o a mano y no hay un registro digital de horómetro, toneladas ni ingresos por equipo; la empresa nos informó por carta (25 de octubre de 2026) que está consolidando esa información en un Excel. Lo único que existe digitalmente es una bitácora de reparaciones de los 7 camiones, una hoja por camión, con fechas, trabajos realizados y, solo a veces, el monto. La bitácora cubre 257 intervenciones entre agosto de 2023 y octubre de 2026 (casi todas desde abril de 2024). Únicamente 75 traen monto anotado y suman $928,832 MXN, así que el costo real de mantener la flota es mayor y hoy no se puede calcular.
 
-**Decisión de negocio que queremos ayudar a tomar:** qué equipo atender o preparar primero y con qué refacciones, para reducir las horas fuera de servicio y pasar de mantenimiento correctivo a preventivo.
+La bitácora también muestra lo que cuesta un paro largo. El camión C4 registra el 9 de marzo de 2026 que se rompió la base del gato hidráulico y se volteó la caja en la peña; entró a taller en abril y se anotó como entregado el 6 de mayo, casi dos meses después. El entrevistado (sección 3) cuenta un caso muy parecido: el gato perdió presión por una fuga de aceite, el camión se volteó sin lesionados, la pieza nueva tardó cerca de mes y medio en llegar y además hubo que rehacer una parte de la caja. La fecha que él da ("hace unos dos meses") no cuadra con la bitácora, que ubica el caso del C4 entre marzo y mayo de 2026; falta confirmar con la empresa si es el mismo evento. En otro ejemplo, el camión C5 acumula 57 intervenciones, y en 69 ocasiones se volvió a trabajar el mismo componente de un camión en menos de 30 días.
+
+**Decisión de negocio que queremos ayudar a tomar:** si una refacción barata o local compensa frente a una original, qué equipo conviene atender primero y con qué refacciones, y si la tarifa de un contrato debe subirse, mantenerse o descartarse, con datos reales y no a ojo.
 
 ## 2. Lean Canvas
 
 | Bloque | Contenido |
 |---|---|
-| **Problema** | 1) El historial de fallas y reparaciones está disperso en notas personales. 2) No se sabe con certeza qué equipo acumula más horas detenido ni qué piezas se repiten. 3) La información de los operadores llega en lenguaje informal (hasta con apodos para las piezas). |
-| **Segmento de clientes** | Empresas medianas que compran y operan maquinaria para minería y llevan su mantenimiento en bitácoras o notas. Cliente inicial: Máquinas Centella. |
-| **Propuesta de valor** | Un tablero donde se consulta el historial completo de cada máquina en un solo lugar y que avisa qué equipo tiene más riesgo de falla y cuántas horas de paro se esperan. |
-| **Solución** | Plataforma en la nube que recibe las bitácoras (API o CSV), las limpia, las guarda en un data lake y las muestra en un tablero con pronóstico de horas fuera de servicio y clasificación de riesgo por equipo. |
-| **Canales** | Demostración directa con la dirección de la empresa, acceso por URL desde el celular y recomendación a otras empresas del mismo giro. |
-| **Fuentes de ingreso** | Suscripción mensual por flota (el precio se calcula en E5 con los costos de nube). |
+| **Problema** | 1) El historial de cada equipo vive en un bloc de notas en el celular de la directora general; para consultarlo hay que llamarle, y eso frena las decisiones. 2) Cuando un equipo se detiene, no se mide cuántas horas estuvo fuera de servicio ni cuánto tardó en llegar la pieza. 3) En la bitácora de camiones falta el monto en 7 de cada 10 intervenciones y los operadores usan apodos para las piezas, lo que dificulta analizar qué se repara. 4) Las horas trabajadas se anotan en papel, así que no hay balance de ingresos contra gastos por máquina para negociar tarifas. |
+| **Segmento de clientes** | Empresas que compran y operan maquinaria pesada para minería y llevan su mantenimiento en bitácoras. Cliente inicial: Máquinas Centella S.A. de C.V. |
+| **Propuesta de valor** | Un lugar único donde se consulta el historial de cada equipo (qué se le ha cambiado, qué falla seguido, cuánto estuvo detenido) para decidir por dónde seguir. Después, comparar el costo por hora útil de cada refacción y ver el margen operativo por equipo con un indicador de tarifas. |
+| **Solución** | Plataforma en la nube con tres módulos: refacciones e insumos (origen, proveedor, horómetro al cambio y costo), operación y registro de trabajo (horas por turno y toneladas, con tarifas por hora o por tonelada) y balance financiero por equipo. Recibe CSV o formularios, limpia los datos, los guarda en un data lake y los muestra con pronósticos. |
+| **Canales** | Por validar con el cliente: demostración directa con la dirección y recomendación a otras empresas del mismo giro. |
+| **Fuentes de ingreso** | Suscripción mensual por flota; el precio se calcula en E5 con los costos de nube. Por validar con el cliente. |
 | **Estructura de costos** | Servicios en la nube (cómputo, almacenamiento, base de datos, cola de mensajes), tiempo de desarrollo y soporte. En el proyecto el presupuesto de nube es de $0. |
-| **Métricas clave** | Horas fuera de servicio por equipo y por mes, proporción de mantenimiento preventivo contra correctivo, días de espera de pieza, error del pronóstico. |
-| **Ventaja injusta** | Partimos de entrevistas con quien opera la flota, así que el modelo de datos usa su vocabulario (horómetro, piezas de desgaste, bitácora de lubricación). La ventaja real dependerá de acumular el historial de cada cliente. |
+| **Métricas clave** | Horas fuera de servicio por equipo (incluye la espera de la pieza), piezas que más se repiten, fallas por horas de uso, margen operativo neto por equipo, costo por hora útil de cada refacción y porcentaje de intervenciones con monto registrado. |
+| **Ventaja injusta** | Partimos de la bitácora real de la empresa y de su documento de contexto, así que el modelo de datos usa su vocabulario (horómetro, peña, pista, camiones de 12 y 14 m³). La ventaja real dependerá de acumular, con captura disciplinada, hasta 10 años de historial por cliente. |
 
 ## 3. Entrevista
 
-**Entrevistado:** Andrés Figueroa, Máquinas Centella S.A. de C.V. Aceptó que la entrevista se use con fines académicos.
-**Duración de la grabación:** 13 min 12 s. **Evidencia:** `Entrevista.mp4` en Google Drive: https://drive.google.com/file/d/1T08lxQsw4fgzoZnzMQLRWwu1T9PTHPg2/view?usp=sharing.
+**Entrevistado:** Andrés Figueroa, representante y subdirector de Máquinas Centella S.A. de C.V.; participa en las negociaciones. La decisión final la toma la directora general, Fabiola Rodríguez.
+**Fecha y duración:** jueves 22 de octubre de 2026 · 15 min 12 s
+**Evidencia:** grabación de video (https://drive.google.com/file/d/1T08lxQsw4fgzoZnzMQLRWwu1T9PTHPg2/view?usp=sharing) y transcripción completa.
+**Consentimiento:** al inicio se le preguntó si aceptaba que la entrevista se usara con fines académicos y respondió que sí.
 
-**Pregunta 1. ¿Cuál es su papel y cómo participa cuando un problema operativo afecta compromisos con el cliente?**
-Representa a la empresa, propone ideas o soluciones y apoya en las negociaciones. La decisión final es de la directora general.
+### Pregunta 1. ¿Cuál es tu papel en las negociaciones y cómo participas cuando un problema operativo afecta los compromisos con el cliente?
+Representa a la empresa, propone ideas o caminos a seguir y apoya en las negociaciones. La directora general, Fabiola Rodríguez, tiene la última palabra.
 
-**Pregunta 2. Cuéntenos un caso reciente donde una falla complicó la operación.**
-El caso del gato hidráulico con fuga de aceite que provocó el volcamiento del camión (descrito arriba). La pieza nueva tardó cerca de mes y medio y hubo que rehacer parte de la caja. Mientras tanto otro equipo tuvo que cubrir y el camión dejó de generar.
+### Pregunta 2. Cuéntanos un caso reciente en que una falla o reparación complicó la operación.
+Hace unos dos meses, un gato hidráulico con una pequeña fuga de aceite perdió presión al levantar la carga y el camión se volteó de lado, sin lesionados. Lo enderezaron con otros equipos y llegó al taller por sus propios medios, porque el daño no era estructural. Pidieron la pieza nueva, que tardó cerca de mes y medio en llegar, y al instalarla vieron que también se había doblado parte de la caja, que hubo que cortar, resoldar y acomodar. Mientras el equipo estuvo detenido dejó de generar y hubo que meter otro equipo para cumplir el proyecto. (Se parece al camión C4 de la bitácora: base del gato rota el 9 de marzo de 2026 y entrega el 6 de mayo, con la pieza tardando cerca de mes y medio. Pero la fecha no coincide, así que falta confirmar si es el mismo evento.)
 
-**Pregunta 3. ¿Cómo registran la falla y cómo verifican que ya quedó bien?**
-Todo se lleva en bitácoras y el horómetro indica el tiempo de trabajo de cada equipo. Cada 8 horas se hace un servicio de lubricación con revisión completa y ahí se detectan la mayoría de las fallas. Tras la reparación, un operador con experiencia hace una prueba extrema en el taller para confirmar que la pieza quedó bien.
+### Pregunta 3. Desde que detectan una falla hasta que el equipo vuelve a trabajar, ¿cómo lo registran y cómo verifican que quedó bien?
+Todo se registra en bitácoras. Cada ocho horas se hace un servicio de lubricación con revisión completa y, si hay una falla, el equipo se sustituye en ese momento. El horómetro indica las horas de trabajo y las piezas de desgaste (mangueras, aceite, joystick y otras) ya están contempladas. Para verificar una reparación, uno de los operadores con más experiencia hace en el taller una prueba extrema, llevando el equipo a sus límites.
 
-**Pregunta 4. ¿Qué información consultan para decidir y cuál es la más difícil de conseguir?**
-Lo más difícil es la información que dan los operadores, porque la explican cada uno a su manera y ponen apodos a las piezas. La reparación casi siempre se hace; el problema es cuánto tarda en llegar la pieza. Si el equipo es viejo se canibaliza una refacción mientras llega la nueva. Prefieren el mantenimiento preventivo porque sale mucho más barato que el correctivo.
+### Pregunta 4. ¿Qué información consultas para decidir si conviene seguir operando una máquina y cuál es la más difícil de conseguir?
+Lo más difícil es la información de los operadores: cada uno explica distinto y ponen apodos a las piezas, y luego no se sabe quién los puso ni por qué. La decisión de reparar casi siempre es "sí", porque no pueden quedarse sin equipos; el problema es cuánto tarda en llegar la pieza y cuánto estará fuera el equipo. Para cubrir esa espera, a veces "canibalizan" un equipo viejo y luego le devuelven la pieza. Prefieren el mantenimiento preventivo porque es mucho más barato que el correctivo.
 
-**Pregunta 5. Si pudieran consultar el historial de cada equipo en un solo lugar, ¿qué querrían ver primero y cómo comprobarían que sirve?**
-Hoy todo está en un bloc de notas en el celular de la directora. Lo primero sería ver qué equipo es, qué le ha fallado y qué piezas ya se cambiaron para saber qué más puede fallar. Además, al proponerles preguntas para el sistema respondió que le servirían: qué equipo acumula más horas fuera de servicio, qué equipo genera más dinero, cuáles son las piezas que más se descomponen, cuánto tarda en llegar una pieza y cómo cambia la frecuencia de fallas según las horas de uso.
+### Pregunta 5. Si pudieras consultar el historial de cada equipo en un solo lugar, ¿qué necesitarías ver primero y cómo comprobarías que te ayuda?
+Hoy todo está en un bloc de notas en el celular de la directora; para consultarlo hay que llamarle, y eso frena los procesos. Lo principal que necesitan ver es el número de equipo, qué tiene, qué le falla y qué le ha fallado en los últimos meses, para no repetir lo ya cambiado (por ejemplo, cabezas de motor o pistones) y saber qué falta por hacer.
 
-**Lo que aprendimos.** El cliente ya sabe cuáles son sus piezas repetitivas y tiene varias en stock, pero no lo tiene medido. Lo que más valor tiene para ellos es la consulta rápida del historial y saber cuánto tiempo estará detenido un equipo. También hay que cuidar la privacidad de algunos datos, por lo que cualquier dato real se anonimiza antes de subirlo.
+### Preguntas que le gustaría que la aplicación responda
+1. Qué equipo acumula más horas fuera de servicio por fallas y cuál es el que más dinero genera.
+2. Cuáles son las piezas que más se descomponen (creen tener idea, pero quieren certeza).
+3. Cuántas horas pasan hasta que llega la pieza y el equipo vuelve a trabajar.
+4. Qué reparaciones ya están confirmadas y cuáles siguen pendientes de validar: si llegó la pieza, si se montó y si de verdad era esa la falla ("como ser un poco un médico").
+5. Cómo cambia la frecuencia de fallas de cada equipo según sus horas de uso. Dijo que con esa información podrían trabajar bastante bien.
+
+### Conclusiones
+- La prioridad de la empresa es consultar el historial de cada máquina en un solo lugar y medir el tiempo fuera de servicio, incluida la espera de la pieza.
+- Quieren conocer las piezas que más se repiten y qué equipo genera más dinero.
+- El principal obstáculo de datos es la captura: bloc de notas, apodos de piezas y explicaciones distintas de cada operador. Por eso el proyecto clasifica las piezas con palabras clave y esa clasificación debe validarla la empresa.
+- Hoy la bitácora no registra la fecha de la falla ni la de regreso a operación de forma sistemática, así que las horas fuera de servicio todavía no se pueden calcular para toda la flota.
 
 ## 4. Cadena de preguntas
 
-| Pregunta de negocio | Pregunta analítica | Variable a predecir |
-|---|---|---|
-| ¿Cuántas horas de paro tendré la próxima semana y qué tanto debo preparar? | ¿Cuántas horas fuera de servicio tendrá la flota por día durante los próximos 7 y 30 días? | `horas_fuera_servicio` diarias de la flota (horas, horizonte 7 y 30 días) |
-| ¿Qué equipo tengo que revisar antes de que falle? | ¿Qué probabilidad tiene cada equipo de presentar una falla en los próximos 7 días? | `falla` (Sí/No) por equipo, horizonte 7 días |
-| ¿Cambia la frecuencia de fallas cuando el equipo acumula más horas de uso? | ¿Qué relación hay entre el horómetro y las fallas por mes? | fallas por mes en función de `horometro` |
+Las cuatro primeras salen directamente de la entrevista.
 
-Las dos primeras alimentan los modelos de E3 (ARIMA y clasificador) y la tercera se resuelve con la regresión de E2. Las preguntas sobre piezas repetitivas y días de espera se responden directo en el tablero de E1.
+| Pregunta de negocio | Pregunta analítica | Variable a predecir | Datos |
+|---|---|---|---|
+| ¿Qué equipo acumula más horas fuera de servicio por fallas? | ¿Cuántos días pasa detenido cada equipo entre la falla y su regreso, incluida la espera de la pieza? | `horas_fuera_de_servicio` por equipo y por falla | **Pendiente:** fecha de falla y de regreso a operación (hoy solo el caso del camión C4) |
+| ¿Cuáles son las piezas que más se descomponen? | ¿Cuánto gasto y cuántas repeticiones concentra cada componente, y cuántos trabajos se repiten en menos de 30 días? | `reparacion_correctiva_30d` (Sí/No) por camión | Bitácora real (disponible) |
+| ¿Cómo cambia la frecuencia de fallas con las horas de uso? | ¿Cuántas fallas hay por cada 100 horas de horómetro en cada equipo? | `fallas_por_100h` | **Pendiente:** lectura del horómetro |
+| ¿Qué equipo es el que más dinero genera? | ¿Cuál es el margen operativo neto de cada equipo? | `margen_operativo_mxn` por equipo y por mes | **Pendiente:** horas, toneladas y tarifas |
+| ¿Cuándo debo preparar taller y refacciones? | ¿Cuántas intervenciones tendrá la flota por semana y por mes en los próximos 7 y 30 días? | `intervenciones_diarias` (conteo, horizonte 7 y 30 días) | Bitácora real (disponible, señal débil) |
+| ¿Conviene comprar la pieza original o la local? (documento de contexto) | ¿Cuánto cuesta por hora útil cada refacción según su origen y proveedor? | `costo_por_hora_util` = costo de la pieza ÷ horas hasta el siguiente cambio | **Pendiente:** tipo de pieza y horómetro al cambio |
+
+Con la bitácora se responden hoy las filas 2 y 5, que alimentan E1, E2 y E3 (ARIMA y clasificador). El resto depende de información que la empresa está consolidando; el diseño del tablero ya las contempla.
 
 ## 5. Inventario de datos
 
-**Fuente:** el cliente se comprometió a facilitarnos sus datos reales, que hoy viven en las notas de la directora. Se anonimizarán antes de subirlos al repositorio. Mientras llegan trabajamos con datos sintéticos generados con `scripts/generar_bitacora.py`, que simula una flota de 10 equipos con un patrón realista (más fallas en temporada de lluvias, piezas de desgaste frecuentes como mangueras y fugas, y espera larga en piezas mayores como motor y gato hidráulico). Si los datos reales llegan, se reemplazan y el proyecto aplica al bono de negocio real de E5.
+Solo usamos información real que entregó la empresa. No hay datos simulados.
 
-| Dato | Detalle |
+| Fuente | Contenido | Periodo | Volumen |
+|---|---|---|---|
+| `EQUIPOS MAQ CENTELLA.xlsx` | Catálogo: 11 cargadores (950H, 950K, 966H, 966K, 966M, 972M), 2 minicargadores (236, 226), 1 retroexcavadora (416) y 7 camiones (Sterling, International y Loresa) | Actual | 21 equipos |
+| `CAMIONES 12M3 Y 14M3.xlsx` | Bitácora de reparaciones de los 7 camiones: una hoja por camión, columnas por sistema (motor, electrónico, transmisión y dirección, caja y frenos, A/C y eléctrico, estético, llantas y servicio), costo y comentarios | Abril de 2024 a octubre de 2026 (30 meses), más tres intervenciones de 2023 | 257 intervenciones, 317 registros por sistema |
+| `Maquina Centella Contexto.txt` | Descripción de los tres módulos que quiere la empresa | Actual | Documento |
+| Carta de Máquinas Centella (25 de octubre de 2026) | Informa que está recopilando y consolidando el resto de la información en un Excel | Actual | Documento |
+
+**Cumplimiento del mínimo de la guía.** La guía pide al menos 12 meses o 5,000 registros. La bitácora cubre 30 meses, así que cumple por periodo, aunque tiene pocos registros (317). La señal es limitada para modelos de series de tiempo; lo decimos desde ahora para no exagerar los resultados.
+
+**Pendiente de entrega por la empresa:** horas trabajadas por turno, toneladas, tarifas por hora y por tonelada, lectura del horómetro, tipo de pieza (original o genérica) y proveedor real. La empresa los captura en papel y los está consolidando en un Excel. Mientras tanto no los simulamos: el tablero lo indica claramente y esos módulos quedan en espera.
+
+**Calidad de la bitácora.** Solo 75 de 257 intervenciones traen monto (29%). Hay fechas escritas a mano (`01/se/25`, `077sep/26`), años equivocados (una fecha de 2029), filas sin fecha, montos escritos dentro del texto y un ajuste de motor de $149,000 que es un atípico real. Todo se corrige o se reporta en la auditoría de E1.
+
+| Columna de la bitácora limpia (`mantenimiento.csv`) | Descripción |
 |---|---|
-| Archivo | `bitacora_maquinaria.csv` |
-| Periodo | 1 de octubre de 2024 al 30 de septiembre de 2026 (24 meses) |
-| Volumen | 7,330 registros (una fila por equipo y día, más duplicados sembrados) |
-| Equipos | 10 (3 camiones, 2 cargadores, 2 excavadoras, 1 motoconformadora, 1 perforadora, 1 retroexcavadora) |
+| `evento_id`, `camion_id`, `fecha` | Intervención, camión (C1 a C7) y día |
+| `sistema`, `componente` | Sistema de la hoja y pieza clasificada con palabras clave |
+| `condicion_pieza` | Nueva, reparada o no especificada (interpretación del texto) |
+| `proveedor_codigo` | Proveedor anonimizado (P01, P02...) |
+| `costo_mxn`, `costo_origen` | Monto repartido entre sistemas y su origen (registrado, extraído de texto o sin dato) |
+| `dias_desde_cambio_anterior`, `vida_util_dias`, `reincidencia_30d` | Aproximación de durabilidad con fechas |
+| `tipo_pieza` | Original o genérica: **por capturar**, no existe en el historial |
 
-| Columna | Descripción |
-|---|---|
-| `fecha` | Día del registro |
-| `equipo_id` | Identificador del equipo (ej. CAM-01) |
-| `tipo_equipo` | Camión, cargador, excavadora, etc. |
-| `horometro` | Horas acumuladas del equipo |
-| `horas_operadas` | Horas trabajadas ese día |
-| `horas_fuera_servicio` | Horas detenido por falla, mantenimiento o espera de pieza |
-| `tipo_evento` | Operación, Preventivo, Correctivo o Fuera de servicio |
-| `componente` | Pieza que falló (manguera, motor, gato hidráulico, etc.) |
-| `falla` | Sí/No |
-| `dias_espera_pieza` | Días que tardó en llegar la refacción |
-| `costo_reparacion_mxn` | Costo de la reparación |
-| `validado` | Si la reparación ya fue confirmada |
-
-El script siembra a propósito los cinco errores que pide E1: nulos, negativos, atípicos, formato inconsistente en `equipo_id` y duplicados. En el repositorio solo se sube una muestra de 60 filas en `data/sample/`.
+Los archivos completos no se suben al repositorio por privacidad; en `data/sample/` hay muestras de 60 filas sin texto libre ni nombres.
 
 ## 6. Arranque técnico
 
-- **Proveedor de nube:** Amazon Web Services (AWS, capa gratuita), que se mantendrá todo el proyecto.
-- **Alerta de presupuesto:** presupuesto mensual de 1 USD ("My Zero-Spend Budget") con alerta cuando el costo real supera 0.01 USD, enviada al correo verificado del Cloud Lead. Evidencia: ![Alerta de presupuesto en AWS Budgets](evidencias/alerta-presupuesto-aws.png)
-- **Repositorio en GitHub:** https://github.com/Carlosvzc/data-startup-minetrac (repositorio privado, con ambos integrantes como colaboradores)
-- **Estructura inicial:** carpetas `docs/`, `data/sample/`, `scripts/` ya creadas; faltan `notebooks/`, `services/`, `infra/terraform/`, `k8s/` y `tests/`.
+- **Proveedor de nube:** Amazon Web Services (AWS, capa gratuita).
+- **Alerta de presupuesto ($0 a $5 USD):** activa. Presupuesto mensual "My Zero-Spend Budget" de $1.00 USD desde el 1 de octubre de 2026, con alerta por correo cuando el costo real supere $0.01 USD (correo verificado). Evidencia: `docs/evidencias/alerta-presupuesto-aws.png`.
+- **Repositorio en GitHub:** https://github.com/Carlosvzc/data-startup-minetrac
+- **Estructura del repositorio:** `docs/`, `data/sample/`, `scripts/`, `services/` (tablero y módulo de limpieza), `notebooks/`, `tests/`, `infra/` y `k8s/` según la guía; `infra/terraform/` y `k8s/` se llenan en E3.
 
 ## 7. Uso de IA generativa
 
-Se usó Claude para transcribir la entrevista, ordenar sus respuestas, proponer el borrador del Lean Canvas y programar el generador de datos sintéticos. Las decisiones sobre el cliente, las preguntas y los datos las revisamos nosotros y las podemos explicar en la defensa.
+Se usó Claude para ordenar el documento de contexto, proponer el borrador del Lean Canvas, programar la limpieza de la bitácora y construir el tablero. Las decisiones sobre el cliente, las preguntas y la clasificación de piezas las revisamos nosotros y las podemos explicar en la defensa.
+
+## 8. Información pendiente
+
+- **Entrevista:** confirmar si el caso del gato hidráulico que cuenta Andrés es el del camión C4 (la fecha no coincide con la bitácora).
+- **De la empresa:** Excel consolidado (horas y toneladas por turno, tarifas, horómetro), fecha de falla y de regreso a operación de cada paro, tipo de pieza (original o genérica) y proveedor en cada compra, lectura del horómetro al cambiar una pieza y los montos de las intervenciones sin costo.

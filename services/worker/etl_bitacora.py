@@ -95,7 +95,7 @@ def sistema_de_encabezado(h):
 
 
 def candidatos_fecha_texto(raw: str):
-    """Interpreta fechas escritas a mano ('01/se/25', '077sep/26', '11/jun/265', '10/ju/')."""
+    """Interpretamos fechas escritas a mano ('01/se/25', '077sep/26', '11/jun/265', '10/ju/')."""
     m = re.match(r'^\s*(\d+)\s*/?\s*([a-zA-Z]+)\s*/\s*(\d*)\s*$', str(raw))
     if not m:
         return []
@@ -262,7 +262,7 @@ def leer_hojas(ws):
 
 
 def procesar_libro(wb, alias_proveedor: dict | None = None):
-    """Devuelve (DataFrame limpio, dict de auditoría)."""
+    """Devolvemos la tabla limpia, la auditoría y el mapa privado de proveedores."""
     alias_proveedor = cargar_alias() if alias_proveedor is None else alias_proveedor
     registros = []
     contadores = Counter()

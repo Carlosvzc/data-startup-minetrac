@@ -42,7 +42,7 @@ Desde la raíz del repositorio, con los dos Excel en `data/raw/` o indicando su 
     python -m pytest tests -q
     python -m streamlit run services/tablero/app.py
 
-`pipeline_e1.py` limpia la bitácora, calcula indicadores y FFT, y escribe `data/raw/`, `data/clean/`, `data/sample/` y `docs/auditoria.csv`.
+`pipeline_e1.py` limpia la bitácora, calcula indicadores y FFT, y escribe `data/raw/`, `data/clean/`, `data/sample/` y `docs/auditoria.csv`. `pipeline_libreta.py` (lo llama `pipeline_e1.py`) estructura la transcripción de la libreta manuscrita en `data/clean/libreta_eventos.csv` y `libreta_resumen.json`; la transcripción trae nombres de terceros y vive solo en `data/raw/`.
 
 ## Ejecutar con Docker
 
@@ -57,7 +57,7 @@ Primero ejecutamos scripts/pipeline_e1.py con los dos Excel originales. Así gen
 
 ### Nube y presupuesto
 
-Desplegamos MineTrac en AWS y verificamos la conexión el 26 de octubre de 2026. Usamos el bucket privado minetrac-reales-251869518832-20261026, en us-east-1. En raw/ guardamos los dos Excel originales y en clean/ los cuatro archivos depurados. El tablero corre en una instancia EC2 t3.micro y lee las tablas desde S3. URL: http://54.204.60.100:8501/ . El stack se llama minetrac-e1-reales.
+Desplegamos MineTrac en AWS y verificamos la conexión el 26 de octubre de 2026. Usamos el bucket privado minetrac-reales-251869518832-20261026, en us-east-1. En raw/ guardamos los dos Excel originales y en clean/ los archivos depurados (incluida la libreta de taller). El tablero corre en una instancia EC2 t3.micro y lee las tablas desde S3. URL: http://54.204.60.100:8501/ . El stack se llama minetrac-e1-reales.
 
 Trabajamos con el usuario admin-25460343. El rol minetrac-e1-reales-ReadRole-XxCmmx32Dnlz permite leer las tres tablas clean y el ZIP de la aplicación; limitamos ListBucket por prefijo. El rol no lee raw/. Conservamos el bloqueo público de S3, el cifrado AES256, el disco cifrado e IMDSv2. Solo publicamos el puerto 8501 del tablero; no abrimos SSH. No guardamos claves. Si falla S3, mostramos el error sin cargar copias locales.
 

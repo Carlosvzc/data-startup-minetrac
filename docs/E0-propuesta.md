@@ -13,7 +13,7 @@ Tecnológico Nacional de México campus Colima · Ingeniería en Inteligencia Ar
 | Cloud Lead | Carlos Alejandro Vizcaino Anguiano · matrícula 25460343 |
 | Data Lead | Diego Reyes Natilla · matrícula 25460331 |
 
-> Estado de la información: este documento se basa solo en el catálogo de equipos, la bitácora de reparaciones de los camiones, el documento de contexto, la carta y la entrevista que entregó o dio la empresa. No usamos datos simulados. Además recibimos fotos de una libreta manuscrita que todavía no transcribimos y que no entra en las cifras. Lo que todavía falta se lista en la sección 8.
+> Estado de la información: este documento se basa solo en el catálogo de equipos, la bitácora de reparaciones de los camiones, el documento de contexto, la carta y la entrevista que entregó o dio la empresa. No usamos datos simulados. Además recibimos 35 fotos de una libreta manuscrita de los equipos que no son camiones; la transcribimos y la mostramos aparte (sección 3), sin mezclarla con las cifras de la bitácora. Lo que todavía falta se lista en la sección 8.
 
 ---
 
@@ -104,7 +104,7 @@ Usamos la información que recibimos de la empresa. No simulamos datos.
 
 **Cumplimiento del mínimo de la guía.** Revisamos que la guía pide al menos 12 meses o 5,000 registros. La bitácora cubre 30 meses, así que cumplimos por periodo, aunque tiene pocos registros (317). La señal es limitada para modelos de series de tiempo; lo decimos desde ahora para no exagerar los resultados.
 
-**Libreta manuscrita.** La empresa también nos pasó 35 fotos de una libreta manuscrita con registros de 14 equipos que no son camiones. Está recibida en fotos, en proceso de transcripción y no se incluye en las cifras de esta entrega.
+**Libreta manuscrita.** La empresa también nos pasó 35 fotos de una libreta manuscrita de taller con registros de 14 equipos que no son camiones (K2 a K11, M1, R1, T1 y T2). La transcribimos completa: 540 anotaciones entre 2023 y octubre de 2026, con 81 servicios preventivos, 112 anotaciones con un monto claro y fallas repetidas como equipos sin fuerza, fugas y radiadores. Es una fuente escrita a mano y sin validar, por eso la mostramos en su propia pestaña y no la mezclamos con las cifras de la bitácora de camiones. T1 y T2 aparecen en la libreta pero no en el catálogo de 21 equipos; le pedimos a la empresa confirmar si forman parte de la flota.
 
 **Pendiente de entrega por la empresa:** horas trabajadas por turno, toneladas, tarifas por hora y por tonelada, lectura del horómetro, tipo de pieza (original o genérica) y proveedor real. La empresa los captura en papel y los está consolidando en un Excel. Mientras tanto no los simulamos: el tablero lo indica claramente y esos módulos quedan en espera.
 
@@ -147,7 +147,7 @@ Se usó Claude para ordenar el documento de contexto, proponer el borrador del L
 ## 8. Información pendiente
 
 - **Entrevista:** confirmar si el caso del gato hidráulico que cuenta Andrés es el del camión C4 (la fecha no coincide con la bitácora).
-- **Libreta manuscrita:** transcribir las 35 fotos (14 equipos que no son camiones) y validarlas con la empresa antes de usarlas en el análisis.
+- **Libreta manuscrita:** ya transcrita; falta que la empresa valide fechas, montos y clasificación, y confirme si T1 y T2 son parte de la flota.
 - **De la empresa:** Excel consolidado (horas y toneladas por turno, tarifas, horómetro), fecha de falla y de regreso a operación de cada paro, tipo de pieza (original o genérica) y proveedor en cada compra, lectura del horómetro al cambiar una pieza y los montos de las intervenciones sin costo.
 
 

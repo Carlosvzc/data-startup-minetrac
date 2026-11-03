@@ -1,0 +1,41 @@
+evento_id,equipo_id,categoria,orden_en_libreta,fecha,fecha_calidad,tipo_evento,sistema,intervalo_servicio_h,n_montos,monto_mxn,monto_usd,proveedor_codigo,tipo_pieza,es_servicio,desforzado,garantia,urgencia,canibalizacion,equipos_mencionados,horometro,naturaleza_dato,validacion
+K2-L001,K2,Cargador,1,2024-04-17,ok,Compra de refacción,Combustible y motor,,0,,,P01,sin_dato,False,False,False,False,True,"K4,K8",,real,pendiente_empresa
+K2-L002,K2,Cargador,2,2024-04-22,ok,Compra de refacción,Implementos y estructura,,0,,,sin_dato,sin_dato,False,False,False,False,False,,,real,pendiente_empresa
+K2-L003,K2,Cargador,3,2024-02-01,mes_sin_dia,Compra de refacción,Llantas,,0,,,sin_dato,sin_dato,False,False,False,False,False,,,real,pendiente_empresa
+K2-L004,K2,Cargador,4,2024-05-15,anio_inferido,Otro,Enfriamiento y A/C,,0,,,sin_dato,sin_dato,False,False,False,False,False,,,real,pendiente_empresa
+K2-L005,K2,Cargador,5,2024-06-03,ok,Compra de refacción,Enfriamiento y A/C,,0,,,sin_dato,nueva_sin_especificar,False,False,False,False,False,,,real,pendiente_empresa
+K2-L006,K2,Cargador,6,2024-07-18,ok,Servicio preventivo,Servicio preventivo,250.0,0,,,sin_dato,sin_dato,True,False,False,False,False,,,real,pendiente_empresa
+K2-L007,K2,Cargador,7,,sin_fecha,Servicio preventivo,Servicio preventivo,250.0,0,,,sin_dato,sin_dato,True,False,False,False,False,,,real,pendiente_empresa
+K2-L008,K2,Cargador,8,2024-10-03,anio_inferido,Servicio preventivo,Servicio preventivo,250.0,0,,,sin_dato,sin_dato,True,False,False,False,False,,,real,pendiente_empresa
+K2-L009,K2,Cargador,9,2024-10-05,ok,Compra de refacción,Combustible y motor,,0,,,P01,sin_dato,False,False,False,False,False,,,real,pendiente_empresa
+K2-L010,K2,Cargador,10,2024-11-04,ok,Servicio preventivo,Servicio preventivo,250.0,0,,,P03,sin_dato,True,False,False,False,False,,,real,pendiente_empresa
+K2-L011,K2,Cargador,11,2024-11-05,ok,Otro,Sin clasificar,,1,1300.0,,sin_dato,sin_dato,False,False,False,False,False,,,real,pendiente_empresa
+K2-L012,K2,Cargador,12,2024-11-26,ok,Otro,Sin clasificar,,0,,,sin_dato,sin_dato,False,False,False,False,False,,,real,pendiente_empresa
+K2-L013,K2,Cargador,13,2024-12-04,ok,Servicio preventivo,Servicio preventivo,500.0,0,,,P03,sin_dato,True,False,False,False,False,,,real,pendiente_empresa
+K2-L014,K2,Cargador,14,2025-01-03,ok,Reparación,Combustible y motor,,1,25000.0,,sin_dato,sin_dato,False,False,False,False,True,K3,,real,pendiente_empresa
+K2-L015,K2,Cargador,15,2025-01-05,anio_corregido,Reparación,Combustible y motor,,2,,,P01,sin_dato,False,False,True,False,False,,,real,pendiente_empresa
+K2-L016,K2,Cargador,16,2025-01-25,anio_corregido,Otro,Combustible y motor,,0,,,P01,sin_dato,False,False,False,False,False,,,real,pendiente_empresa
+K2-L017,K2,Cargador,17,2025-01-28,ok,Otro,Llantas,,0,,,sin_dato,sin_dato,False,False,False,False,False,,,real,pendiente_empresa
+K2-L018,K2,Cargador,18,2025-05-19,ok,Otro,Combustible y motor,,0,,,sin_dato,sin_dato,False,False,False,False,False,,,real,pendiente_empresa
+K2-L019,K2,Cargador,19,2025-05-22,ok,Otro,Llantas,,0,,,sin_dato,sin_dato,False,False,False,False,False,,,real,pendiente_empresa
+K2-L020,K2,Cargador,20,2025-06-02,ok,Compra de refacción,Transmisión y tren motriz,,0,,,sin_dato,sin_dato,False,False,False,False,False,,,real,pendiente_empresa
+K2-L021,K2,Cargador,21,2025-06-23,ok,Compra de refacción,Enfriamiento y A/C,,0,,,sin_dato,nueva_sin_especificar,False,False,False,False,False,,,real,pendiente_empresa
+K2-L022,K2,Cargador,22,2025-06-25,ok,Otro,Hidráulico y dirección,,0,,,sin_dato,sin_dato,False,False,False,False,False,,,real,pendiente_empresa
+K2-L023,K2,Cargador,23,2025-08-04,ok,Compra de refacción,Enfriamiento y A/C,,1,3000.0,,sin_dato,sin_dato,False,False,False,False,False,,,real,pendiente_empresa
+K2-L024,K2,Cargador,24,,sin_fecha,Otro,Sin clasificar,,0,,,sin_dato,sin_dato,False,False,False,False,False,,27640.0,real,pendiente_empresa
+K2-L025,K2,Cargador,25,2025-07-11,ok,Otro,Sin clasificar,,0,,,sin_dato,sin_dato,False,False,False,False,False,,,real,pendiente_empresa
+K2-L026,K2,Cargador,26,2025-08-06,ok,Otro,Sin clasificar,,0,,,sin_dato,sin_dato,False,False,False,False,False,,,real,pendiente_empresa
+K2-L027,K2,Cargador,27,2025-08-18,ok,Servicio preventivo,Servicio preventivo,,0,,,sin_dato,sin_dato,True,False,False,False,False,,,real,pendiente_empresa
+K2-L028,K2,Cargador,28,2025-08-20,ok,Diagnóstico o revisión,Hidráulico y dirección,,0,,,sin_dato,sin_dato,False,False,False,False,False,,,real,pendiente_empresa
+K2-L029,K2,Cargador,29,2025-08-21,ok,Servicio preventivo,Servicio preventivo,,1,7000.0,,sin_dato,sin_dato,True,False,False,False,False,,,real,pendiente_empresa
+K2-L030,K2,Cargador,30,2025-08-29,ok,Servicio preventivo,Servicio preventivo,1000.0,1,8000.0,,P01,nueva_sin_especificar,True,False,False,False,False,,,real,pendiente_empresa
+K2-L031,K2,Cargador,31,2025-09-16,anio_inferido,Servicio preventivo,Servicio preventivo,,0,,,sin_dato,sin_dato,True,False,False,False,False,,,real,pendiente_empresa
+K2-L032,K2,Cargador,32,2025-09-12,anio_inferido,Otro,Enfriamiento y A/C,,0,,,sin_dato,sin_dato,False,False,False,False,False,,,real,pendiente_empresa
+K2-L033,K2,Cargador,33,,sin_fecha,Otro,Enfriamiento y A/C,,1,5000.0,,P04,sin_dato,False,False,False,False,False,,,real,pendiente_empresa
+K2-L034,K2,Cargador,34,2025-09-25,anio_inferido,Otro,Eléctrico y electrónico,,0,,,sin_dato,sin_dato,False,False,False,False,False,,,real,pendiente_empresa
+K2-L035,K2,Cargador,35,2025-10-07,ok,Compra de refacción,Frenos,,1,5000.0,,P05,sin_dato,False,False,False,False,False,,,real,pendiente_empresa
+K2-L036,K2,Cargador,36,2025-10-13,ok,Compra de refacción,Sin clasificar,,0,,,sin_dato,sin_dato,False,False,False,False,False,,,real,pendiente_empresa
+K2-L037,K2,Cargador,37,2025-10-16,ok,Otro,Combustible y motor,,1,7000.0,,P01,sin_dato,False,False,False,False,False,,,real,pendiente_empresa
+K2-L038,K2,Cargador,38,2025-10-17,ok,Servicio preventivo,Servicio preventivo,500.0,0,,,sin_dato,usada_o_inventario,True,False,False,False,False,,,real,pendiente_empresa
+K2-L039,K2,Cargador,39,2025-12-04,ok,Falla reportada,Combustible y motor,,0,,,sin_dato,sin_dato,False,True,False,False,False,,,real,pendiente_empresa
+K2-L040,K2,Cargador,40,2025-12-10,ok,Otro,Hidráulico y dirección,,0,,,sin_dato,sin_dato,False,False,False,False,False,,,real,pendiente_empresa

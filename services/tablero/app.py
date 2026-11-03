@@ -5,6 +5,7 @@ import pandas as pd
 import streamlit as st
 from core import resumen, recomendaciones, ciclo_cercano, rango_periodo, filtrar_periodo
 from figures import views
+import libreta as lb
 
 ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
@@ -21,17 +22,22 @@ def load(mode, bucket, region):
 
         def obj(key):
             return client.get_object(Bucket=bucket, Key=key)['Body'].read()
+        try:
+            lib = pd.read_csv(io.BytesIO(obj('clean/libreta_eventos.csv')))
+        except Exception:   # la libreta es opcional: si aún no se sube, el resto del tablero sigue funcionando
+            lib = pd.DataFrame()
         return (pd.read_csv(io.BytesIO(obj('clean/mantenimiento.csv'))), pd.read_csv(io.BytesIO(obj('clean/inventario.csv'))),
-                json.loads(obj('clean/resultados.json')), 'Amazon S3 · ' + bucket + '/clean/')
+                json.loads(obj('clean/resultados.json')), 'Amazon S3 · ' + bucket + '/clean/', lib)
     if mode != 'local':
         raise ValueError('Modo de almacenamiento desconocido.')
     base = ROOT / 'data/clean'
+    lib = pd.read_csv(base / 'libreta_eventos.csv') if (base / 'libreta_eventos.csv').exists() else pd.DataFrame()
     return (pd.read_csv(base / 'mantenimiento.csv'), pd.read_csv(base / 'inventario.csv'),
-            json.loads((base / 'resultados.json').read_text(encoding='utf-8')), 'Demostración local · data/clean/')
+            json.loads((base / 'resultados.json').read_text(encoding='utf-8')), 'Demostración local · data/clean/', lib)
 
 
 try:
-    mant, inv, result, source = load(mode, os.environ.get('MINETRAC_BUCKET', ''), os.environ.get('AWS_DEFAULT_REGION', 'us-east-1'))
+    mant, inv, result, source, libreta = load(mode, os.environ.get('MINETRAC_BUCKET', ''), os.environ.get('AWS_DEFAULT_REGION', 'us-east-1'))
 except Exception:
     st.error('No pudimos cargar los datos. Revisa la conexión o solicita al responsable que verifique el acceso a la fuente.')
     if st.button('Volver a intentar'):
@@ -121,8 +127,8 @@ st.markdown('<div class="mt-context">' + safe(date_label(period[0])) + ' - ' + s
             + ' &nbsp; · &nbsp; Filtramos por periodo, camión y sistema; las intervenciones sin día se incluyen aparte</div>', unsafe_allow_html=True)
 st.caption('Conservamos 15 fechas heredadas y 3 con año corregido. El registro que solo indica 2022 sigue en los totales si dejamos marcada la opción de incluirlo. No lo usamos para ampliar el periodo ni lo dibujamos en las gráficas de fechas.')
 charts, aux = views(mm)
-overview, maintenance, cycles, fleet, quality, detail = st.tabs(
-    ['Vista general', 'Mantenimiento y refacciones', 'Ciclos', 'Flota y operación', 'Calidad de datos', 'Explorar datos'])
+overview, maintenance, cycles, fleet, taller, quality, detail = st.tabs(
+    ['Vista general', 'Mantenimiento y refacciones', 'Ciclos', 'Flota y operación', 'Libreta de taller', 'Calidad de datos', 'Explorar datos'])
 
 with overview:
     st.subheader('Qué cuesta y dónde se concentra')
@@ -184,6 +190,47 @@ with fleet:
     st.markdown('<div class="mt-notice"><b>Operación y balance financiero: pendiente.</b> Máquinas Centella nos informó por carta del 25 de octubre de 2026 que está '
                 'recopilando, revisando y consolidando la información en un archivo de Excel con sus departamentos. Cuando llegue (horas trabajadas por turno, toneladas, tarifas, '
                 'horómetro), podremos agregar los ingresos, el margen operativo neto por equipo y el indicador de tarifas para contratos. La carta se entregó por separado en Classroom.</div>', unsafe_allow_html=True)
+
+with taller:
+    st.subheader('Libreta de taller: equipos que no son camiones')
+    st.caption('Transcribimos 35 fotos de la libreta manuscrita de la empresa (abril de 2024 a octubre de 2026). Es información real, sin validar todavía: '
+               'las fechas y los montos salen de letra a mano y los marcamos cuando son dudosos. Esta pestaña no usa el filtro de camiones.')
+    if libreta.empty:
+        st.info('Todavía no hay datos de la libreta en esta fuente. Súbelos a clean/libreta_eventos.csv para verlos aquí.')
+    else:
+        eq_sel = st.multiselect('Equipos de la libreta', sorted(libreta.equipo_id.unique()), default=[], key='lib_equipos',
+                                placeholder='Los 14 equipos', help='Déjalo vacío para incluir todos.')
+        lib = lb.filtrar(libreta, eq_sel)
+        kl = lb.kpis(lib)
+        cl = st.columns(4)
+        lspecs = [('Anotaciones', f"{kl['anotaciones']:,}", f"{kl['equipos']} equipos · {kl['servicios']} servicios preventivos"),
+                  ('Servicios con intervalo', f"{kl['con_intervalo']:,}", 'Servicios de 250, 500, 750 o 1,000 horas'),
+                  ('Gasto con monto único', money(kl['gasto_mxn']), f"MXN · {kl['con_monto']} anotaciones con una sola cifra (parcial)"),
+                  ('Repeticiones / 100 anot.', f"{kl['rep_100']:.1f}", 'Mismo equipo y sistema en hasta 30 días, sin servicios')]
+        for col, (label, value, note) in zip(cl, lspecs):
+            with col:
+                st.metric(label, value)
+                st.markdown('<div class="mt-kpi-note">' + note + '</div>', unsafe_allow_html=True)
+        lf = lb.graficas(lib)
+        l, r = st.columns(2, gap='medium')
+        with l:
+            chart('Qué equipos concentran más anotaciones', lf[0], 'Anotaciones por equipo; en verde, los servicios preventivos.', 'l0')
+        with r:
+            chart('Qué sistemas fallan más', lf[1], 'Anotaciones por sistema, sin servicios preventivos. Clasificamos por palabras clave; hay anotaciones sin clasificar.', 'l1')
+        l, r = st.columns(2, gap='medium')
+        with l:
+            chart('Cuánto se anota cada mes', lf[2], 'Anotaciones con fecha desde abril de 2024.', 'l2')
+        with r:
+            chart('Qué servicios preventivos se registran', lf[3], 'Servicios que indican su intervalo en horas de operación.', 'l3')
+        piezas = lib[lib.canibalizacion]
+        if len(piezas):
+            with st.expander(f'Piezas o controles pasados de un equipo a otro ({len(piezas)} anotaciones)'):
+                st.caption('Detectamos anotaciones que mencionan otro equipo al mover una pieza. Es una lectura automática: puede incluir falsos positivos.')
+                st.dataframe(piezas[['equipo_id', 'fecha', 'equipos_mencionados']].rename(columns={'equipo_id': 'Equipo', 'fecha': 'Fecha', 'equipos_mencionados': 'Equipos mencionados'}), hide_index=True, width='stretch')
+        st.markdown('<div class="mt-notice"><b>Límites de la libreta:</b> casi nunca anota la fecha en que el equipo dejó de trabajar ni cuándo regresó, '
+                    'así que no sirve todavía para medir horas fuera de servicio. Solo una anotación trae lectura de horómetro. Las anotaciones con varias cifras '
+                    '(cotizaciones o desgloses) no entran al gasto para no sumar alternativas. T1 y T2 aparecen en la libreta pero no en el catálogo de 21 equipos.</div>', unsafe_allow_html=True)
+        st.download_button('Descargar libreta estructurada (CSV)', lib.to_csv(index=False).encode('utf-8-sig'), 'minetrac_libreta.csv', 'text/csv')
 
 with quality:
     b = result['auditoria_bitacora']

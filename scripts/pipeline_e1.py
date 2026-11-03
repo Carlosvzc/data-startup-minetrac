@@ -4,6 +4,7 @@
 2) Leemos el catálogo de equipos (EQUIPOS MAQ CENTELLA.xlsx).
 3) Calculamos indicadores y FFT de las intervenciones diarias.
 4) Guardamos data/raw, data/clean, data/sample y docs/auditoria.csv.
+5) Si existe la transcripción de la libreta manuscrita, la estructuramos (scripts/pipeline_libreta.py).
 
 No simulamos datos: la operación (horas, toneladas, tarifas, ingresos) está pendiente de entrega por la empresa.
 
@@ -79,6 +80,10 @@ def main():
     # Muestra pública (sin texto libre ni nombres)
     mant.drop(columns=['naturaleza_dato']).head(60).to_csv(ROOT / 'data/sample/mantenimiento_muestra.csv', index=False)
     cat.to_csv(ROOT / 'data/sample/inventario.csv', index=False)
+    # Libreta manuscrita (si la transcripción privada está en data/raw)
+    sys.path.insert(0, str(ROOT / 'scripts'))
+    from pipeline_libreta import main as pipeline_libreta   # noqa: E402
+    pipeline_libreta()
     print(json.dumps({k: resultados[k] for k in ['auditoria_bitacora', 'kpis', 'picos_fft', 'serie']}, ensure_ascii=False, indent=1, default=str))
     return resultados
 

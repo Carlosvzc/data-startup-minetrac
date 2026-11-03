@@ -88,9 +88,9 @@ El ciclo de 15 días (quincena) no supera el umbral descriptivo: su fuerza es 1.
 
 ## Implementación del dashboard
 
-Streamlit muestra una franja que indica qué datos son reales y qué está pendiente, cuatro tarjetas (la cuarta es una razón por 100 intervenciones), filtros de periodo, camión y sistema, seis gráficas interactivas, seis pestañas (Vista general, Mantenimiento y refacciones, Ciclos, Flota y operación, Calidad de datos y Explorar datos) y descargas en CSV. La pestaña Flota y operación muestra el catálogo de 21 equipos y explica que la operación está pendiente de entrega por la empresa.
+Streamlit muestra una franja que indica qué datos son reales y qué está pendiente, cuatro tarjetas (la cuarta es una razón por 100 intervenciones), filtros de periodo, camión y sistema, seis gráficas interactivas, siete pestañas (Vista general, Mantenimiento y refacciones, Ciclos, Flota y operación, Libreta de taller, Calidad de datos y Explorar datos) y descargas en CSV. La pestaña Flota y operación muestra el catálogo de 21 equipos y explica que la operación está pendiente de entrega por la empresa.
 
-El modo s3 lee clean/mantenimiento.csv, clean/inventario.csv y clean/resultados.json con boto3 y credenciales temporales de la instancia. No hay contraseñas ni claves en el repositorio. Si la lectura falla, el tablero lo informa y no la sustituye con una copia local.
+El modo s3 lee clean/mantenimiento.csv, clean/inventario.csv, clean/resultados.json y clean/libreta_eventos.csv con boto3 y credenciales temporales de la instancia. No hay contraseñas ni claves en el repositorio. Si la lectura falla, el tablero lo informa y no la sustituye con una copia local.
 
 ## Capturas del tablero por pestaña
 
@@ -120,6 +120,12 @@ Análisis de Fourier de las intervenciones diarias, con el ciclo dominante expre
 
 Catálogo de 21 equipos y aviso de que la operación y el balance financiero están pendientes de la empresa.
 
+### Pestaña Libreta de taller
+
+![Pestaña Libreta de taller](evidencias/tablero/07-libreta-taller.png)
+
+Anotaciones de la libreta manuscrita de los 14 equipos que no son camiones: equipos y sistemas con más anotaciones, ritmo mensual, servicios por intervalo y piezas pasadas de un equipo a otro.
+
 ### Pestaña Calidad de datos
 
 ![Pestaña Calidad de datos](evidencias/tablero/05-calidad-datos.png)
@@ -132,11 +138,23 @@ Auditoría de nulos, duplicados, negativos, atípicos y problemas de formato, co
 
 Tabla de intervenciones de la selección, sin texto libre y con proveedores anonimizados, y descarga en CSV.
 
+## Libreta de taller: equipos que no son camiones
+
+La empresa nos pasó 35 fotos de una libreta manuscrita de taller. La transcribimos completa (14 equipos: K2 a K11, M1, R1, T1 y T2) y la convertimos con services/worker/etl_libreta.py y scripts/pipeline_libreta.py en una tabla con una fila por anotación: 540 anotaciones entre 2023-04-12 y 2026-10-14. La transcripción trae nombres de personas y proveedores, por eso queda en data/raw/ y no se sube al repositorio; la tabla de clean/ no lleva texto libre y anonimiza a los proveedores.
+
+Qué aporta: 81 servicios preventivos, de los cuales 56 indican su intervalo en horas (250, 500, 750 o 1,000); 112 anotaciones con un monto claro que suman $1,605,725 MXN (y 9 con monto en dólares); 137 repeticiones del mismo sistema en el mismo equipo en menos de 30 días (29.8 por cada 100 anotaciones que no son servicio); 10 anotaciones de equipos sin fuerza («desforzados»); 7 garantías de proveedor y 14 piezas o controles pasados de un equipo a otro.
+
+Cómo la tratamos: no inventamos datos. El año de una fecha sin año se infiere por el orden de la libreta y lo marcamos en fecha_calidad (450 ok, 46 anio_inferido, 14 anio_corregido, 13 dia_desconocido, 11 sin_fecha, 5 mes_ilegible, 1 mes_sin_dia). Solo tomamos el monto cuando la anotación trae una sola cifra en pesos; las que traen varias (cotizaciones, desgloses) quedan sin monto y se cuentan aparte, para no sumar alternativas como si fueran gastos. El sistema y el tipo de evento se clasifican con palabras clave y son una interpretación pendiente de validar.
+
+Cruce con el catálogo: 12 de los 14 equipos de la libreta están en el catálogo de 21 equipos. T1 y T2 (tractores) aparecen en la libreta pero no en el catálogo, por lo que pedimos a la empresa confirmar si forman parte de la flota. K1 (descontinuado) y M2 (nuevo) no tienen anotaciones, lo que coincide con su estado. Mantenemos el catálogo en 21 equipos hasta recibir esa confirmación.
+
+Límites: casi ninguna anotación trae la fecha en que el equipo dejó de trabajar ni la de su regreso, solo una trae lectura de horómetro y los montos y fechas salen de letra a mano. Por eso la libreta complementa el análisis (qué se repara, cuánto cuesta, cada cuánto se atiende y qué piezas se repiten), pero no permite calcular horas fuera de servicio, disponibilidad ni costo por hora.
+
 ## Nube y presupuesto
 
 El tablero está conectado a la nube con credenciales seguras: lee sus tablas de un bucket privado de S3 mediante el rol de la instancia, con permisos de solo lectura y sin claves en el código ni en el repositorio. Su dirección pública solo sirve para que lo revisen.
 
-Desplegamos MineTrac en AWS y verificamos la conexión el 26 de octubre de 2026. Usamos el bucket privado minetrac-reales-251869518832-20261026, en us-east-1. En raw/ guardamos los dos Excel originales y en clean/ los cuatro archivos depurados. El tablero corre en una instancia EC2 t3.micro y lee las tablas desde S3. URL: http://54.204.60.100:8501/ . El stack se llama minetrac-e1-reales.
+Desplegamos MineTrac en AWS y verificamos la conexión el 26 de octubre de 2026. Usamos el bucket privado minetrac-reales-251869518832-20261026, en us-east-1. En raw/ guardamos los dos Excel originales y en clean/ los archivos depurados. El tablero corre en una instancia EC2 t3.micro y lee las tablas desde S3. URL: http://54.204.60.100:8501/ . El stack se llama minetrac-e1-reales.
 
 Trabajamos con el usuario admin-25460343. El rol minetrac-e1-reales-ReadRole-XxCmmx32Dnlz permite leer las tres tablas clean y el ZIP de la aplicación; limitamos ListBucket por prefijo. El rol no lee raw/. Conservamos el bloqueo público de S3, el cifrado AES256, el disco cifrado e IMDSv2. Solo publicamos el puerto 8501 del tablero; no abrimos SSH. No guardamos claves. Si falla S3, mostramos el error sin cargar copias locales.
 
@@ -150,7 +168,7 @@ Guardamos las capturas en evidencias/s3_raw_clean_real.png, evidencias/dashboard
 
 ## Verificación
 
-Pruebas automáticas (pytest): indicadores de un caso pequeño hecho a mano; calendario diario completo; FFT con periodos conocidos y rechazo de series cortas o con huecos; lectura de fechas escritas a mano; corrección de años equivocados; montos en texto; reparto de costos entre sistemas (el total se conserva); conteos de la bitácora real (257 intervenciones, 75 con monto, $928,832); seis gráficas y tres recomendaciones.
+Pruebas automáticas (pytest): indicadores de un caso pequeño hecho a mano; calendario diario completo; FFT con periodos conocidos y rechazo de series cortas o con huecos; lectura de fechas escritas a mano; corrección de años equivocados; montos en texto; reparto de costos entre sistemas (el total se conserva); conteos de la bitácora real (257 intervenciones, 75 con monto, $928,832); seis gráficas y tres recomendaciones; y para la libreta, lectura de fechas con año inferido o corregido, montos únicos frente a varias cifras, anonimización de proveedores, 540 anotaciones de 14 equipos y la pestaña del tablero.
 
 ## Defensa individual
 
@@ -166,13 +184,13 @@ Pruebas automáticas (pytest): indicadores de un caso pequeño hecho a mano; cal
 
 ## Pendientes con el cliente
 
-Libreta manuscrita: 35 fotos de 14 equipos que no son camiones, recibidas y en proceso de transcripción. No entran en las cifras de esta entrega.
+Libreta manuscrita: ya transcrita y cargada en el tablero; falta que la empresa valide fechas, montos y la clasificación, y confirme si T1 y T2 forman parte de la flota.
 
 Excel consolidado de la empresa (horas trabajadas por turno, toneladas, tarifas y horómetro); tipo de pieza (original o genérica) y proveedor en cada compra; lectura del horómetro al cambiar una pieza; fecha de falla y de regreso a operación de cada paro (para medir las horas fuera de servicio que pidió la empresa en la entrevista); montos de las intervenciones sin costo; y validar la clasificación de componentes. Con esos datos el tablero podrá calcular el costo por hora útil de cada refacción y el balance financiero por equipo, que son los módulos 1 y 3 del documento de contexto.
 
 ## Límites de interpretación y entrega parcial
 
-La empresa también nos pasó 35 fotos de una libreta manuscrita con registros de 14 equipos que no son camiones. Está recibida en fotos, en proceso de transcripción y no se incluye en las cifras de esta entrega. K1 está descontinuado y M2 es nuevo, sin historial de mantenimiento todavía; por eso el catálogo incluye la columna estado.
+La libreta manuscrita de 14 equipos que no son camiones está transcrita y se muestra en su propia pestaña; sus cifras no se mezclan con las de la bitácora de camiones, porque vienen de otra fuente, a mano y sin validar. K1 está descontinuado y M2 es nuevo, sin historial de mantenimiento todavía; por eso el catálogo incluye la columna estado.
 
 Los profesores indicaron verbalmente al equipo que se podía entregar E0 y E1 con la información recibida y completar después los datos pendientes.
 
@@ -188,4 +206,4 @@ Repositorio del proyecto: https://github.com/Carlosvzc/data-startup-minetrac. En
 
 Guía oficial PROYECTO_INTEGRADOR_DATA_STARTUP_ALUMNOS: E1 y rúbrica. Documento de contexto Maquina Centella Contexto. Comunicación de Máquinas Centella por carta del 25 de octubre de 2026, entregada por separado en Classroom; no incluida en el repositorio.
 
-Documentación técnica: AWS S3 (https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html); Streamlit (https://docs.streamlit.io/develop/api-reference); NumPy FFT (https://numpy.org/doc/stable/reference/routines.fft.html).
+Documentación técnica: AWS S3 (https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html); Streamlit (https://docs.streamlit.io/develop/api-reference); NumPy FFT (https://numpy.org/doc/stable/reference/routines.fft.html).

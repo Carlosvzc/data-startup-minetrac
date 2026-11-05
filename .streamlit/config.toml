@@ -1,11 +1,11 @@
 [theme]
 base="light"
-primaryColor="#0b857a"
-backgroundColor="#f3f6f8"
+primaryColor="#1f2328"
+backgroundColor="#f0f1f2"
 secondaryBackgroundColor="#ffffff"
-textColor="#183342"
+textColor="#1f2328"
+font="sans serif"
 [server]
 headless=true
 [browser]
 gatherUsageStats=false
-

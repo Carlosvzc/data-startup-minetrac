@@ -10,7 +10,7 @@ import libreta as lb
 ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
 st.set_page_config(page_title='MineTrac | Control de mantenimiento', page_icon='⛏', layout='wide', initial_sidebar_state='expanded')
-st.markdown('<style>' + (HERE / 'styles.css').read_text(encoding='utf-8-sig') + '</style>', unsafe_allow_html=True)
+st.markdown('<style>' + (HERE / 'fonts.css').read_text(encoding='utf-8') + (HERE / 'styles.css').read_text(encoding='utf-8-sig') + '</style>', unsafe_allow_html=True)
 mode = os.environ.get('MINETRAC_STORAGE', 'local')
 
 
@@ -76,8 +76,9 @@ def chart(title, fig, caption, key):
 
 
 with st.sidebar:
-    st.markdown('<div class="mt-brand"><span>M</span>MineTrac</div><div class="mt-sidebar-sub">CONTROL DE MAQUINARIA</div>', unsafe_allow_html=True)
-    st.subheader('Tu selección')
+    st.markdown('<div class="mt-brand"><span>⛏</span>MineTrac</div><div class="mt-sidebar-sub">CONTROL DE MAQUINARIA</div>', unsafe_allow_html=True)
+    st.subheader('Filtros')
+    st.caption('Elige qué quieres ver. Todo el tablero se actualiza al instante.')
     begin, end = rango_periodo(mant)
     period = st.date_input('Periodo de análisis', value=(begin, end), min_value=begin, max_value=end, key='period', format='DD/MM/YYYY')
     trucks = st.multiselect('Camiones', sorted(mant.camion_id.unique()), default=[], key='trucks', placeholder='Los 7 camiones',
@@ -94,10 +95,10 @@ with st.sidebar:
     st.caption('MineTrac · Evidencia 1')
     st.caption('Todos los importes se muestran en MXN.')
 
-st.markdown('<div class="mt-eyebrow">MANTENIMIENTO / PANEL EMPRESARIAL</div><div class="mt-hero"><h1>Resumen de mantenimiento</h1>'
-            '<p>Revisamos qué se repara, cuánto cuesta y qué conviene atender primero.</p></div>', unsafe_allow_html=True)
-st.markdown('<div class="mt-aviso"><b>DATOS REALES · E1</b> &nbsp; Catálogo de 21 equipos y bitácora de reparaciones de los 7 camiones de Máquinas Centella. '
-            '<b>Pendiente de entrega por la empresa:</b> horas trabajadas, toneladas, tarifas e ingresos. No simulamos ni estimamos esos datos.</div>', unsafe_allow_html=True)
+st.markdown('<div class="mt-stripe"></div><div class="mt-hero"><h1>Mantenimiento de la flota</h1>'
+            '<p>Qué se repara, cuánto cuesta y qué conviene atender primero. Empieza por el resumen y baja a las pestañas para ver el detalle.</p></div>', unsafe_allow_html=True)
+st.markdown('<div class="mt-aviso"><b>Datos reales de Máquinas Centella.</b> Catálogo de 21 equipos y bitácora de los 7 camiones. '
+            '<b>Falta que la empresa entregue</b> horas trabajadas, toneladas, tarifas e ingresos; no los simulamos ni los estimamos.</div>', unsafe_allow_html=True)
 if len(period) != 2:
     st.info('Elige la fecha de inicio y la fecha de fin para consultar el periodo.')
     st.stop()
@@ -111,6 +112,21 @@ if mm.empty:
     st.stop()
 
 k = resumen(mm)
+charts, aux = views(mm)
+
+
+def lectura(k, aux):
+    partes = [f"En este periodo hay <b>{k['intervenciones']:,} intervenciones</b> en {mm.camion_id.nunique()} camiones y <b>{money(k['gasto_mxn'])}</b> con monto anotado."]
+    comp = aux['componentes']
+    if len(comp):
+        partes.append(f"El gasto se concentra en <b>{safe(comp.iloc[0].componente)}</b> ({100 * comp.iloc[0].costo_mxn / comp.costo_mxn.sum():.0f}% del total registrado).")
+    por = aux['por_camion']
+    if len(por):
+        partes.append(f"El camión con más intervenciones es <b>{safe(por.index[-1])}</b> ({int(por.iloc[-1].total)}).")
+    return ' '.join(partes)
+
+
+st.markdown('<div class="mt-lectura">' + lectura(k, aux) + '</div>', unsafe_allow_html=True)
 cards = st.columns(4)
 specs = [
     ('Intervenciones', f"{k['intervenciones']:,}", 'Reparaciones y servicios registrados', 'Cada intervención cuenta una vez, aunque toque varios sistemas.'),
@@ -122,11 +138,10 @@ for col, (label, value, note, help_text) in zip(cards, specs):
     with col:
         st.metric(label, value, help=help_text)
         st.markdown('<div class="mt-kpi-note">' + note + '</div>', unsafe_allow_html=True)
-st.markdown('<div class="mt-context">' + safe(date_label(period[0])) + ' - ' + safe(date_label(period[1])) + ' &nbsp; · &nbsp; '
-            + str(mm.camion_id.nunique()) + ' camiones &nbsp; · &nbsp; ' + f"{k['con_monto']:,}" + ' intervenciones con monto de ' + f"{k['intervenciones']:,}"
-            + ' &nbsp; · &nbsp; Filtramos por periodo, camión y sistema; las intervenciones sin día se incluyen aparte</div>', unsafe_allow_html=True)
-st.caption('Conservamos 15 fechas heredadas y 3 con año corregido. El registro que solo indica 2022 sigue en los totales si dejamos marcada la opción de incluirlo. No lo usamos para ampliar el periodo ni lo dibujamos en las gráficas de fechas.')
-charts, aux = views(mm)
+st.markdown('<div class="mt-context"><span>' + safe(date_label(period[0])) + ' a ' + safe(date_label(period[1])) + '</span><span>'
+            + str(mm.camion_id.nunique()) + ' camiones</span><span>' + safe(system) + '</span><span>'
+            + f"{k['con_monto']:,}" + ' de ' + f"{k['intervenciones']:,}" + ' con monto anotado</span></div>', unsafe_allow_html=True)
+
 overview, maintenance, cycles, fleet, taller, quality, detail = st.tabs(
     ['Vista general', 'Mantenimiento y refacciones', 'Ciclos', 'Flota y operación', 'Libreta de taller', 'Calidad de datos', 'Explorar datos'])
 
@@ -139,9 +154,9 @@ with overview:
         chart(charts[1][0], charts[1][1], 'Intervenciones por camión; en gris, las que no tienen monto anotado.', 'c1')
     st.subheader('Tres recomendaciones para revisar')
     st.caption('Calculamos estas recomendaciones con la selección actual. Solo usamos los montos anotados.')
-    for col, (tag, title, text) in zip(st.columns(3), recomendaciones(mm, aux)):
+    for n, (col, (tag, title, text)) in enumerate(zip(st.columns(3), recomendaciones(mm, aux)), 1):
         with col:
-            st.markdown(f'<div class="mt-action"><div class="mt-action-tag">{safe(tag)}</div><h4>{safe(title)}</h4><p>{safe(text)}</p></div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="mt-action"><div class="mt-num">{n}</div><div><div class="mt-action-tag">{safe(tag.split('/')[-1].strip().capitalize())}</div><h4>{safe(title)}</h4><p>{safe(text)}</p></div></div>', unsafe_allow_html=True)
 
 with maintenance:
     st.subheader('Qué se ha reparado y cuándo')
@@ -214,7 +229,7 @@ with taller:
         lf = lb.graficas(lib)
         l, r = st.columns(2, gap='medium')
         with l:
-            chart('Qué equipos concentran más anotaciones', lf[0], 'Anotaciones por equipo; en verde, los servicios preventivos.', 'l0')
+            chart('Qué equipos concentran más anotaciones', lf[0], 'Anotaciones por equipo; en negro, los servicios preventivos.', 'l0')
         with r:
             chart('Qué sistemas fallan más', lf[1], 'Anotaciones por sistema, sin servicios preventivos. Clasificamos por palabras clave; hay anotaciones sin clasificar.', 'l1')
         l, r = st.columns(2, gap='medium')

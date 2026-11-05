@@ -1,53 +1,74 @@
+/* MineTrac · identidad de maquinaria: grafito, amarillo de obra y acero. Tipografía Barlow (ver fonts.css). */
+:root{--ink:#1f2328;--steel:#5b6770;--line:#dde1e5;--bg:#f0f1f2;--yellow:#f2b600;--yellow-soft:#fff5d1;--blue:#3e5c76;--r:5px}
+html,body,[class*="css"]{font-family:"Barlow","Segoe UI",Arial,sans-serif}
+.stApp{background:var(--bg);color:var(--ink)}
+.block-container{max-width:1440px;padding:2.4rem 3rem 3.5rem}
+header[data-testid="stHeader"]{background:transparent}
 
-:root {--mt-ink:#183342;--mt-muted:#607687;--mt-teal:#0b857a;}
-html,body,[class*="css"]{font-family:"Segoe UI",Arial,sans-serif}
-.stApp{background:#f3f6f8;color:#183342}
-.block-container{max-width:1480px;padding:3.7rem 3rem 3.5rem}
-[data-testid="stSidebar"]{background:#102b37;color:#eaf4f5;border-right:0}
-[data-testid="stSidebar"] p,[data-testid="stSidebar"] label,[data-testid="stSidebar"] h2,[data-testid="stSidebar"] h3{color:#eaf4f5!important}
-[data-testid="stSidebar"] [data-testid="stCaptionContainer"]{color:#b8cdd5!important}
-[data-testid="stSidebar"] .stButton button{border:1px solid #43606c;background:#193b48;color:#fff}
-[data-testid="stSidebar"] [data-baseweb="select"]>div{background:#fff;color:#183342}
-[data-testid="stSidebar"] [data-baseweb="input"]{background:#fff}
-[data-testid="stSidebar"] [data-testid="stDateInput"] input{color:#183342}
-[data-testid="stSidebar"] [data-testid="stExpander"]{border-color:#43606c}
-.mt-brand{font-size:24px;letter-spacing:-.8px;font-weight:800;color:white;margin:4px 0 5px}
-.mt-brand span{display:inline-grid;place-items:center;width:32px;height:32px;background:#13a291;border-radius:9px;margin-right:8px;font-size:17px}
-.mt-sidebar-sub{font-size:12px;color:#b5cbd3;margin-bottom:28px}
-.mt-eyebrow{font-size:11px;letter-spacing:1.5px;color:#66808e;font-weight:700;margin-bottom:6px}
-.mt-hero h1{font-size:34px;line-height:1.2;letter-spacing:-1.1px;color:#173342;margin:0 0 9px;font-weight:750}
-.mt-hero p{font-size:15px;color:#607687;margin:0 0 22px}
-.mt-badge{display:inline-block;font-size:12px;font-weight:600;padding:7px 12px;background:#e4f3ee;color:#1c7368;border-radius:20px;margin:4px 0}
-.mt-aviso{background:#fff6e5;border:1px solid #f0dcae;color:#775517;border-radius:10px;font-size:13px;padding:12px 16px;margin:2px 0 22px}
+/* barra lateral */
+[data-testid="stSidebar"]{background:var(--ink);color:#eceff1;border-right:0}
+[data-testid="stSidebar"] p,[data-testid="stSidebar"] label,[data-testid="stSidebar"] h2,[data-testid="stSidebar"] h3{color:#eceff1!important}
+[data-testid="stSidebar"] h3{font-family:"Barlow Condensed",sans-serif;font-size:22px!important;font-weight:700!important;letter-spacing:.2px}
+[data-testid="stSidebar"] [data-testid="stCaptionContainer"]{color:#aab3ba!important}
+[data-testid="stSidebar"] .stButton button{border:1px solid #4a525a;background:transparent;color:#fff}
+[data-testid="stSidebar"] .stButton button:hover{border-color:var(--yellow);color:var(--yellow)}
+[data-testid="stSidebar"] [data-baseweb="select"]>div,[data-testid="stSidebar"] [data-baseweb="input"]{background:#fff;color:var(--ink);border-radius:var(--r)}
+[data-testid="stSidebar"] [data-testid="stDateInput"] input{color:var(--ink)}
+[data-testid="stSidebar"] hr{border-color:#3a4148}
+.mt-brand{display:flex;align-items:center;gap:11px;font-family:"Barlow Condensed",sans-serif;font-size:30px;font-weight:700;color:#fff;letter-spacing:.3px;margin:2px 0 2px}
+.mt-brand span{display:inline-grid;place-items:center;width:34px;height:34px;background:var(--yellow);color:var(--ink);border-radius:4px;font-size:20px;line-height:1}
+.mt-sidebar-sub{font-size:13px;color:#aab3ba;margin-bottom:26px}
+.mt-badge{display:inline-block;font-size:12.5px;font-weight:600;padding:5px 11px;background:#2c333a;color:var(--yellow);border-radius:3px;border:1px solid #4a525a;margin:4px 0}
+
+/* encabezado */
+.mt-stripe{height:9px;border-radius:2px;margin:0 0 22px;background:repeating-linear-gradient(-45deg,var(--yellow) 0 12px,var(--ink) 12px 24px)}
+.mt-hero h1{font-family:"Barlow Condensed",sans-serif;font-size:46px;line-height:1.02;letter-spacing:.2px;color:var(--ink);margin:0 0 8px;font-weight:700}
+.mt-hero p{font-size:17px;color:var(--steel);margin:0 0 14px;max-width:70ch}
+.mt-lectura{background:#fff;border:1px solid var(--line);border-left:6px solid var(--yellow);border-radius:var(--r);padding:16px 22px;margin:4px 0 20px;font-size:19px;line-height:1.5;color:var(--ink)}
+.mt-lectura b{font-weight:600;background:var(--yellow-soft);padding:0 4px;border-radius:3px}
+.mt-aviso{background:var(--yellow-soft);border:1px solid #efd98a;color:#5d4a07;border-radius:var(--r);font-size:14px;padding:10px 16px;margin:0 0 16px}
 .mt-aviso b{font-weight:700}
-[data-testid="stMetric"]{background:white;border:1px solid #e0e8ec;border-top:3px solid #0b857a;padding:19px 20px 16px;border-radius:12px;box-shadow:0 2px 7px rgba(18,53,68,.025)}
-[data-testid="stMetricLabel"]{color:#526e7c;font-size:13px;font-weight:600}
-[data-testid="stMetricValue"]{color:#173342;font-size:34px;letter-spacing:-1px;font-weight:750}
-[data-testid="stMetricDelta"]{color:#607687}
-.mt-kpi-note{font-size:11px;color:#748894;margin:7px 6px 14px;line-height:1.4}
-.mt-context{color:#627b88;font-size:12px;margin:3px 0 20px}
-[data-baseweb="tab-list"]{gap:20px;background:transparent;border-bottom:1px solid #dbe5e9;padding:0;margin-bottom:16px}
-button[data-baseweb="tab"]{font-size:14px;font-weight:600;padding:12px 2px;color:#637e8c;background:transparent}
-button[data-baseweb="tab"][aria-selected="true"]{color:#087d72}
-[data-baseweb="tab-highlight"]{background:#0b857a;height:3px}
-h2{color:#173342;font-size:22px!important;font-weight:700!important;letter-spacing:-.4px}
-h3{color:#173342;font-size:17px!important;font-weight:650!important;line-height:1.45!important}
-[data-testid="stVerticalBlockBorderWrapper"]>div{border-radius:12px!important;border-color:#e0e8ec!important;background:#fff}
-[data-testid="stCaptionContainer"]{color:#6a818d;font-size:12px}
-.mt-action{background:#fff;border:1px solid #e0e8ec;border-radius:12px;padding:18px 20px;min-height:182px}
-.mt-action-tag{font-size:10px;letter-spacing:1.2px;color:#0b857a;font-weight:750;margin-bottom:8px}
-.mt-action h4{color:#173342;font-size:16px;line-height:1.35;margin:0 0 9px}
-.mt-action p{color:#607687;font-size:13px;line-height:1.6;margin:0}
-.mt-action .mt-number{color:#173342;font-weight:700}
-.mt-notice{background:#eaf3f6;color:#486674;border-radius:9px;padding:12px 15px;font-size:13px;margin:10px 0}
+
+/* indicadores */
+[data-testid="stMetric"]{background:#fff;border:1px solid var(--line);border-left:6px solid var(--yellow);padding:16px 20px 14px;border-radius:var(--r)}
+[data-testid="stMetricLabel"]{color:var(--steel);font-size:15px;font-weight:500}
+[data-testid="stMetricValue"]{color:var(--ink);font-family:"Barlow Condensed",sans-serif;font-size:46px;line-height:1.05;letter-spacing:.2px;font-weight:700}
+.mt-kpi-note{font-size:12.5px;color:#6b767e;margin:7px 4px 14px;line-height:1.4}
+.mt-context{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 8px}
+.mt-context span{background:#fff;border:1px solid var(--line);border-radius:3px;padding:4px 10px;font-size:13px;color:#434c54}
+.mt-nota{color:#6b767e;font-size:13px;margin:0 0 18px;max-width:110ch}
+
+/* pestañas */
+[data-baseweb="tab-list"]{gap:26px;background:transparent;border-bottom:1px solid var(--line);padding:0;margin-bottom:18px}
+button[data-baseweb="tab"]{padding:10px 2px;background:transparent}
+button[data-baseweb="tab"] p{font-family:"Barlow Condensed",sans-serif;font-size:21px;font-weight:600;color:#6b767e;margin:0}
+button[data-baseweb="tab"][aria-selected="true"] p{color:var(--ink);font-weight:700}
+button[data-baseweb="tab"]:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+[data-baseweb="tab-highlight"]{background:var(--yellow);height:5px}
+[data-baseweb="tab-border"]{background:transparent}
+
+/* títulos y contenedores */
+h2{font-family:"Barlow Condensed",sans-serif;color:var(--ink);font-size:30px!important;font-weight:700!important;letter-spacing:.2px}
+h3{font-family:"Barlow Condensed",sans-serif;color:var(--ink);font-size:23px!important;font-weight:700!important;line-height:1.2!important;letter-spacing:.2px}
+[data-testid="stVerticalBlock"]:has(>[data-testid="stElementContainer"] [data-testid="stPlotlyChart"]){background:#fff;border-color:var(--line)!important;border-radius:var(--r)!important}
+[data-testid="stCaptionContainer"]{color:#6b767e;font-size:13.5px}
+.mt-action{display:flex;gap:16px;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;min-height:190px}
+.mt-num{flex:none;display:grid;place-items:center;width:38px;height:38px;background:var(--yellow);color:var(--ink);font-family:"Barlow Condensed",sans-serif;font-size:26px;font-weight:700;border-radius:4px}
+.mt-action-tag{font-size:13px;color:var(--blue);font-weight:600;margin-bottom:5px}
+.mt-action h4{font-family:"Barlow Condensed",sans-serif;color:var(--ink);font-size:22px;line-height:1.15;margin:0 0 8px;font-weight:700}
+.mt-action p{color:#434c54;font-size:15px;line-height:1.55;margin:0}
+.mt-notice{background:#e8ebee;border-left:5px solid var(--blue);color:#2f3a43;border-radius:var(--r);padding:12px 16px;font-size:14.5px;margin:12px 0;line-height:1.5}
 .mt-flow{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0 24px}
-.mt-flow div{background:#fff;border:1px solid #e0e8ec;border-radius:10px;padding:16px 20px;flex:1;min-width:150px}
-.mt-flow strong{display:block;color:#173342;font-size:27px}
-.mt-flow span{color:#67808c;font-size:12px}
-.stButton button,.stDownloadButton button{border-radius:9px;font-weight:600}
-[data-testid="stExpander"]{border-color:#dce6ea;border-radius:10px;background:transparent}
+.mt-flow div{background:#fff;border:1px solid var(--line);border-left:5px solid var(--yellow);border-radius:var(--r);padding:14px 18px;flex:1;min-width:150px}
+.mt-flow strong{display:block;color:var(--ink);font-family:"Barlow Condensed",sans-serif;font-size:34px;line-height:1.1}
+.mt-flow span{color:var(--steel);font-size:13.5px}
+
+/* controles */
+.stButton button,.stDownloadButton button{border-radius:var(--r);font-weight:600;border:1px solid #b9c0c6}
+.stDownloadButton button[kind="primary"],.stButton button[kind="primary"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.stButton button:focus-visible,.stDownloadButton button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+[data-testid="stExpander"]{border-color:var(--line);border-radius:var(--r);background:#fff}
 footer{visibility:hidden}
-@media(max-width:1000px){.block-container{padding:1.4rem 1.4rem 3rem}[data-testid="stMetricValue"]{font-size:27px}.mt-hero h1{font-size:28px}}
-@media(max-width:650px){.block-container{padding:1.1rem .8rem 2rem}[data-baseweb="tab-list"]{gap:12px}.mt-action{min-height:unset}.mt-hero h1{font-size:26px}}
-
-
+@media(max-width:1000px){.block-container{padding:1.4rem 1.3rem 3rem}[data-testid="stMetricValue"]{font-size:36px}.mt-hero h1{font-size:40px}.mt-lectura{font-size:17px}}
+@media(max-width:650px){.block-container{padding:1rem .8rem 2rem}[data-baseweb="tab-list"]{gap:16px}.mt-action{min-height:unset}.mt-hero h1{font-size:34px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}

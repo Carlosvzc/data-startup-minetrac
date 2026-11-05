@@ -3,11 +3,11 @@ import pandas as pd
 import plotly.graph_objects as go
 from core import eventos, resumen, serie_diaria, spectral, tiene_dia
 
-TEAL = '#0b857a'
-BLUE = '#4d84b5'
-GRAY = '#c8d9e1'
-GOLD = '#dba047'
-SOFT = '#9bbdcc'
+TEAL = '#2b3138'   # grafito: serie principal
+BLUE = '#3e5c76'   # azul acero: serie secundaria
+GRAY = '#d3d8dc'   # sin dato
+GOLD = '#f2b600'   # amarillo de obra: lo que hay que mirar
+SOFT = '#9aa6b0'   # acero claro: resto de barras
 DIAS = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo']
 
 
@@ -17,11 +17,11 @@ def _estilo(figs, altos):
             continue
         f.update_layout(template='plotly_white', paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
                         margin=dict(l=8, r=30, t=30, b=15), height=altos[i],
-                        font=dict(family='Segoe UI, Arial', size=12, color='#607687'),
-                        hoverlabel=dict(bgcolor='white', font_color='#183342'),
+                        font=dict(family='Barlow, Segoe UI, Arial', size=13, color='#434c54'),
+                        hoverlabel=dict(bgcolor='white', font_color='#1f2328'),
                         legend=dict(orientation='h', x=0, y=1.17, font_size=11), bargap=.32)
-        f.update_xaxes(showgrid=False, zeroline=False, linecolor='#dbe5ea', tickfont_size=11)
-        f.update_yaxes(showgrid=False, zeroline=False, linecolor='#dbe5ea', tickfont_size=11)
+        f.update_xaxes(showgrid=False, zeroline=False, linecolor='#c9cfd4', tickfont_size=11)
+        f.update_yaxes(showgrid=False, zeroline=False, linecolor='#c9cfd4', tickfont_size=11)
 
 
 
@@ -87,7 +87,7 @@ def views(m):
     if len(mes):
         mes = mes.reindex(pd.date_range(mes.index.min(), mes.index.max(), freq='MS'), fill_value=0)
         pico = mes.idxmax()
-        f3 = go.Figure(go.Bar(x=mes.index, y=mes.values, marker_color=[TEAL if x == pico else SOFT for x in mes.index],
+        f3 = go.Figure(go.Bar(x=mes.index, y=mes.values, marker_color=[GOLD if x == pico else SOFT for x in mes.index],
                               hovertemplate='%{x|%b %Y}<br>Intervenciones: %{y}<extra></extra>'))
         f3.update_yaxes(title='Intervenciones por mes')
         f3.update_xaxes(title=None, nticks=8)
@@ -104,7 +104,7 @@ def views(m):
         vida = vida.sort_values('mean')
         best = vida.iloc[-1]
         f4 = go.Figure(go.Bar(x=vida['mean'], y=vida.componente, orientation='h',
-                              marker_color=[TEAL if x == best.componente else SOFT for x in vida.componente],
+                              marker_color=[GOLD if x == best.componente else SOFT for x in vida.componente],
                               text=[f"{v:.0f} d (n={int(n)})" for v, n in zip(vida['mean'], vida['count'])], textposition='outside',
                               cliponaxis=False, hovertemplate='%{y}<br>Promedio entre trabajos: %{x:.0f} días<extra></extra>'))
         f4.update_xaxes(title='Días entre trabajos (solo intervalos >30 días)', range=[0, float(vida['mean'].max()) * 1.3])
@@ -138,9 +138,9 @@ def views(m):
     _estilo(figs, [360, max(320, len(por) * 40 + 80), 340, 320, 360, 320])
     for i in (3, 5):
         if figs[i] is not None:
-            figs[i].update_yaxes(showgrid=True, gridcolor='#e9eff3')
+            figs[i].update_yaxes(showgrid=True, gridcolor='#e6e9ec')
     if f2 is not None:
-        f2.update_xaxes(showgrid=True, gridcolor='#e9eff3')
+        f2.update_xaxes(showgrid=True, gridcolor='#e6e9ec')
     for i, f in enumerate(figs):
         if f is not None:
             f.update_layout(showlegend=i in (1, 2), legend=dict(orientation='h', x=0, y=1.15, font_size=11))

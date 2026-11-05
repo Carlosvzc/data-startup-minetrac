@@ -38,7 +38,7 @@ for b in blocks:
    continue
   from PIL import Image as PILImage
   iw,ih=PILImage.open(path).size
-  img=Image(str(path),width=475,height=475*ih/iw);img.keepWithNext=True;gap=Spacer(1,10);gap.keepWithNext=True;story.extend([img,gap])
+  ancho=min(475,640*iw/ih);img=Image(str(path),width=ancho,height=ancho*ih/iw);img.keepWithNext=True;gap=Spacer(1,10);gap.keepWithNext=True;story.extend([img,gap])
   web.append('<img src="data:image/'+('jpeg' if path.suffix.lower()=='.jpg' else 'png')+';base64,'+base64.b64encode(path.read_bytes()).decode()+'" alt="Gráfica">')
  else:
   level=1 if b.startswith('# ') else 2 if b.startswith('## ') else 3 if b.startswith('### ') else 0

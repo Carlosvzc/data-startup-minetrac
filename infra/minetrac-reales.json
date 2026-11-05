@@ -39,9 +39,7 @@
                   "Effect": "Allow",
                   "Action": "s3:GetObject",
                   "Resource": [
-                    "arn:aws:s3:::minetrac-reales-251869518832-20261026/clean/mantenimiento.csv",
-                    "arn:aws:s3:::minetrac-reales-251869518832-20261026/clean/inventario.csv",
-                    "arn:aws:s3:::minetrac-reales-251869518832-20261026/clean/resultados.json",
+                    "arn:aws:s3:::minetrac-reales-251869518832-20261026/clean/*",
                     "arn:aws:s3:::minetrac-reales-251869518832-20261026/deploy/minetrac.zip"
                   ]
                 },
@@ -61,6 +59,9 @@
               ]
             }
           }
+        ],
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
         ]
       }
     },

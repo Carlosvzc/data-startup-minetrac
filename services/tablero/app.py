@@ -312,7 +312,7 @@ with pred:
             chart('Autocorrelación (ACF) de la serie', e2.fig_acf(r2, 'acf_pacf', 'acf'), 'Barras fuera de la banda dorada son correlaciones significativas.', 'e2c')
         with b:
             chart('Autocorrelación parcial (PACF)', e2.fig_acf(r2, 'acf_pacf', 'pacf'), 'Ayuda a ver cuántos rezagos aportan información propia.', 'e2d')
-        chart('Diagnóstico de residuos', e2.fig_residuos(r2), 'Sin patrón visible y centrados en cero: el modelo no deja estructura sin explicar.', 'e2e')
+        chart('Diagnóstico de residuos', e2.fig_residuos(r2), 'Centrados en cero, pero con más dispersión cuando el valor ajustado es alto y una cola a la derecha: es normal en conteos y confirma que el modelo es solo una referencia.', 'e2e')
         st.markdown('<div class="mt-notice"><b>Alcance.</b> La serie viene de la libreta (equipos que no son camiones), transcrita de fotos y sin validar. '
                     'Con 131 semanas el modelo explica poco (R² bajo) y sirve como referencia de ritmo, no como pronóstico de fallas individuales.</div>', unsafe_allow_html=True)
         st.download_button('Descargar predicción en CSV', p.to_csv(index=False).encode('utf-8-sig'), 'prediccion_semanal.csv', 'text/csv')

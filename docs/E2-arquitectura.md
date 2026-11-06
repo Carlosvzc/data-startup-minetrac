@@ -52,7 +52,7 @@ n = 131 · R² = 0.166 · R² ajustado = 0.153 · RMSE = 2.56 anotaciones por se
 
 ![Residuos](evidencias/e2/regresion_residuos.png)
 
-**Análisis de residuos.** Media ≈ 0 (1×10⁻¹⁵, garantizado por la constante). Durbin-Watson 2.05: sin autocorrelación de primer orden. Shapiro-Wilk p = 2.9×10⁻⁵: no son normales (cola derecha), esperable en conteos. El intervalo ±1.96·RMSE es una aproximación.
+**Análisis de residuos.** Media ≈ 0 (1×10⁻¹⁵, garantizado por la constante). Durbin-Watson 2.05: sin autocorrelación de primer orden. Shapiro-Wilk p = 2.9×10⁻⁵: no son normales, con cola a la derecha. En la gráfica de residuos contra valor ajustado se ve más dispersión cuando el valor ajustado es alto (varianza no constante), algo esperable en datos de conteo. Por eso el intervalo ±1.96·RMSE es solo una aproximación y el modelo se presenta como referencia, no como pronóstico exacto.
 
 **Lectura honesta.** La tendencia es significativa (≈ +0.025 anotaciones por semana, unas 3 más por semana al cabo de los 2.5 años), pero el modelo explica solo 17% de la variación. Sirve para estimar el ritmo de trabajo del taller, no para predecir cada falla. La libreta está transcrita de fotos y sin validar.
 
@@ -72,7 +72,30 @@ Pruebas del flujo (`tests/test_ingesta_cola_worker.py`): flujo completo API → 
 
 Suite completa: **41 pruebas pasan** (`python -m pytest -q`).
 
-## 5. Pendiente de ejecutar por el equipo
-- Correr `infra/e2_aws.sh` en CloudShell (no se pudo probar contra AWS desde el entorno de desarrollo) y tomar capturas de `/docs`, de una carga con `demo_e2e.py` y del tablero.
-- La carga de PostgreSQL en la nube es un contenedor en la EC2; migrar a RDS es opcional.
-- Diagrama de la nube con los nombres reales de recursos, si el profesor lo pide con ese detalle.
+## 5. Evidencia del despliegue en AWS (6 de noviembre de 2026)
+
+Cuenta `ia-bank-laboratorios` (251869518832), región us-east-1, instancia EC2 `i-081fa473088bece22` (IP pública 98.93.132.212 al momento de las capturas; no es IP fija).
+
+| # | Evidencia | Archivo |
+|---|---|---|
+| 1 | Documentación OpenAPI de la ingesta (`/salud`, `/ingesta`, `/jobs/{job_id}`) | `evidencias/e2/aws_1_api_docs.png` |
+| 2 | Demostración extremo a extremo: CSV de 5 filas → 3 limpias y 2 rechazadas, estado `listo`, 2.0 s (meta: menos de 300 s) | `evidencias/e2/aws_2_demo_extremo_a_extremo.png` |
+| 3 | Colas SQS `minetrac-eventos` y `minetrac-eventos-muertos`, sin mensajes pendientes | `evidencias/e2/aws_3_colas_sqs.png` |
+| 4 | Tablero v2 en AWS, pestaña Predicción (modo S3) | `evidencias/e2/aws_4a_…` a `aws_4e_…` |
+
+![API](evidencias/e2/aws_1_api_docs.png)
+![Demostración](evidencias/e2/aws_2_demo_extremo_a_extremo.png)
+![Colas](evidencias/e2/aws_3_colas_sqs.png)
+![Tablero](evidencias/e2/aws_4a_tablero_prediccion_arriba.png)
+![Historia y predicción](evidencias/e2/aws_4b_tablero_historia_prediccion.png)
+![Descomposición y análisis](evidencias/e2/aws_4c_tablero_descomposicion_analisis.png)
+![ACF y PACF](evidencias/e2/aws_4d_tablero_acf_pacf.png)
+![Residuos](evidencias/e2/aws_4e_tablero_residuos.png)
+
+Despliegue: `infra/e2_aws.sh` (cola SQS, permisos del rol, puerto 8000, PostgreSQL + ingesta + worker en contenedores sobre la EC2). El tablero lee `clean/` del bucket privado con el rol de la instancia.
+
+## 6. Límites conocidos
+- La base de datos en la nube es un contenedor PostgreSQL en la misma EC2 (sin costo adicional); migrar a RDS es opcional.
+- La IP pública cambia si la instancia se detiene; no se asignó IP fija.
+- Los puertos 8000 y 8501 están abiertos a internet sin autenticación; debe cerrarse el 8000 al terminar la evaluación.
+- La serie semanal sale de la libreta transcrita de fotos y sin validar; la empresa no registra de forma digital las horas trabajadas, las toneladas ni los ingresos, por lo que el margen operativo queda fuera de alcance.

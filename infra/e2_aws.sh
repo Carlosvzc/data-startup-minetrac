@@ -23,7 +23,7 @@ echo "3/5 Permisos del rol de la instancia (SQS y escritura en ingesta/)"
 cat > /tmp/pol.json <<P
 {"Version":"2012-10-17","Statement":[
  {"Effect":"Allow","Action":["sqs:*"],"Resource":"arn:aws:sqs:$REGION:*:minetrac-eventos*"},
- {"Effect":"Allow","Action":["s3:PutObject","s3:GetObject"],"Resource":"arn:aws:s3:::$BUCKET/ingesta/*"}]}
+ {"Effect":"Allow","Action":["s3:PutObject","s3:GetObject"],"Resource":["arn:aws:s3:::$BUCKET/ingesta/*","arn:aws:s3:::$BUCKET/deploy/minetrac_e2.zip"]}]}
 P
 aws iam put-role-policy --role-name $ROL --policy-name minetrac-e2 --policy-document file:///tmp/pol.json
 

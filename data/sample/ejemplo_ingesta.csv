@@ -1,0 +1,6 @@
+equipo_id,fecha,sistema,tipo_evento,monto_mxn
+K1,2026-10-01,motor,falla,12500
+K2,2026-10-02,Hidráulico,falla,
+M1,2026-10-03,frenos,servicio,3200
+XX,2026-10-04,motor,falla,100
+K1,2026-10-01,motor,falla,12500

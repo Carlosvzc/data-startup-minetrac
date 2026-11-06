@@ -1,0 +1,24 @@
+# Versión para la EC2: SQS real (credenciales del rol de la instancia), PostgreSQL en contenedor.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment: {POSTGRES_USER: minetrac, POSTGRES_PASSWORD: minetrac, POSTGRES_DB: minetrac}
+    network_mode: host   # con red del host las apps usan el rol de la instancia (IMDS) sin ajustes extra; el puerto 5432 no está abierto en el grupo de seguridad
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck: {test: ["CMD-SHELL", "pg_isready -U minetrac"], interval: 3s, retries: 20}
+  ingesta:
+    build: {context: .., dockerfile: Dockerfile.ingesta}
+    environment: &env
+      DATABASE_URL: postgresql+psycopg://minetrac:minetrac@127.0.0.1:5432/minetrac
+      AWS_REGION: us-east-1
+      COLA: sqs
+      S3_BUCKET: ${S3_BUCKET}
+    network_mode: host
+    depends_on: {postgres: {condition: service_healthy}}
+  worker:
+    build: {context: .., dockerfile: Dockerfile.worker}
+    environment: *env
+    network_mode: host
+    restart: on-failure
+    depends_on: {postgres: {condition: service_healthy}}
+volumes: {pgdata: {}}

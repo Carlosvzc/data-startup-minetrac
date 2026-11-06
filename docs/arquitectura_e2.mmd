@@ -1,0 +1,12 @@
+flowchart LR
+  U[Usuario o sistema<br/>CSV de mantenimiento] -->|POST /ingesta| API[Ingesta FastAPI<br/>valida columnas, tamaño, formato]
+  API -->|guarda archivo| S3[(S3 ingesta/)]
+  API -->|crea job| DB[(PostgreSQL<br/>jobs y eventos)]
+  API -->|mensaje| Q[[SQS minetrac-eventos]]
+  Q -->|recibe| W[Worker<br/>limpieza automatizada]
+  W -->|lee CSV| S3
+  W -->|eventos limpios y estado| DB
+  Q -.->|3 intentos fallidos| DLQ[[Cola de mensajes muertos]]
+  DB --> T[Tablero Streamlit v2<br/>selecciones y predicción]
+  S3c[(S3 clean/ + e2_resultados.json)] --> T
+  M[Modelos NumPy<br/>series de tiempo y regresión] --> S3c

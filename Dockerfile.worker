@@ -1,0 +1,6 @@
+FROM python:3.12-slim
+WORKDIR /app/services/worker
+COPY requirements-e2.txt /app/
+RUN pip install --no-cache-dir -r /app/requirements-e2.txt
+COPY services/worker /app/services/worker
+CMD ["python", "worker.py"]

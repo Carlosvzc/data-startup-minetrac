@@ -142,8 +142,8 @@ st.markdown('<div class="mt-context"><span>' + safe(date_label(period[0])) + ' a
             + str(mm.camion_id.nunique()) + ' camiones</span><span>' + safe(system) + '</span><span>'
             + f"{k['con_monto']:,}" + ' de ' + f"{k['intervenciones']:,}" + ' con monto anotado</span></div>', unsafe_allow_html=True)
 
-overview, maintenance, cycles, fleet, taller, quality, detail = st.tabs(
-    ['Vista general', 'Mantenimiento y refacciones', 'Ciclos', 'Flota y operación', 'Libreta de taller', 'Calidad de datos', 'Explorar datos'])
+overview, maintenance, cycles, fleet, taller, pred, quality, detail = st.tabs(
+    ['Vista general', 'Mantenimiento y refacciones', 'Ciclos', 'Flota y operación', 'Libreta de taller', 'Predicción', 'Calidad de datos', 'Explorar datos'])
 
 with overview:
     st.subheader('Qué cuesta y dónde se concentra')
@@ -275,6 +275,47 @@ with quality:
         st.write('En modo AWS, el tablero lee la fuente privada con credenciales temporales del rol de instancia. Si la fuente falla, informa el error y no la reemplaza por una copia local.')
     st.download_button('Descargar auditoría', json.dumps(b, ensure_ascii=False, indent=2), 'auditoria_minetrac.json', 'application/json')
 
+with pred:
+    import e2
+    st.subheader('Cuántas fallas esperar en las próximas semanas')
+    st.caption('Serie semanal de anotaciones de la libreta de taller (abril de 2024 a octubre de 2026). Modelo: regresión lineal calculada a mano con NumPy '
+               '(tendencia y anotaciones de la semana anterior). Es una referencia para planear el taller, no una promesa. Esta pestaña no usa los filtros de camiones.')
+    r2 = e2.cargar(mode, os.environ.get('MINETRAC_BUCKET', ''), os.environ.get('AWS_DEFAULT_REGION', 'us-east-1'), ROOT)
+    if r2 is None:
+        st.info('Todavía no hay resultados del análisis en esta fuente. Ejecuta scripts/pipeline_e2.py para generarlos.')
+    else:
+        c1, c2 = st.columns(2)
+        horizonte = c1.slider('Semanas a predecir', 1, 12, 8, key='horizonte')
+        suav = c2.select_slider('Suavizado de la serie (semanas)', options=[1, 4, 8, 13], value=4, key='suavizado')
+        fig, p = e2.fig_serie(r2, suav, horizonte)
+        g = r2['regresion']
+        k = st.columns(4)
+        k[0].metric('Anotaciones esperadas', f"{p.prediccion.sum():.0f}")
+        k[1].metric('Promedio por semana', f"{p.prediccion.mean():.1f}")
+        k[2].metric('R² del modelo', f"{g['r2']:.2f}")
+        k[3].metric('Error típico (RMSE)', f"{g['rmse']:.1f}")
+        chart('Historia y predicción', fig, 'Barras: lo anotado cada semana. Línea dorada: lo que predice el modelo; la banda marca el rango razonable.', 'e2a')
+        a, b = st.columns(2, gap='medium')
+        with a:
+            chart('Tendencia y estacionalidad', e2.fig_descomposicion(r2), 'Descomposición aditiva con ciclo de 52 semanas. Con 2.5 ciclos de historia, la estacionalidad es indicativa; la tendencia es lo confiable.', 'e2b')
+        with b:
+            st.markdown('##### Qué dice el análisis')
+            ad, dd = r2['adf_serie'], r2['adf_diferencia']
+            st.markdown(f"- **Estacionariedad.** La serie original no lo es (ADF p = {ad['p_valor']:.2f}); con una diferencia sí (p < 0.001). Por eso la regresión usa la semana anterior y una tendencia.\n"
+                        f"- **Memoria.** Los primeros rezagos tienen autocorrelación de {r2['acf_pacf']['acf'][1]:.2f} a {max(r2['acf_pacf']['acf'][1:5]):.2f}, sobre la banda de 95%: la actividad de una semana se parece a la de las anteriores.\n"
+                        f"- **Residuos.** Durbin-Watson = {g['durbin_watson']:.2f} (cerca de 2: sin autocorrelación) y media ≈ 0. Shapiro-Wilk p = {g['shapiro_p']:.5f}: los residuos no son del todo normales porque los datos son conteos.\n"
+                        f"- **Comprobación.** Los coeficientes a mano coinciden con scikit-learn hasta {r2['comparacion_sklearn']['max_dif_abs']:.0e}.")
+            st.dataframe(e2.tabla_coef(r2).style.format({'Coeficiente β': '{:.4f}', 'Error estándar': '{:.4f}', 't': '{:.2f}', 'p': '{:.3f}'}), hide_index=True, width='stretch')
+        a, b = st.columns(2, gap='medium')
+        with a:
+            chart('Autocorrelación (ACF) de la serie', e2.fig_acf(r2, 'acf_pacf', 'acf'), 'Barras fuera de la banda dorada son correlaciones significativas.', 'e2c')
+        with b:
+            chart('Autocorrelación parcial (PACF)', e2.fig_acf(r2, 'acf_pacf', 'pacf'), 'Ayuda a ver cuántos rezagos aportan información propia.', 'e2d')
+        chart('Diagnóstico de residuos', e2.fig_residuos(r2), 'Sin patrón visible y centrados en cero: el modelo no deja estructura sin explicar.', 'e2e')
+        st.markdown('<div class="mt-notice"><b>Alcance.</b> La serie viene de la libreta (equipos que no son camiones), transcrita de fotos y sin validar. '
+                    'Con 131 semanas el modelo explica poco (R² bajo) y sirve como referencia de ritmo, no como pronóstico de fallas individuales.</div>', unsafe_allow_html=True)
+        st.download_button('Descargar predicción en CSV', p.to_csv(index=False).encode('utf-8-sig'), 'prediccion_semanal.csv', 'text/csv')
+
 with detail:
     st.subheader('Intervenciones de camiones en tu selección')
     st.caption(f'{len(mm):,} filas (una por intervención y sistema). Sin texto libre; proveedores anonimizados.')
@@ -285,4 +326,4 @@ with detail:
     dm.loc[mm.fecha_calidad.eq('solo_anio').to_numpy(), 'Fecha analítica'] = '2022 (día pendiente)'
     st.dataframe(dm, hide_index=True, width='stretch', column_config={'Monto (MXN)': st.column_config.NumberColumn(format='%.0f')})
     st.download_button('Descargar mantenimiento en CSV', mm.to_csv(index=False).encode('utf-8-sig'), 'minetrac_mantenimiento.csv', 'text/csv', type='primary')
-st.caption('MineTrac · E1 Data Startup · Importes en MXN · Información real de Máquinas Centella; operación pendiente')
+st.caption('MineTrac · E2 Data Startup · Importes en MXN · Información real de Máquinas Centella; operación pendiente')

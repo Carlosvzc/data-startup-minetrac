@@ -16,6 +16,7 @@ Tecnológico Nacional de México campus Colima · Ingeniería en Inteligencia Ar
 | Entrega | Documento |
 |---|---|
 | E0 Propuesta | [docs/E0-propuesta.md](docs/E0-propuesta.md) |
+| E2 Arquitectura, análisis y pruebas | [docs/E2-arquitectura.md](docs/E2-arquitectura.md) · `docker compose up --build` · `python scripts/pipeline_e2.py` |
 | E1 Dashboard | [docs/E1-dashboard.md](docs/E1-dashboard.md) · [Informe PDF](docs/E1-informe.pdf) · [Matriz de evidencia](docs/matriz_E1.md) |
 | E2 a E5 | entregas posteriores |
 

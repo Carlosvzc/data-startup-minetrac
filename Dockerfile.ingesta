@@ -1,0 +1,7 @@
+FROM python:3.12-slim
+WORKDIR /app
+COPY requirements-e2.txt .
+RUN pip install --no-cache-dir -r requirements-e2.txt
+COPY services/ingesta services/ingesta
+COPY services/worker services/worker
+CMD ["uvicorn", "main:app", "--app-dir", "services/ingesta", "--host", "0.0.0.0", "--port", "8000"]

@@ -6,8 +6,8 @@ def test_ui_real_filters_and_limits():
  a=AppTest.from_file(str(ROOT/'services/tablero/app.py'),default_timeout=45).run()
  assert not a.exception
  assert [m.value for m in a.metric][:4]==['257','$928,832','$12,384','26.8']
- assert len(a.metric)==8 and a.metric[4].value=='540'  # pestaña de la libreta
- assert len(a.get('plotly_chart'))==10
+ assert len(a.metric)==12 and a.metric[4].value=='540'  # pestaña de la libreta
+ assert len(a.get("plotly_chart"))==15
  assert a.date_input[0].value[0]==date(2023,8,4)
  assert a.checkbox[0].value is True
  a.multiselect(key='trucks').set_value(['C5']).run()

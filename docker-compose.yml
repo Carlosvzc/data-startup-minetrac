@@ -1,11 +1,32 @@
+# Pila local del E2 sin costo: PostgreSQL + ElasticMQ (compatible con SQS) + ingesta + worker + tablero.
+#   docker compose up --build
+#   curl -F archivo=@data/sample/ejemplo_ingesta.csv http://localhost:8000/ingesta
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment: {POSTGRES_USER: minetrac, POSTGRES_PASSWORD: minetrac, POSTGRES_DB: minetrac}
+    healthcheck: {test: ["CMD-SHELL", "pg_isready -U minetrac"], interval: 3s, retries: 20}
+    ports: ["5432:5432"]
+  sqs:
+    image: softwaremill/elasticmq-native:1.6.9
+    ports: ["9324:9324"]
+  ingesta:
+    build: {context: ., dockerfile: Dockerfile.ingesta}
+    environment: &env
+      DATABASE_URL: postgresql+psycopg://minetrac:minetrac@postgres:5432/minetrac
+      SQS_ENDPOINT: http://sqs:9324
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: local
+      AWS_SECRET_ACCESS_KEY: local
+      COLA: sqs
+    depends_on: {postgres: {condition: service_healthy}, sqs: {condition: service_started}}
+    ports: ["8000:8000"]
+  worker:
+    build: {context: ., dockerfile: Dockerfile.worker}
+    environment: *env
+    depends_on: {postgres: {condition: service_healthy}, sqs: {condition: service_started}}
+    restart: on-failure
   tablero:
-    build: .
-    ports:
-      - "8501:8501"
-    environment:
-      MINETRAC_STORAGE: local
-    volumes:
-      - ./data/clean:/app/data/clean:ro
-    restart: unless-stopped
-
+    build: {context: ., dockerfile: Dockerfile.tablero}
+    environment: {MINETRAC_STORAGE: local}
+    ports: ["8501:8501"]

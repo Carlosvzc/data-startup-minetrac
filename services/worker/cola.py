@@ -53,7 +53,7 @@ class ColaSQS:
     def enviar(self, cuerpo: dict) -> str:
         return self.sqs.send_message(QueueUrl=self.url, MessageBody=json.dumps(cuerpo))['MessageId']
 
-    def recibir(self, espera=1) -> Mensaje | None:
+    def recibir(self, espera=20) -> Mensaje | None:
         r = self.sqs.receive_message(QueueUrl=self.url, MaxNumberOfMessages=1, WaitTimeSeconds=espera,
                                      AttributeNames=['ApproximateReceiveCount'])
         for m in r.get('Messages', []):

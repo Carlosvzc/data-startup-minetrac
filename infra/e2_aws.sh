@@ -14,8 +14,10 @@ echo "1/5 Subiendo paquete"; aws s3 cp "$ZIP" s3://$BUCKET/deploy/minetrac_e2.zi
 echo "2/5 Cola SQS + mensajes muertos"
 DLQ=$(aws sqs create-queue --queue-name minetrac-eventos-muertos --region $REGION --query QueueUrl --output text)
 DLQARN=$(aws sqs get-queue-attributes --queue-url "$DLQ" --attribute-names QueueArn --region $REGION --query Attributes.QueueArn --output text)
-aws sqs create-queue --queue-name minetrac-eventos --region $REGION --attributes \
-  "VisibilityTimeout=30,RedrivePolicy={\"deadLetterTargetArn\":\"$DLQARN\",\"maxReceiveCount\":\"3\"}" >/dev/null
+cat > /tmp/attr.json <<A
+{"VisibilityTimeout":"30","RedrivePolicy":"{\"deadLetterTargetArn\":\"$DLQARN\",\"maxReceiveCount\":\"3\"}"}
+A
+aws sqs create-queue --queue-name minetrac-eventos --region $REGION --attributes file:///tmp/attr.json >/dev/null
 
 echo "3/5 Permisos del rol de la instancia (SQS y escritura en ingesta/)"
 cat > /tmp/pol.json <<P

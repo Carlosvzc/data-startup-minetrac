@@ -156,7 +156,8 @@ with overview:
     st.caption('Calculamos estas recomendaciones con la selección actual. Solo usamos los montos anotados.')
     for n, (col, (tag, title, text)) in enumerate(zip(st.columns(3), recomendaciones(mm, aux)), 1):
         with col:
-            st.markdown(f'<div class="mt-action"><div class="mt-num">{n}</div><div><div class="mt-action-tag">{safe(tag.split('/')[-1].strip().capitalize())}</div><h4>{safe(title)}</h4><p>{safe(text)}</p></div></div>', unsafe_allow_html=True)
+            etiqueta = safe(tag.split('/')[-1].strip().capitalize())
+            st.markdown(f'<div class="mt-action"><div class="mt-num">{n}</div><div><div class="mt-action-tag">{etiqueta}</div><h4>{safe(title)}</h4><p>{safe(text)}</p></div></div>', unsafe_allow_html=True)
 
 with maintenance:
     st.subheader('Qué se ha reparado y cuándo')

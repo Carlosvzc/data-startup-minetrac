@@ -1,6 +1,6 @@
 
 from pathlib import Path
-import html,re,base64
+import html,re,base64,sys
 from pdf_portada import portada
 from reportlab.platypus import SimpleDocTemplate,Paragraph,Spacer,Image,PageBreak,KeepTogether
 from reportlab.lib.styles import getSampleStyleSheet,ParagraphStyle
@@ -10,6 +10,10 @@ import re
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 ROOT=Path(__file__).resolve().parents[1]
+ENTREGA=sys.argv[1] if len(sys.argv)>1 else 'E1'
+FUENTE={'E1':'E1-dashboard.md','E2':'E2-informe.md'}[ENTREGA]
+TITULO={'E1':'Dashboard empresarial','E2':'Cimientos en la nube'}[ENTREGA]
+INCRUSTAR={'E1':('evidencias/tablero/',),'E2':('evidencias/e2/','arquitectura_e2')}[ENTREGA]
 def buscar_fuente(candidatas):
     for c in candidatas:
         if Path(c).exists():
@@ -26,14 +30,14 @@ styles.add(ParagraphStyle(name='BodyL',fontName='Arial',alignment=TA_LEFT,fontSi
 styles.add(ParagraphStyle(name='TitleX',fontName='ArialBold',fontSize=25,leading=31,spaceAfter=20,textColor=colors.HexColor('#000000')))
 styles.add(ParagraphStyle(name='H2X',fontName='ArialBold',fontSize=15,leading=19,spaceBefore=16,spaceAfter=10,keepWithNext=True,textColor=colors.HexColor('#000000')))
 styles.add(ParagraphStyle(name='H3X',fontName='ArialBold',fontSize=11,leading=15,spaceBefore=12,spaceAfter=8,keepWithNext=True,textColor=colors.black))
-blocks=(ROOT/'docs/E1-dashboard.md').read_text(encoding='utf-8').split('\n\n')
-story=portada('E1','Arial','ArialBold');web=[]
+blocks=(ROOT/'docs'/FUENTE).read_text(encoding='utf-8').split('\n\n')
+story=portada(ENTREGA,'Arial','ArialBold');web=[]
 for b in blocks:
  b=b.strip()
  if not b: continue
  if b.startswith('!['):
   rel=b.split('](')[1][:-1];path=ROOT/'docs'/rel
-  if rel.startswith('evidencias/') and not rel.startswith('evidencias/tablero/'):
+  if not rel.startswith(INCRUSTAR):
    story.append(Paragraph('Consultamos esta captura en el repositorio: '+html.escape(rel),styles['BodyX']))
    continue
   from PIL import Image as PILImage
@@ -50,11 +54,11 @@ for b in blocks:
 def foot(c,d):
  c.setStrokeColor(colors.HexColor('#000000'));c.line(42,39,552,39)
  c.setFont('Arial',8);c.setFillColor(colors.HexColor('#000000'))
- c.drawString(42,26,'MineTrac · E1')
+ c.drawString(42,26,'MineTrac · '+ENTREGA)
  c.drawRightString(552,26,str(d.page))
-doc=SimpleDocTemplate(str(ROOT/'docs/E1-informe.pdf'),pagesize=(595.28,841.89),leftMargin=47,rightMargin=47,topMargin=42,bottomMargin=55,title='MineTrac E1 - Dashboard empresarial',author='Equipo MineTrac')
+doc=SimpleDocTemplate(str(ROOT/('docs/'+ENTREGA+'-informe.pdf')),pagesize=(595.28,841.89),leftMargin=47,rightMargin=47,topMargin=42,bottomMargin=55,title='MineTrac '+ENTREGA+' - '+TITULO,author='Equipo MineTrac')
 doc.build(story,onFirstPage=foot,onLaterPages=foot)
-print('PDF creado en docs/E1-informe.pdf')
+print('PDF creado en docs/'+ENTREGA+'-informe.pdf')
 
 
 

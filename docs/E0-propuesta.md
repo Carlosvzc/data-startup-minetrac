@@ -13,15 +13,15 @@ Tecnológico Nacional de México campus Colima · Ingeniería en Inteligencia Ar
 | Cloud Lead | Carlos Alejandro Vizcaino Anguiano · matrícula 25460343 |
 | Data Lead | Diego Reyes Natilla · matrícula 25460331 |
 
-> Estado de la información: este documento se basa solo en el catálogo de equipos, la bitácora de reparaciones de los camiones, el documento de contexto, la carta y la entrevista que entregó o dio la empresa. No usamos datos simulados. Además recibimos 35 fotos de una libreta manuscrita de los equipos que no son camiones; la transcribimos y la mostramos aparte (sección 3), sin mezclarla con las cifras de la bitácora. Lo que todavía falta se lista en la sección 8.
+> Estado de la información: este documento se basa solo en el catálogo de equipos, la bitácora de reparaciones de los camiones, el documento de contexto, la carta y la entrevista que entregó o dio la empresa. No usamos datos simulados. Por indicación de la empresa, autorizada por los profesores, el alcance de esta etapa son los 7 camiones; el diseño permite agregar después el resto de la flota. Lo que todavía falta se lista en la sección 8.
 
 ---
 
 ## 1. Problema y cliente
 
-Trabajamos con una empresa que compra, opera y mantiene maquinaria pesada para minería. Revisamos su catálogo de 21 equipos: 11 cargadores, 2 minicargadores, 1 retroexcavadora y 7 camiones de 12 y 14 m³. Quiere un sistema que le permita evaluar la rentabilidad de cada equipo, comparar la durabilidad de las refacciones según su origen (original de fábrica o genérica de proveedor local) y generar balances financieros para decidir en sus contratos.
+Trabajamos con una empresa que compra, opera y mantiene maquinaria pesada para minería. Revisamos su catálogo de 21 equipos: 11 cargadores, 2 minicargadores, 1 retroexcavadora y 7 camiones de 12 y 14 m³. Por indicación de la empresa, autorizada por los profesores, trabajamos por ahora solo con los 7 camiones y diseñamos el sistema para poder sumar después el resto de la flota. Quiere un sistema que le permita evaluar la rentabilidad de cada equipo, comparar la durabilidad de las refacciones según su origen (original de fábrica o genérica de proveedor local) y generar balances financieros para decidir en sus contratos.
 
-Hoy esa información está dispersa. Según el documento de contexto, las horas trabajadas se capturan en papel o a mano y no hay un registro digital de horómetro, toneladas ni ingresos por equipo; la empresa nos informó por carta (25 de octubre de 2026) que está consolidando esa información en un Excel. Recibimos una bitácora digital de reparaciones de los 7 camiones, una hoja por camión, con fechas, trabajos realizados y, solo a veces, el monto. La bitácora cubre 257 intervenciones principalmente entre abril de 2024 y octubre de 2026, con registros previos de 2023 y uno que solo indica el año 2022. Únicamente 75 traen monto anotado y suman $928,832 MXN, por lo que el costo total no se puede calcular ni conciliar todavía.
+Hoy esa información está dispersa. Según el documento de contexto, las horas trabajadas se capturan en papel o a mano y no hay un registro digital de horómetro, toneladas ni ingresos por equipo; la empresa nos informó por carta (25 de octubre de 2026) que reuniría el resto de la información y después nos comunicó que no tiene tiempo de entregarla, por lo que nos pidió centrarnos en los camiones. Recibimos una bitácora digital de reparaciones de los 7 camiones, una hoja por camión, con fechas, trabajos realizados y, solo a veces, el monto. La bitácora cubre 257 intervenciones principalmente entre abril de 2024 y octubre de 2026, con registros previos de 2023 y uno que solo indica el año 2022. Únicamente 75 traen monto anotado y suman $928,832 MXN, por lo que el costo total no se puede calcular ni conciliar todavía.
 
 En la bitácora encontramos un ejemplo de un paro largo. El camión C4 registra el 9 de marzo de 2026 que se rompió la base del gato hidráulico y se volteó la caja en la peña; entró a taller en abril y se anotó como entregado el 6 de mayo, casi dos meses después. El entrevistado (sección 3) cuenta un caso muy parecido: el gato perdió presión por una fuga de aceite, el camión se volteó sin lesionados, la pieza nueva tardó cerca de mes y medio en llegar y además hubo que rehacer una parte de la caja. La fecha que él da ("hace unos dos meses") no cuadra con la bitácora, que ubica el caso del C4 entre marzo y mayo de 2026; falta confirmar con la empresa si es el mismo evento. En otro ejemplo, el camión C5 acumula 57 intervenciones, y en 69 ocasiones se volvió a trabajar el mismo componente de un camión en hasta 30 días.
 
@@ -83,13 +83,13 @@ Las cuatro primeras salen directamente de la entrevista.
 | Pregunta de negocio | Pregunta analítica | Variable a predecir | Datos |
 |---|---|---|---|
 | ¿Qué equipo acumula más horas fuera de servicio por fallas? | ¿Cuántos días pasa detenido cada equipo entre la falla y su regreso, incluida la espera de la pieza? | `horas_fuera_de_servicio` por equipo y por falla | **Pendiente:** fecha de falla y de regreso a operación (hoy solo el caso del camión C4) |
-| ¿Cuáles son las piezas que más se descomponen? | ¿Cuánto gasto y cuántas repeticiones concentra cada componente, y cuántos trabajos se repiten en hasta 30 días? | `reparacion_correctiva_30d` (Sí/No) por camión | Bitácora real (disponible) |
+| ¿Cuáles son las piezas que más se descomponen? | ¿Cuánto gasto y cuántas repeticiones concentra cada componente, y cuántos trabajos se repiten en hasta 30 días? | `repite_30d` (Sí/No): el mismo camión repite una falla en el mismo sistema en 1 a 30 días | Bitácora real (disponible) |
 | ¿Cómo cambia la frecuencia de fallas con las horas de uso? | ¿Cuántas fallas hay por cada 100 horas de horómetro en cada equipo? | `fallas_por_100h` | **Pendiente:** lectura del horómetro |
 | ¿Qué equipo es el que más dinero genera? | ¿Cuál es el margen operativo neto de cada equipo? | `margen_operativo_mxn` por equipo y por mes | **Pendiente:** horas, toneladas y tarifas |
-| ¿Cuándo debo preparar taller y refacciones? | ¿Cuántas intervenciones tendrá la flota por semana y por mes en los próximos 7 y 30 días? | `intervenciones_diarias` (conteo, horizonte 7 y 30 días) | Bitácora real (disponible, señal débil) |
+| ¿Cuándo debo preparar taller y refacciones? | ¿Cuántas intervenciones tendrán los camiones por semana en los próximos 7 y 30 días? | `intervenciones_semanales` (conteo; horizontes de 1 y 4 semanas, equivalentes a 7 y 30 días) | Bitácora real (disponible, señal débil) |
 | ¿Conviene comprar la pieza original o la local? (documento de contexto) | ¿Cuánto cuesta por hora útil cada refacción según su origen y proveedor? | `costo_por_hora_util` = costo de la pieza ÷ horas hasta el siguiente cambio | **Pendiente:** tipo de pieza y horómetro al cambio |
 
-Con la bitácora se responden hoy las filas 2 y 5, que alimentan E1, E2 y E3 (ARIMA y clasificador). El resto depende de información que la empresa está consolidando; el diseño del tablero ya las contempla.
+Con la bitácora se responden hoy las filas 2 y 5, que alimentan E1, E2 y E3 (ARIMA y clasificador). El resto depende de información que la empresa lleva a mano y todavía no captura; el diseño del tablero ya las contempla.
 
 ## 5. Inventario de datos
 
@@ -100,13 +100,11 @@ Usamos la información que recibimos de la empresa. No simulamos datos.
 | `EQUIPOS MAQ CENTELLA.xlsx` | Catálogo (K1 descontinuado; M2 nuevo, sin historial todavía): 11 cargadores (950H, 950K, 966H, 966K, 966M, 972M), 2 minicargadores (236, 226), 1 retroexcavadora (416) y 7 camiones (Sterling, International y Loresa) | Actual | 21 equipos |
 | `CAMIONES 12M3 Y 14M3.xlsx` | Bitácora de reparaciones de los 7 camiones: una hoja por camión, columnas por sistema (motor, electrónico, transmisión y dirección, caja y frenos, A/C y eléctrico, estético, llantas y servicio), costo y comentarios | Principalmente abril de 2024 a octubre de 2026; también hay registros de 2023 y uno con solo el año 2022 | 257 intervenciones, 317 registros por sistema |
 | `Maquina Centella Contexto.txt` | Descripción de los tres módulos que quiere la empresa | Actual | Documento |
-| Carta de Máquinas Centella (25 de octubre de 2026) | Informa que está recopilando y consolidando el resto de la información en un Excel | Actual | Documento |
+| Carta de Máquinas Centella (25 de octubre de 2026) | Indica que reuniría el resto de la información; después la empresa comunicó que no tiene tiempo de entregarla y pidió centrarnos en los camiones | Actual | Documento |
 
 **Cumplimiento del mínimo de la guía.** Revisamos que la guía pide al menos 12 meses o 5,000 registros. La bitácora cubre 30 meses, así que cumplimos por periodo, aunque tiene pocos registros (317). La señal es limitada para modelos de series de tiempo; lo decimos desde ahora para no exagerar los resultados.
 
-**Libreta manuscrita.** La empresa también nos pasó 35 fotos de una libreta manuscrita de taller con registros de 14 equipos que no son camiones (K2 a K11, M1, R1, T1 y T2). La transcribimos completa: 540 anotaciones entre 2023 y octubre de 2026, con 81 servicios preventivos, 112 anotaciones con un monto claro y fallas repetidas como equipos sin fuerza, fugas y radiadores. Es una fuente escrita a mano y sin validar, por eso la mostramos en su propia pestaña y no la mezclamos con las cifras de la bitácora de camiones. T1 y T2 aparecen en la libreta pero no en el catálogo de 21 equipos; le pedimos a la empresa confirmar si forman parte de la flota.
-
-**Pendiente de entrega por la empresa:** horas trabajadas por turno, toneladas, tarifas por hora y por tonelada, lectura del horómetro, tipo de pieza (original o genérica) y proveedor real. La empresa los captura en papel y los está consolidando en un Excel. Mientras tanto no los simulamos: el tablero lo indica claramente y esos módulos quedan en espera.
+**Fuera del alcance por ahora:** horas trabajadas por turno, toneladas, tarifas por hora y por tonelada, lectura del horómetro, tipo de pieza (original o genérica) y proveedor real. La empresa los lleva en papel y todavía no los tiene capturados. No los simulamos: el tablero lo indica y esos módulos quedan para cuando existan los registros.
 
 **Calidad de la bitácora.** Solo 75 de 257 intervenciones traen monto (29%). Hay fechas escritas a mano (`01/se/25`, `077sep/26`), años equivocados (una fecha de 2029), filas sin fecha, montos escritos dentro del texto y un ajuste de motor de $149,000 que es un monto atípico anotado, pendiente de comprobar. Las fechas inferidas se identifican con fecha_calidad. Documentamos cada transformación y los datos que faltan en la auditoría de E1.
 
@@ -147,15 +145,15 @@ Se usó Claude para ordenar el documento de contexto, proponer el borrador del L
 ## 8. Información pendiente
 
 - **Entrevista:** confirmar si el caso del gato hidráulico que cuenta Andrés es el del camión C4 (la fecha no coincide con la bitácora).
-- **Libreta manuscrita:** ya transcrita; falta que la empresa valide fechas, montos y clasificación, y confirme si T1 y T2 son parte de la flota.
-- **De la empresa:** Excel consolidado (horas y toneladas por turno, tarifas, horómetro), fecha de falla y de regreso a operación de cada paro, tipo de pieza (original o genérica) y proveedor en cada compra, lectura del horómetro al cambiar una pieza y los montos de las intervenciones sin costo.
+- **De la empresa (cuando haya tiempo):** captura digital de horas y toneladas por turno, tarifas, horómetro, fecha de falla y de regreso a operación de cada paro, tipo de pieza (original o genérica) y proveedor en cada compra, lectura del horómetro al cambiar una pieza y los montos de las intervenciones sin costo.
+- **Resto de la flota:** cargadores, minicargadores y retroexcavadora del catálogo; el diseño ya permite agregarlos.
 
 
 ## 9. Alcance de la entrega al 26 de octubre de 2026
 
 Los profesores indicaron verbalmente al equipo que se podía entregar E0 y E1 con la información recibida y completar después los datos pendientes.
 
-La empresa informó por carta (25 de octubre de 2026) que está consolidando la información en un Excel. La carta se entregó por separado en Classroom y no forma parte del repositorio.
+Los profesores autorizaron después centrar el proyecto en los 7 camiones, como pidió la empresa. En su carta del 25 de octubre de 2026 la empresa indicó que reuniría el resto de la información y luego comunicó que no tiene tiempo de entregarla. La carta se entregó por separado en Classroom y no forma parte del repositorio.
 
 
 

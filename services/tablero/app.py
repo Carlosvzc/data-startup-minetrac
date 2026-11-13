@@ -12,6 +12,8 @@ HERE = Path(__file__).resolve().parent
 st.set_page_config(page_title='MineTrac | Control de mantenimiento', page_icon='⛏', layout='wide', initial_sidebar_state='expanded')
 st.markdown('<style>' + (HERE / 'fonts.css').read_text(encoding='utf-8') + (HERE / 'styles.css').read_text(encoding='utf-8-sig') + '</style>', unsafe_allow_html=True)
 mode = os.environ.get('MINETRAC_STORAGE', 'local')
+# Alcance actual: solo camiones. Con MINETRAC_ALCANCE=flota se muestra también la libreta de los demás equipos.
+SHOW_LIB = os.environ.get('MINETRAC_ALCANCE', 'camiones') == 'flota'
 
 
 @st.cache_data(ttl=60)
@@ -97,8 +99,8 @@ with st.sidebar:
 
 st.markdown('<div class="mt-stripe"></div><div class="mt-hero"><h1>Mantenimiento de la flota</h1>'
             '<p>Qué se repara, cuánto cuesta y qué conviene atender primero. Empieza por el resumen y baja a las pestañas para ver el detalle.</p></div>', unsafe_allow_html=True)
-st.markdown('<div class="mt-aviso"><b>Datos reales de Máquinas Centella.</b> Catálogo de 21 equipos y bitácora de los 7 camiones. '
-            '<b>Falta que la empresa entregue</b> horas trabajadas, toneladas, tarifas e ingresos; no los simulamos ni los estimamos.</div>', unsafe_allow_html=True)
+st.markdown('<div class="mt-aviso"><b>Datos reales de Máquinas Centella.</b> Bitácora de reparaciones de los 7 camiones. '
+            'Por ahora el alcance son los camiones; el resto de la flota se agrega después. <b>Las horas trabajadas, toneladas, tarifas e ingresos</b> la empresa los lleva a mano y aún no están capturados; no los simulamos ni los estimamos.</div>', unsafe_allow_html=True)
 if len(period) != 2:
     st.info('Elige la fecha de inicio y la fecha de fin para consultar el periodo.')
     st.stop()
@@ -142,8 +144,11 @@ st.markdown('<div class="mt-context"><span>' + safe(date_label(period[0])) + ' a
             + str(mm.camion_id.nunique()) + ' camiones</span><span>' + safe(system) + '</span><span>'
             + f"{k['con_monto']:,}" + ' de ' + f"{k['intervenciones']:,}" + ' con monto anotado</span></div>', unsafe_allow_html=True)
 
-overview, maintenance, cycles, fleet, taller, pred, quality, detail = st.tabs(
-    ['Vista general', 'Mantenimiento y refacciones', 'Ciclos', 'Flota y operación', 'Libreta de taller', 'Predicción', 'Calidad de datos', 'Explorar datos'])
+_nombres = ['Vista general', 'Mantenimiento y refacciones', 'Ciclos', 'Flota y operación'] + (['Libreta de taller', 'Predicción'] if SHOW_LIB else []) + ['Calidad de datos', 'Explorar datos']
+_tabs = st.tabs(_nombres)
+overview, maintenance, cycles, fleet = _tabs[:4]
+taller, pred = (_tabs[4], _tabs[5]) if SHOW_LIB else (None, None)
+quality, detail = _tabs[-2:]
 
 with overview:
     st.subheader('Qué cuesta y dónde se concentra')
@@ -196,57 +201,57 @@ with cycles:
             st.dataframe(pd.DataFrame(aux['peaks'][:3]).rename(columns={'periodo_dias': 'Periodo (días)', 'amplitud': 'Amplitud', 'frecuencia_ciclos_dia': 'Frecuencia (ciclos/día)'}), hide_index=True)
 
 with fleet:
-    st.subheader('Catálogo de equipos')
-    st.caption('21 equipos de Máquinas Centella según el catálogo entregado (pendiente de validación por la empresa).')
-    c = inv.groupby('categoria').size().reset_index(name='Equipos').rename(columns={'categoria': 'Tipo'})
+    st.subheader('Camiones del catálogo')
+    st.caption('Los 7 camiones de Máquinas Centella según el catálogo entregado (pendiente de validación por la empresa). El catálogo completo trae 21 equipos; el resto de la flota se agrega después.')
+    inv_v = inv if SHOW_LIB else inv[inv.categoria.str.lower().str.contains('cami')]
+    c = inv_v.groupby('categoria').size().reset_index(name='Equipos').rename(columns={'categoria': 'Tipo'})
     st.dataframe(c, hide_index=True, width='stretch')
-    cols = ['equipo_id', 'categoria', 'modelo'] + (['estado'] if 'estado' in inv.columns else [])
-    st.dataframe(inv[cols].rename(columns={'equipo_id': 'Equipo', 'categoria': 'Tipo', 'modelo': 'Modelo', 'estado': 'Estado'}), hide_index=True, width='stretch')
-    st.caption('K1 está descontinuado y M2 es nuevo, sin historial de mantenimiento todavía. Para los demás equipos la empresa no indicó su estado.')
-    st.markdown('<div class="mt-notice"><b>Operación y balance financiero: pendiente.</b> Máquinas Centella nos informó por carta del 25 de octubre de 2026 que está '
-                'recopilando, revisando y consolidando la información en un archivo de Excel con sus departamentos. Cuando llegue (horas trabajadas por turno, toneladas, tarifas, '
-                'horómetro), podremos agregar los ingresos, el margen operativo neto por equipo y el indicador de tarifas para contratos. La carta se entregó por separado en Classroom.</div>', unsafe_allow_html=True)
+    cols = ['equipo_id', 'categoria', 'modelo'] + (['estado'] if 'estado' in inv_v.columns else [])
+    st.dataframe(inv_v[cols].rename(columns={'equipo_id': 'Equipo', 'categoria': 'Tipo', 'modelo': 'Modelo', 'estado': 'Estado'}), hide_index=True, width='stretch')
+    st.markdown('<div class="mt-notice"><b>Operación y balance financiero: queda para una etapa posterior.</b> La empresa lleva a mano las horas trabajadas, las toneladas y las tarifas, '
+                'y todavía no las tiene capturadas. Cuando existan (horas trabajadas por turno, toneladas, tarifas, horómetro), podremos agregar los ingresos, el margen operativo neto por equipo y el indicador de tarifas para contratos.</div>', unsafe_allow_html=True)
 
-with taller:
-    st.subheader('Libreta de taller: equipos que no son camiones')
-    st.caption('Transcribimos 35 fotos de la libreta manuscrita de la empresa (abril de 2024 a octubre de 2026). Es información real, sin validar todavía: '
-               'las fechas y los montos salen de letra a mano y los marcamos cuando son dudosos. Esta pestaña no usa el filtro de camiones.')
-    if libreta.empty:
-        st.info('Todavía no hay datos de la libreta en esta fuente. Súbelos a clean/libreta_eventos.csv para verlos aquí.')
-    else:
-        eq_sel = st.multiselect('Equipos de la libreta', sorted(libreta.equipo_id.unique()), default=[], key='lib_equipos',
-                                placeholder='Los 14 equipos', help='Déjalo vacío para incluir todos.')
-        lib = lb.filtrar(libreta, eq_sel)
-        kl = lb.kpis(lib)
-        cl = st.columns(4)
-        lspecs = [('Anotaciones', f"{kl['anotaciones']:,}", f"{kl['equipos']} equipos · {kl['servicios']} servicios preventivos"),
-                  ('Servicios con intervalo', f"{kl['con_intervalo']:,}", 'Servicios de 250, 500, 750 o 1,000 horas'),
-                  ('Gasto con monto único', money(kl['gasto_mxn']), f"MXN · {kl['con_monto']} anotaciones con una sola cifra (parcial)"),
-                  ('Repeticiones / 100 anot.', f"{kl['rep_100']:.1f}", 'Mismo equipo y sistema en hasta 30 días, sin servicios')]
-        for col, (label, value, note) in zip(cl, lspecs):
-            with col:
-                st.metric(label, value)
-                st.markdown('<div class="mt-kpi-note">' + note + '</div>', unsafe_allow_html=True)
-        lf = lb.graficas(lib)
-        l, r = st.columns(2, gap='medium')
-        with l:
-            chart('Qué equipos concentran más anotaciones', lf[0], 'Anotaciones por equipo; en negro, los servicios preventivos.', 'l0')
-        with r:
-            chart('Qué sistemas fallan más', lf[1], 'Anotaciones por sistema, sin servicios preventivos. Clasificamos por palabras clave; hay anotaciones sin clasificar.', 'l1')
-        l, r = st.columns(2, gap='medium')
-        with l:
-            chart('Cuánto se anota cada mes', lf[2], 'Anotaciones con fecha desde abril de 2024.', 'l2')
-        with r:
-            chart('Qué servicios preventivos se registran', lf[3], 'Servicios que indican su intervalo en horas de operación.', 'l3')
-        piezas = lib[lib.canibalizacion]
-        if len(piezas):
-            with st.expander(f'Piezas o controles pasados de un equipo a otro ({len(piezas)} anotaciones)'):
-                st.caption('Detectamos anotaciones que mencionan otro equipo al mover una pieza. Es una lectura automática: puede incluir falsos positivos.')
-                st.dataframe(piezas[['equipo_id', 'fecha', 'equipos_mencionados']].rename(columns={'equipo_id': 'Equipo', 'fecha': 'Fecha', 'equipos_mencionados': 'Equipos mencionados'}), hide_index=True, width='stretch')
-        st.markdown('<div class="mt-notice"><b>Límites de la libreta:</b> casi nunca anota la fecha en que el equipo dejó de trabajar ni cuándo regresó, '
-                    'así que no sirve todavía para medir horas fuera de servicio. Solo una anotación trae lectura de horómetro. Las anotaciones con varias cifras '
-                    '(cotizaciones o desgloses) no entran al gasto para no sumar alternativas. T1 y T2 aparecen en la libreta pero no en el catálogo de 21 equipos.</div>', unsafe_allow_html=True)
-        st.download_button('Descargar libreta estructurada (CSV)', lib.to_csv(index=False).encode('utf-8-sig'), 'minetrac_libreta.csv', 'text/csv')
+if SHOW_LIB:
+    with taller:
+        st.subheader('Libreta de taller: equipos que no son camiones')
+        st.caption('Transcribimos 35 fotos de la libreta manuscrita de la empresa (abril de 2024 a octubre de 2026). Es información real, sin validar todavía: '
+                   'las fechas y los montos salen de letra a mano y los marcamos cuando son dudosos. Esta pestaña no usa el filtro de camiones.')
+        if libreta.empty:
+            st.info('Todavía no hay datos de la libreta en esta fuente. Súbelos a clean/libreta_eventos.csv para verlos aquí.')
+        else:
+            eq_sel = st.multiselect('Equipos de la libreta', sorted(libreta.equipo_id.unique()), default=[], key='lib_equipos',
+                                    placeholder='Los 14 equipos', help='Déjalo vacío para incluir todos.')
+            lib = lb.filtrar(libreta, eq_sel)
+            kl = lb.kpis(lib)
+            cl = st.columns(4)
+            lspecs = [('Anotaciones', f"{kl['anotaciones']:,}", f"{kl['equipos']} equipos · {kl['servicios']} servicios preventivos"),
+                      ('Servicios con intervalo', f"{kl['con_intervalo']:,}", 'Servicios de 250, 500, 750 o 1,000 horas'),
+                      ('Gasto con monto único', money(kl['gasto_mxn']), f"MXN · {kl['con_monto']} anotaciones con una sola cifra (parcial)"),
+                      ('Repeticiones / 100 anot.', f"{kl['rep_100']:.1f}", 'Mismo equipo y sistema en hasta 30 días, sin servicios')]
+            for col, (label, value, note) in zip(cl, lspecs):
+                with col:
+                    st.metric(label, value)
+                    st.markdown('<div class="mt-kpi-note">' + note + '</div>', unsafe_allow_html=True)
+            lf = lb.graficas(lib)
+            l, r = st.columns(2, gap='medium')
+            with l:
+                chart('Qué equipos concentran más anotaciones', lf[0], 'Anotaciones por equipo; en negro, los servicios preventivos.', 'l0')
+            with r:
+                chart('Qué sistemas fallan más', lf[1], 'Anotaciones por sistema, sin servicios preventivos. Clasificamos por palabras clave; hay anotaciones sin clasificar.', 'l1')
+            l, r = st.columns(2, gap='medium')
+            with l:
+                chart('Cuánto se anota cada mes', lf[2], 'Anotaciones con fecha desde abril de 2024.', 'l2')
+            with r:
+                chart('Qué servicios preventivos se registran', lf[3], 'Servicios que indican su intervalo en horas de operación.', 'l3')
+            piezas = lib[lib.canibalizacion]
+            if len(piezas):
+                with st.expander(f'Piezas o controles pasados de un equipo a otro ({len(piezas)} anotaciones)'):
+                    st.caption('Detectamos anotaciones que mencionan otro equipo al mover una pieza. Es una lectura automática: puede incluir falsos positivos.')
+                    st.dataframe(piezas[['equipo_id', 'fecha', 'equipos_mencionados']].rename(columns={'equipo_id': 'Equipo', 'fecha': 'Fecha', 'equipos_mencionados': 'Equipos mencionados'}), hide_index=True, width='stretch')
+            st.markdown('<div class="mt-notice"><b>Límites de la libreta:</b> casi nunca anota la fecha en que el equipo dejó de trabajar ni cuándo regresó, '
+                        'así que no sirve todavía para medir horas fuera de servicio. Solo una anotación trae lectura de horómetro. Las anotaciones con varias cifras '
+                        '(cotizaciones o desgloses) no entran al gasto para no sumar alternativas. T1 y T2 aparecen en la libreta pero no en el catálogo de 21 equipos.</div>', unsafe_allow_html=True)
+            st.download_button('Descargar libreta estructurada (CSV)', lib.to_csv(index=False).encode('utf-8-sig'), 'minetrac_libreta.csv', 'text/csv')
 
 with quality:
     b = result['auditoria_bitacora']
@@ -276,46 +281,47 @@ with quality:
         st.write('En modo AWS, el tablero lee la fuente privada con credenciales temporales del rol de instancia. Si la fuente falla, informa el error y no la reemplaza por una copia local.')
     st.download_button('Descargar auditoría', json.dumps(b, ensure_ascii=False, indent=2), 'auditoria_minetrac.json', 'application/json')
 
-with pred:
-    import e2
-    st.subheader('Cuántas fallas esperar en las próximas semanas')
-    st.caption('Serie semanal de anotaciones de la libreta de taller (abril de 2024 a octubre de 2026). Modelo: regresión lineal calculada a mano con NumPy '
-               '(tendencia y anotaciones de la semana anterior). Es una referencia para planear el taller, no una promesa. Esta pestaña no usa los filtros de camiones.')
-    r2 = e2.cargar(mode, os.environ.get('MINETRAC_BUCKET', ''), os.environ.get('AWS_DEFAULT_REGION', 'us-east-1'), ROOT)
-    if r2 is None:
-        st.info('Todavía no hay resultados del análisis en esta fuente. Ejecuta scripts/pipeline_e2.py para generarlos.')
-    else:
-        c1, c2 = st.columns(2)
-        horizonte = c1.slider('Semanas a predecir', 1, 12, 8, key='horizonte')
-        suav = c2.select_slider('Suavizado de la serie (semanas)', options=[1, 4, 8, 13], value=4, key='suavizado')
-        fig, p = e2.fig_serie(r2, suav, horizonte)
-        g = r2['regresion']
-        k = st.columns(4)
-        k[0].metric('Anotaciones esperadas', f"{p.prediccion.sum():.0f}")
-        k[1].metric('Promedio por semana', f"{p.prediccion.mean():.1f}")
-        k[2].metric('R² del modelo', f"{g['r2']:.2f}")
-        k[3].metric('Error típico (RMSE)', f"{g['rmse']:.1f}")
-        chart('Historia y predicción', fig, 'Barras: lo anotado cada semana. Línea dorada: lo que predice el modelo; la banda marca el rango razonable.', 'e2a')
-        a, b = st.columns(2, gap='medium')
-        with a:
-            chart('Tendencia y estacionalidad', e2.fig_descomposicion(r2), 'Descomposición aditiva con ciclo de 52 semanas. Con 2.5 ciclos de historia, la estacionalidad es indicativa; la tendencia es lo confiable.', 'e2b')
-        with b:
-            st.markdown('##### Qué dice el análisis')
-            ad, dd = r2['adf_serie'], r2['adf_diferencia']
-            st.markdown(f"- **Estacionariedad.** La serie original no lo es (ADF p = {ad['p_valor']:.2f}); con una diferencia sí (p < 0.001). Por eso la regresión usa la semana anterior y una tendencia.\n"
-                        f"- **Memoria.** Los primeros rezagos tienen autocorrelación de {r2['acf_pacf']['acf'][1]:.2f} a {max(r2['acf_pacf']['acf'][1:5]):.2f}, sobre la banda de 95%: la actividad de una semana se parece a la de las anteriores.\n"
-                        f"- **Residuos.** Durbin-Watson = {g['durbin_watson']:.2f} (cerca de 2: sin autocorrelación) y media ≈ 0. Shapiro-Wilk p = {g['shapiro_p']:.5f}: los residuos no son del todo normales porque los datos son conteos.\n"
-                        f"- **Comprobación.** Los coeficientes a mano coinciden con scikit-learn hasta {r2['comparacion_sklearn']['max_dif_abs']:.0e}.")
-            st.dataframe(e2.tabla_coef(r2).style.format({'Coeficiente β': '{:.4f}', 'Error estándar': '{:.4f}', 't': '{:.2f}', 'p': '{:.3f}'}), hide_index=True, width='stretch')
-        a, b = st.columns(2, gap='medium')
-        with a:
-            chart('Autocorrelación (ACF) de la serie', e2.fig_acf(r2, 'acf_pacf', 'acf'), 'Barras fuera de la banda dorada son correlaciones significativas.', 'e2c')
-        with b:
-            chart('Autocorrelación parcial (PACF)', e2.fig_acf(r2, 'acf_pacf', 'pacf'), 'Ayuda a ver cuántos rezagos aportan información propia.', 'e2d')
-        chart('Diagnóstico de residuos', e2.fig_residuos(r2), 'Centrados en cero, pero con más dispersión cuando el valor ajustado es alto y una cola a la derecha: es normal en conteos y confirma que el modelo es solo una referencia.', 'e2e')
-        st.markdown('<div class="mt-notice"><b>Alcance.</b> La serie viene de la libreta (equipos que no son camiones), transcrita de fotos y sin validar. '
-                    'Con 131 semanas el modelo explica poco (R² bajo) y sirve como referencia de ritmo, no como pronóstico de fallas individuales.</div>', unsafe_allow_html=True)
-        st.download_button('Descargar predicción en CSV', p.to_csv(index=False).encode('utf-8-sig'), 'prediccion_semanal.csv', 'text/csv')
+if SHOW_LIB:   # la predicción semanal usa la serie de la libreta; se rehará con los camiones
+    with pred:
+        import e2
+        st.subheader('Cuántas fallas esperar en las próximas semanas')
+        st.caption('Serie semanal de anotaciones de la libreta de taller (abril de 2024 a octubre de 2026). Modelo: regresión lineal calculada a mano con NumPy '
+                   '(tendencia y anotaciones de la semana anterior). Es una referencia para planear el taller, no una promesa. Esta pestaña no usa los filtros de camiones.')
+        r2 = e2.cargar(mode, os.environ.get('MINETRAC_BUCKET', ''), os.environ.get('AWS_DEFAULT_REGION', 'us-east-1'), ROOT)
+        if r2 is None:
+            st.info('Todavía no hay resultados del análisis en esta fuente. Ejecuta scripts/pipeline_e2.py para generarlos.')
+        else:
+            c1, c2 = st.columns(2)
+            horizonte = c1.slider('Semanas a predecir', 1, 12, 8, key='horizonte')
+            suav = c2.select_slider('Suavizado de la serie (semanas)', options=[1, 4, 8, 13], value=4, key='suavizado')
+            fig, p = e2.fig_serie(r2, suav, horizonte)
+            g = r2['regresion']
+            k = st.columns(4)
+            k[0].metric('Anotaciones esperadas', f"{p.prediccion.sum():.0f}")
+            k[1].metric('Promedio por semana', f"{p.prediccion.mean():.1f}")
+            k[2].metric('R² del modelo', f"{g['r2']:.2f}")
+            k[3].metric('Error típico (RMSE)', f"{g['rmse']:.1f}")
+            chart('Historia y predicción', fig, 'Barras: lo anotado cada semana. Línea dorada: lo que predice el modelo; la banda marca el rango razonable.', 'e2a')
+            a, b = st.columns(2, gap='medium')
+            with a:
+                chart('Tendencia y estacionalidad', e2.fig_descomposicion(r2), 'Descomposición aditiva con ciclo de 52 semanas. Con 2.5 ciclos de historia, la estacionalidad es indicativa; la tendencia es lo confiable.', 'e2b')
+            with b:
+                st.markdown('##### Qué dice el análisis')
+                ad, dd = r2['adf_serie'], r2['adf_diferencia']
+                st.markdown(f"- **Estacionariedad.** La serie original no lo es (ADF p = {ad['p_valor']:.2f}); con una diferencia sí (p < 0.001). Por eso la regresión usa la semana anterior y una tendencia.\n"
+                            f"- **Memoria.** Los primeros rezagos tienen autocorrelación de {r2['acf_pacf']['acf'][1]:.2f} a {max(r2['acf_pacf']['acf'][1:5]):.2f}, sobre la banda de 95%: la actividad de una semana se parece a la de las anteriores.\n"
+                            f"- **Residuos.** Durbin-Watson = {g['durbin_watson']:.2f} (cerca de 2: sin autocorrelación) y media ≈ 0. Shapiro-Wilk p = {g['shapiro_p']:.5f}: los residuos no son del todo normales porque los datos son conteos.\n"
+                            f"- **Comprobación.** Los coeficientes a mano coinciden con scikit-learn hasta {r2['comparacion_sklearn']['max_dif_abs']:.0e}.")
+                st.dataframe(e2.tabla_coef(r2).style.format({'Coeficiente β': '{:.4f}', 'Error estándar': '{:.4f}', 't': '{:.2f}', 'p': '{:.3f}'}), hide_index=True, width='stretch')
+            a, b = st.columns(2, gap='medium')
+            with a:
+                chart('Autocorrelación (ACF) de la serie', e2.fig_acf(r2, 'acf_pacf', 'acf'), 'Barras fuera de la banda dorada son correlaciones significativas.', 'e2c')
+            with b:
+                chart('Autocorrelación parcial (PACF)', e2.fig_acf(r2, 'acf_pacf', 'pacf'), 'Ayuda a ver cuántos rezagos aportan información propia.', 'e2d')
+            chart('Diagnóstico de residuos', e2.fig_residuos(r2), 'Centrados en cero, pero con más dispersión cuando el valor ajustado es alto y una cola a la derecha: es normal en conteos y confirma que el modelo es solo una referencia.', 'e2e')
+            st.markdown('<div class="mt-notice"><b>Alcance.</b> La serie viene de la libreta (equipos que no son camiones), transcrita de fotos y sin validar. '
+                        'Con 131 semanas el modelo explica poco (R² bajo) y sirve como referencia de ritmo, no como pronóstico de fallas individuales.</div>', unsafe_allow_html=True)
+            st.download_button('Descargar predicción en CSV', p.to_csv(index=False).encode('utf-8-sig'), 'prediccion_semanal.csv', 'text/csv')
 
 with detail:
     st.subheader('Intervenciones de camiones en tu selección')
@@ -327,4 +333,4 @@ with detail:
     dm.loc[mm.fecha_calidad.eq('solo_anio').to_numpy(), 'Fecha analítica'] = '2022 (día pendiente)'
     st.dataframe(dm, hide_index=True, width='stretch', column_config={'Monto (MXN)': st.column_config.NumberColumn(format='%.0f')})
     st.download_button('Descargar mantenimiento en CSV', mm.to_csv(index=False).encode('utf-8-sig'), 'minetrac_mantenimiento.csv', 'text/csv', type='primary')
-st.caption('MineTrac · E2 Data Startup · Importes en MXN · Información real de Máquinas Centella; operación pendiente')
+st.caption('MineTrac · Data Startup · Importes en MXN · Información real de Máquinas Centella (camiones); operación pendiente')

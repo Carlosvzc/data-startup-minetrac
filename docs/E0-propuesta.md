@@ -13,19 +13,19 @@ Tecnológico Nacional de México campus Colima · Ingeniería en Inteligencia Ar
 | Cloud Lead | Carlos Alejandro Vizcaino Anguiano · matrícula 25460343 |
 | Data Lead | Diego Reyes Natilla · matrícula 25460331 |
 
-> Estado de la información: este documento se basa solo en el catálogo de equipos, la bitácora de reparaciones de los camiones, el documento de contexto, la carta y la entrevista que entregó o dio la empresa. No usamos datos simulados. Por indicación de la empresa, autorizada por los profesores, el alcance de esta etapa son los 7 camiones; el diseño permite agregar después el resto de la flota. Lo que todavía falta se lista en la sección 8.
+> Sobre la información: este documento se basa solo en lo que la empresa nos dio: el catálogo de equipos, la bitácora de reparaciones de los camiones, el documento de contexto, la carta y la entrevista. No usamos datos simulados. La empresa nos pidió enfocarnos en los 7 camiones y los profesores lo autorizaron, pero el diseño deja abierta la posibilidad de agregar el resto de la flota. Lo que todavía falta está en la sección 8.
 
 ---
 
 ## 1. Problema y cliente
 
-Trabajamos con una empresa que compra, opera y mantiene maquinaria pesada para minería. Revisamos su catálogo de 21 equipos: 11 cargadores, 2 minicargadores, 1 retroexcavadora y 7 camiones de 12 y 14 m³. Por indicación de la empresa, autorizada por los profesores, trabajamos por ahora solo con los 7 camiones y diseñamos el sistema para poder sumar después el resto de la flota. Quiere un sistema que le permita evaluar la rentabilidad de cada equipo, comparar la durabilidad de las refacciones según su origen (original de fábrica o genérica de proveedor local) y generar balances financieros para decidir en sus contratos.
+Trabajamos con una empresa que compra, opera y mantiene maquinaria pesada para minería. Su catálogo tiene 21 equipos: 11 cargadores, 2 minicargadores, 1 retroexcavadora y 7 camiones de 12 y 14 m³. Por ahora trabajamos solo con los 7 camiones, como lo pidió la empresa y lo autorizaron los profesores, y diseñamos el sistema para poder sumar después el resto de la flota. La empresa quiere un sistema que le permita evaluar la rentabilidad de cada equipo, comparar la durabilidad de las refacciones según su origen (original de fábrica o genérica de proveedor local) y generar balances financieros para decidir en sus contratos.
 
-Hoy esa información está dispersa. Según el documento de contexto, las horas trabajadas se capturan en papel o a mano y no hay un registro digital de horómetro, toneladas ni ingresos por equipo; la empresa nos informó por carta (25 de octubre de 2026) que reuniría el resto de la información y después nos comunicó que no tiene tiempo de entregarla, por lo que nos pidió centrarnos en los camiones. Recibimos una bitácora digital de reparaciones de los 7 camiones, una hoja por camión, con fechas, trabajos realizados y, solo a veces, el monto. La bitácora cubre 257 intervenciones principalmente entre abril de 2024 y octubre de 2026, con registros previos de 2023 y uno que solo indica el año 2022. Únicamente 75 traen monto anotado y suman $928,832 MXN, por lo que el costo total no se puede calcular ni conciliar todavía.
+Hoy esa información está dispersa. Según el documento de contexto, las horas trabajadas se capturan en papel o a mano y no hay un registro digital de horómetro, toneladas ni ingresos por equipo; la empresa nos informó por carta (25 de octubre de 2026) que reuniría el resto de la información y después nos comunicó que no tiene tiempo de entregarla, por lo que nos pidió centrarnos en los camiones. Lo que sí recibimos es una bitácora digital de reparaciones de los 7 camiones, con una hoja por camión, fechas, trabajos realizados y, solo a veces, el monto. La bitácora cubre 257 intervenciones principalmente entre abril de 2024 y octubre de 2026, con registros previos de 2023 y uno que solo indica el año 2022. Únicamente 75 traen monto anotado y suman $928,832 MXN, por lo que el costo total no se puede calcular ni conciliar todavía.
 
-En la bitácora encontramos un ejemplo de un paro largo. El camión C4 registra el 9 de marzo de 2026 que se rompió la base del gato hidráulico y se volteó la caja en la peña; entró a taller en abril y se anotó como entregado el 6 de mayo, casi dos meses después. El entrevistado (sección 3) cuenta un caso muy parecido: el gato perdió presión por una fuga de aceite, el camión se volteó sin lesionados, la pieza nueva tardó cerca de mes y medio en llegar y además hubo que rehacer una parte de la caja. La fecha que él da ("hace unos dos meses") no cuadra con la bitácora, que ubica el caso del C4 entre marzo y mayo de 2026; falta confirmar con la empresa si es el mismo evento. En otro ejemplo, el camión C5 acumula 57 intervenciones, y en 69 ocasiones se volvió a trabajar el mismo componente de un camión en hasta 30 días.
+En la bitácora encontramos un buen ejemplo de un paro largo. El camión C4 registra el 9 de marzo de 2026 que se rompió la base del gato hidráulico y se volteó la caja en la peña; entró a taller en abril y se anotó como entregado el 6 de mayo, casi dos meses después. El entrevistado (sección 3) cuenta un caso muy parecido: el gato perdió presión por una fuga de aceite, el camión se volteó sin lesionados, la pieza nueva tardó cerca de mes y medio en llegar y además hubo que rehacer una parte de la caja. La fecha que él da ("hace unos dos meses") no cuadra con la bitácora, que ubica el caso del C4 entre marzo y mayo de 2026; falta confirmar con la empresa si es el mismo evento. Otro dato: el camión C5 acumula 57 intervenciones, y en toda la flota hay 69 ocasiones en que se volvió a trabajar el mismo componente de un camión en un plazo de hasta 30 días.
 
-**Decisión de negocio que queremos ayudar a tomar:** si una refacción barata o local compensa frente a una original, qué equipo conviene atender primero y con qué refacciones, y si la tarifa de un contrato debe subirse, mantenerse o descartarse, con datos reales y no a ojo.
+**Decisión de negocio que queremos ayudar a tomar:** si una refacción barata o local realmente compensa frente a una original, qué equipo conviene atender primero y con qué refacciones, y si la tarifa de un contrato debe subirse, mantenerse o descartarse, con datos reales y no a ojo.
 
 ## 2. Lean Canvas
 
@@ -140,7 +140,7 @@ Los archivos completos no se suben al repositorio por privacidad; en `data/sampl
 
 ## 7. Uso de IA generativa
 
-Se usó Claude para ordenar el documento de contexto, proponer el borrador del Lean Canvas, programar la limpieza de la bitácora y construir el tablero. Las decisiones sobre el cliente, las preguntas y la clasificación de piezas las revisamos nosotros y las podemos explicar en la defensa.
+Usamos Claude para ordenar el documento de contexto, proponer un borrador del Lean Canvas, programar la limpieza de la bitácora y construir el tablero. Las decisiones sobre el cliente, las preguntas y la clasificación de piezas las revisamos nosotros y las podemos explicar en la defensa.
 
 ## 8. Información pendiente
 
@@ -151,10 +151,10 @@ Se usó Claude para ordenar el documento de contexto, proponer el borrador del L
 
 ## 9. Alcance de la entrega al 26 de octubre de 2026
 
-Los profesores indicaron verbalmente al equipo que se podía entregar E0 y E1 con la información recibida y completar después los datos pendientes.
+Los profesores nos dijeron de palabra que se podía entregar E0 y E1 con la información recibida y completar los datos pendientes después.
 
-Los profesores autorizaron después centrar el proyecto en los 7 camiones, como pidió la empresa. En su carta del 25 de octubre de 2026 la empresa indicó que reuniría el resto de la información y luego comunicó que no tiene tiempo de entregarla. La carta se entregó por separado en Classroom y no forma parte del repositorio.
+Más adelante los profesores autorizaron centrar el proyecto en los 7 camiones, como pidió la empresa. En su carta del 25 de octubre de 2026 la empresa dijo que reuniría el resto de la información y luego nos comunicó que no tiene tiempo de entregarla. La carta se entregó por separado en Classroom y no forma parte del repositorio.
 
 
 
-Las cifras derivan de los Excel originales, sin inventar montos. Algunas fechas se infieren por orden de la hoja; una fecha con solo año 2022 usa 01/01 como referencia técnica, no como día conocido. Se conserva fecha_calidad para auditar estas decisiones. La clasificación de piezas y la asignación igual de costos entre sistemas son criterios analíticos por validar. El indicador de 26.8 repeticiones por 100 intervenciones no representa porcentaje de fallas confirmadas.
+Las cifras salen de los Excel originales, sin inventar montos. Algunas fechas se infieren por el orden de la hoja, y la que solo trae el año 2022 usa 01/01 como referencia técnica, no como día conocido. Se conserva fecha_calidad para auditar estas decisiones. La clasificación de piezas y la asignación igual de costos entre sistemas son criterios analíticos por validar. El indicador de 26.8 repeticiones por 100 intervenciones no representa porcentaje de fallas confirmadas.

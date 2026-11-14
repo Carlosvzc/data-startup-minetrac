@@ -142,11 +142,15 @@ Trabajamos con el usuario admin-25460343. El rol minetrac-e1-reales-ReadRole-XxC
 
 Conservamos un presupuesto objetivo de $0 y la alerta mensual de $1 USD, con aviso al superar $0.01 USD de gasto real. EC2, el disco y la dirección IPv4 pueden consumir créditos o generar cargos. La alerta avisa, pero no detiene el consumo. Usamos la URL HTTP para esta entrega; no pedimos credenciales ni capturamos datos adicionales.
 
-Guardamos las capturas en evidencias/s3_raw_clean_real.png, evidencias/dashboard_real_aws.png y evidencias/iam_y_seguridad_real.png.
+Guardamos las capturas en evidencias/s3_raw_clean_real.png, evidencias/dashboard_real_aws.png, evidencias/iam_rol_real.png y evidencias/iam_y_seguridad_real.png.
 
 ![Evidencia de almacenamiento](evidencias/s3_raw_clean_real.png)
 
 ![Dashboard real conectado a AWS](evidencias/dashboard_real_aws.png)
+
+![Rol de IAM de la instancia, con usuario individual y sus políticas](evidencias/iam_rol_real.png)
+
+Rol de IAM de la instancia (minetrac-e1-reales-ReadRole-XxCmmx32Dnlz), creado el 26 de octubre de 2026, con las políticas de permisos que usa. La sesión corresponde al usuario individual admin-25460343 de la cuenta ia-bank-laboratorios, no a la cuenta raíz.
 
 ## Verificación
 

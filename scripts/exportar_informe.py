@@ -13,7 +13,7 @@ ROOT=Path(__file__).resolve().parents[1]
 ENTREGA=sys.argv[1] if len(sys.argv)>1 else 'E1'
 FUENTE={'E1':'E1-dashboard.md','E2':'E2-informe.md'}[ENTREGA]
 TITULO={'E1':'Dashboard empresarial','E2':'Cimientos en la nube'}[ENTREGA]
-INCRUSTAR={'E1':('evidencias/tablero/',),'E2':('evidencias/e2/','arquitectura_e2')}[ENTREGA]
+INCRUSTAR={'E1':('evidencias/tablero/','evidencias/iam_rol'),'E2':('evidencias/e2/','arquitectura_e2')}[ENTREGA]
 def buscar_fuente(candidatas):
     for c in candidatas:
         if Path(c).exists():

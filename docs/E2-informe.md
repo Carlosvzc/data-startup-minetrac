@@ -50,7 +50,9 @@ De las 257 intervenciones de la bitácora, 234 tienen fecha firme, 15 heredan la
 
 Agregamos al tablero una pestaña de Predicción. Tiene dos controles (semanas a predecir, de 1 a 12, y suavizado de la serie), cuatro indicadores (intervenciones esperadas, promedio por semana, R² y error típico), la gráfica de historia con la predicción y su banda, la descomposición en tendencia, estacionalidad y residuo, las gráficas de autocorrelación, el diagnóstico de residuos, la tabla de coeficientes y un botón para descargar la predicción en CSV. Lee sus datos de S3 con las credenciales del rol de la instancia, igual que el resto del tablero.
 
-![Pestaña Predicción del tablero, con los datos de los camiones (captura local)](evidencias/e2/tablero_prediccion.png)
+![Pestaña Predicción en el tablero desplegado en AWS (EC2, puerto 8501)](evidencias/e2/aws_prediccion.png)
+
+![Pestaña Predicción completa, con los datos de los camiones (captura local)](evidencias/e2/tablero_prediccion.png)
 
 ## Demostración en AWS
 

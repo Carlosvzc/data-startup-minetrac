@@ -91,7 +91,7 @@ Cuenta `ia-bank-laboratorios` (251869518832), región us-east-1, instancia EC2 `
 | 1 | Documentación OpenAPI de la ingesta (`/salud`, `/ingesta`, `/jobs/{job_id}`) | `evidencias/e2/aws_1_api_docs.png` |
 | 2 | Demostración extremo a extremo: CSV de 5 filas → 3 limpias y 2 rechazadas, estado `listo`, 2.0 s (meta: menos de 300 s) | `evidencias/e2/aws_2_demo_extremo_a_extremo.png` |
 | 3 | Colas SQS `minetrac-eventos` y `minetrac-eventos-muertos`, sin mensajes pendientes | `evidencias/e2/aws_3_colas_sqs.png` |
-| 4 | Pestaña Predicción del tablero con los datos de los camiones (captura local) | `evidencias/e2/tablero_prediccion.png` |
+| 4 | Pestaña Predicción del tablero v2 en AWS y captura completa local | `evidencias/e2/aws_prediccion.png`, `evidencias/e2/tablero_prediccion.png` |
 
 ![API](evidencias/e2/aws_1_api_docs.png)
 ![Demostración](evidencias/e2/aws_2_demo_extremo_a_extremo.png)

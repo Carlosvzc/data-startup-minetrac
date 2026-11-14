@@ -26,35 +26,45 @@ Presupuesto: 0 USD adicionales (EC2 y S3 del E1, SQS dentro del nivel gratuito, 
 
 ## 2. Análisis de series de tiempo y regresión
 
-**Serie.** Anotaciones por semana de la libreta de taller: 132 semanas (1 de abril de 2024 a 5 de octubre de 2026), 516 anotaciones, 14 semanas sin anotaciones (valen 0). Se eligió esta serie porque la bitácora de camiones es demasiado dispersa en el tiempo para un análisis semanal.
+**Serie.** Intervenciones por semana de los 7 camiones (una intervención que toca varios sistemas cuenta una vez): 132 semanas (1 de abril de 2024 a 5 de octubre de 2026), 251 intervenciones, 34 semanas sin intervenciones (valen 0). Antes de abril de 2024 la bitácora solo trae 3 intervenciones sueltas, por eso la serie empieza ahí. La serie es corta y de conteos pequeños (promedio de 1.9 por semana, máximo 7); eso limita lo que el modelo puede explicar.
 
 ![Descomposición](evidencias/e2/descomposicion.png)
 
-- **Descomposición aditiva** (periodo 52). Fuerza de la tendencia 0.47. La fuerza estacional sale 0.65, pero está inflada: con 132 semanas hay solo 2.5 ciclos de 52 semanas, y varias posiciones del ciclo tienen una sola observación con tendencia calculable, así que el componente estacional absorbe ese dato y el residuo queda plano en ese tramo (se ve entre abril y octubre de 2025). La estacionalidad anual no se puede confirmar con esta historia; lo que sí se ve con claridad es la tendencia: sube de ~2.3 a ~5.7 anotaciones por semana entre 2024 y finales de 2025 y se estabiliza.
-- **ADF (H0: raíz unitaria).** Serie original: estadístico −1.71, p = 0.428 (crítico al 5%: −2.89) → no se rechaza H0; no es estacionaria. Primera diferencia: −7.14, p = 3.3×10⁻¹⁰ → estacionaria.
+- **Descomposición aditiva** (periodo 52). Fuerza de la tendencia 0.36. La fuerza estacional sale 0.72, pero está inflada: con 132 semanas hay solo 2.5 ciclos de 52 semanas, y varias posiciones del ciclo tienen una sola observación con tendencia calculable, así que el componente estacional absorbe ese dato y el residuo queda plano en ese tramo (se ve entre abril y octubre de 2025). La estacionalidad anual no se puede confirmar con esta historia. Lo que sí se ve es la tendencia: durante 2024 el taller registra cerca de 1 intervención por semana, sube hasta unas 2.7 a principios de 2026 y después baja un poco.
+- **ADF (H0: raíz unitaria).** Serie original: estadístico −3.30, p = 0.015 (crítico al 5%: −2.88) → se rechaza H0; la serie es estacionaria al 5%, aunque con una tendencia suave y con mucho ruido. Primera diferencia: −11.99, p = 3.5×10⁻²² → estacionaria con holgura.
 
 ![ACF y PACF](evidencias/e2/acf_pacf.png)
 
-- **ACF/PACF.** La serie original tiene ACF de 0.26, 0.33, 0.32 y 0.22 en los rezagos 1 a 4, todos sobre la banda de 95% (±0.17). La PACF del rezago 1 es 0.26. Esto justifica incluir la semana anterior como regresor.
+- **ACF/PACF.** La serie original tiene ACF de 0.22, 0.10, 0.30 y 0.27 en los rezagos 1 a 4; los rezagos 1, 3 y 4 superan la banda de 95% (±0.17) y el 2 no. La PACF del rezago 1 es 0.22 y la del 3 es 0.28. Hay algo de memoria (la actividad de una semana se parece a la de las anteriores), sin un patrón fuerte. Esto justifica incluir la semana anterior como regresor.
 
 ## 3. Regresión lineal calculada a mano
 
-Modelo: `anotaciones_t = β0 + β1·t + β2·anotaciones_(t-1) + ε`, con β = (XᵀX)⁻¹Xᵀy en NumPy (`ols_a_mano`). scikit-learn solo verifica el resultado.
+Modelo: `intervenciones_t = β0 + β1·t + β2·intervenciones_(t-1) + ε`, con β = (XᵀX)⁻¹Xᵀy en NumPy (`ols_a_mano`). scikit-learn solo verifica el resultado.
 
 | Variable | β | Error estándar | t | p |
 |---|---|---|---|---|
-| Constante | 1.7596 | 0.4880 | 3.61 | 0.0004 |
-| Tendencia (semanas) | 0.0251 | 0.0065 | 3.86 | 0.0002 |
-| Anotaciones semana anterior | 0.1308 | 0.0876 | 1.49 | 0.138 |
+| Constante | 0.8626 | 0.3205 | 2.69 | 0.0081 |
+| Tendencia (semanas) | 0.0116 | 0.0042 | 2.74 | 0.0070 |
+| Intervenciones semana anterior | 0.1465 | 0.0875 | 1.67 | 0.0965 |
 
-n = 131 · R² = 0.166 · R² ajustado = 0.153 · RMSE = 2.56 anotaciones por semana.
-**Comparación con scikit-learn:** los tres coeficientes coinciden con diferencia máxima de 5.8×10⁻¹⁵ (`tests/test_analitica.py`).
+n = 131 · R² = 0.099 · R² ajustado = 0.085 · RMSE = 1.74 intervenciones por semana.
+**Comparación con scikit-learn:** los tres coeficientes coinciden con diferencia máxima de 2.2×10⁻¹⁶ (`tests/test_analitica.py`).
 
 ![Residuos](evidencias/e2/regresion_residuos.png)
 
-**Análisis de residuos.** Media ≈ 0 (1×10⁻¹⁵, garantizado por la constante). Durbin-Watson 2.05: sin autocorrelación de primer orden. Shapiro-Wilk p = 2.9×10⁻⁵: no son normales, con cola a la derecha. En la gráfica de residuos contra valor ajustado se ve más dispersión cuando el valor ajustado es alto (varianza no constante), algo esperable en datos de conteo. Por eso el intervalo ±1.96·RMSE es solo una aproximación y el modelo se presenta como referencia, no como pronóstico exacto.
+**Análisis de residuos.** Media ≈ 0 (−2×10⁻¹⁶, garantizado por la constante). Durbin-Watson 2.00: sin autocorrelación de primer orden. Shapiro-Wilk p = 1.2×10⁻⁶: no son normales, con cola a la derecha (semanas con muchas intervenciones juntas). En la gráfica de residuos contra valor ajustado se ven líneas diagonales, propias de los conteos enteros. Por eso el intervalo ±1.96·RMSE es solo una aproximación y el modelo se presenta como referencia, no como pronóstico exacto.
 
-**Lectura honesta.** La tendencia es significativa (≈ +0.025 anotaciones por semana, unas 3 más por semana al cabo de los 2.5 años), pero el modelo explica solo 17% de la variación. Sirve para estimar el ritmo de trabajo del taller, no para predecir cada falla. La libreta está transcrita de fotos y sin validar.
+**Lectura honesta.** La tendencia es significativa (≈ +0.012 intervenciones por semana, unas 1.5 más por semana al cabo de los 2.5 años), pero el modelo explica solo 10% de la variación. Sirve para estimar el ritmo de trabajo del taller, no para predecir cada falla. Hay fechas inferidas por el orden de la hoja (ver sensibilidad abajo) y los resultados no cambian de conclusión al excluirlas.
+
+**Sensibilidad a las fechas inferidas.** De las 257 intervenciones, 234 tienen fecha firme, 15 la heredan de la fila anterior, 4 se interpretaron del texto, 3 tienen el año corregido y 1 solo trae el año (queda fuera de la serie). Repetimos la regresión con tres criterios:
+
+| Criterio | Intervenciones en la serie | β tendencia (p) | R² |
+|---|---|---|---|
+| Solo fechas firmes | 230 | 0.0094 (0.016) | 0.066 |
+| Firmes + texto interpretado y año corregido | 237 | 0.0101 (0.012) | 0.078 |
+| Todas (lo que usamos) | 251 | 0.0116 (0.007) | 0.099 |
+
+La tendencia es creciente y significativa en los tres casos y el modelo explica poco en todos; cambian los decimales, no la conclusión.
 
 ## 4. Pruebas de limpieza automatizada
 
@@ -81,16 +91,12 @@ Cuenta `ia-bank-laboratorios` (251869518832), región us-east-1, instancia EC2 `
 | 1 | Documentación OpenAPI de la ingesta (`/salud`, `/ingesta`, `/jobs/{job_id}`) | `evidencias/e2/aws_1_api_docs.png` |
 | 2 | Demostración extremo a extremo: CSV de 5 filas → 3 limpias y 2 rechazadas, estado `listo`, 2.0 s (meta: menos de 300 s) | `evidencias/e2/aws_2_demo_extremo_a_extremo.png` |
 | 3 | Colas SQS `minetrac-eventos` y `minetrac-eventos-muertos`, sin mensajes pendientes | `evidencias/e2/aws_3_colas_sqs.png` |
-| 4 | Tablero v2 en AWS, pestaña Predicción (modo S3) | `evidencias/e2/aws_4a_…` a `aws_4e_…` |
+| 4 | Pestaña Predicción del tablero con los datos de los camiones (captura local) | `evidencias/e2/tablero_prediccion.png` |
 
 ![API](evidencias/e2/aws_1_api_docs.png)
 ![Demostración](evidencias/e2/aws_2_demo_extremo_a_extremo.png)
 ![Colas](evidencias/e2/aws_3_colas_sqs.png)
-![Tablero](evidencias/e2/aws_4a_tablero_prediccion_arriba.png)
-![Historia y predicción](evidencias/e2/aws_4b_tablero_historia_prediccion.png)
-![Descomposición y análisis](evidencias/e2/aws_4c_tablero_descomposicion_analisis.png)
-![ACF y PACF](evidencias/e2/aws_4d_tablero_acf_pacf.png)
-![Residuos](evidencias/e2/aws_4e_tablero_residuos.png)
+![Pestaña Predicción del tablero (captura local con los datos de los camiones)](evidencias/e2/tablero_prediccion.png)
 
 Despliegue: `infra/e2_aws.sh` (cola SQS, permisos del rol, puerto 8000, PostgreSQL + ingesta + worker en contenedores sobre la EC2). El tablero lee `clean/` del bucket privado con el rol de la instancia.
 
@@ -98,4 +104,4 @@ Despliegue: `infra/e2_aws.sh` (cola SQS, permisos del rol, puerto 8000, PostgreS
 - La base de datos en la nube es un contenedor PostgreSQL en la misma EC2 (sin costo adicional); migrar a RDS es opcional.
 - La IP pública cambia si la instancia se detiene; no se asignó IP fija.
 - Los puertos 8000 y 8501 están abiertos a internet sin autenticación; debe cerrarse el 8000 al terminar la evaluación.
-- La serie semanal sale de la libreta transcrita de fotos y sin validar; la empresa no registra de forma digital las horas trabajadas, las toneladas ni los ingresos, por lo que el margen operativo queda fuera de alcance.
+- El alcance son los 7 camiones (indicación de la empresa, autorizada por los profesores). La serie semanal es corta (132 semanas, 251 intervenciones) y algunas fechas están inferidas por el orden de la hoja; la empresa no registra de forma digital las horas trabajadas, las toneladas ni los ingresos, por lo que el margen operativo queda fuera de alcance. El resto de la flota se podrá agregar sin cambiar el módulo de análisis.

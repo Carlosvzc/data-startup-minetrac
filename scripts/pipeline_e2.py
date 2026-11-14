@@ -29,7 +29,7 @@ def graficas(r):
     s = np.array(r['serie']['valores'])
     d = r['descomposicion']
     fig, ax = plt.subplots(4, 1, figsize=(9, 8.2), sharex=True)
-    for a, (t, v, c) in zip(ax, [('Serie observada: anotaciones por semana', s, INK), ('Tendencia', d['tendencia'], GOLD),
+    for a, (t, v, c) in zip(ax, [('Serie observada: intervenciones por semana', s, INK), ('Tendencia', d['tendencia'], GOLD),
                                  ('Estacionalidad (ciclo de 52 semanas)', d['estacional'], BLUE), ('Residuo', d['residuo'], STEEL)]):
         a.plot(f, np.array(v, dtype=float), color=c, lw=1.6); a.set_title(t, loc='left', fontsize=10.5, fontweight='bold')
     guardar(fig, 'descomposicion.png')
@@ -44,7 +44,9 @@ def graficas(r):
     g = r['regresion']; fr = pd.to_datetime(g['fechas'])
     fig, ax = plt.subplots(1, 3, figsize=(13, 3.8))
     ax[0].plot(fr, g['real'], color=STEEL, lw=1.3, label='Real'); ax[0].plot(fr, g['ajustado'], color=GOLD, lw=2, label='Ajustado (a mano)')
-    ax[0].set_title('Ajuste de la regresión', loc='left', fontweight='bold'); ax[0].legend(frameon=False)
+    ax[0].set_title('Ajuste de la regresión', loc='left', fontweight='bold'); ax[0].legend(frameon=False, loc='upper left')
+    import matplotlib.dates as mdates
+    ax[0].xaxis.set_major_locator(mdates.MonthLocator(bymonth=[1, 7])); ax[0].xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
     ax[1].scatter(g['ajustado'], g['residuos'], color=INK, s=14); ax[1].axhline(0, color=GOLD, lw=1.6)
     ax[1].set_title('Residuos frente a valores ajustados', loc='left', fontweight='bold'); ax[1].set_xlabel('Valor ajustado')
     ax[2].hist(g['residuos'], bins=18, color=BLUE, edgecolor='white'); ax[2].set_title('Distribución de residuos', loc='left', fontweight='bold')
@@ -52,8 +54,8 @@ def graficas(r):
 
 
 def main():
-    lib = pd.read_csv(ROOT / 'data/clean/libreta_eventos.csv')
-    r = resultados_e2(lib)
+    bit = pd.read_csv(ROOT / 'data/clean/mantenimiento.csv')
+    r = resultados_e2(bit)
     (ROOT / 'data/clean/e2_resultados.json').write_text(json.dumps(r, ensure_ascii=False), encoding='utf-8')
     graficas(r)
     g = r['regresion']

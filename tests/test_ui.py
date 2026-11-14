@@ -27,8 +27,9 @@ def test_ui_real_filters_and_limits(monkeypatch):
 def test_ui_alcance_solo_camiones():
  a=AppTest.from_file(str(ROOT/'services/tablero/app.py'),default_timeout=45).run()
  assert not a.exception
- assert [m.value for m in a.metric]==['257','$928,832','$12,384','26.8']
- assert len(a.get("plotly_chart"))==6
- assert [t.label for t in a.tabs]==['Vista general','Mantenimiento y refacciones','Ciclos','Flota y operación','Calidad de datos','Explorar datos']
+ assert [m.value for m in a.metric][:4]==['257','$928,832','$12,384','26.8']
+ assert len(a.metric)==8 and a.metric[6].value=='0.10'   # 4 tarjetas + 4 de la predicción (R² = 0.10)
+ assert len(a.get("plotly_chart"))==11
+ assert [t.label for t in a.tabs]==['Vista general','Mantenimiento y refacciones','Ciclos','Flota y operación','Predicción','Calidad de datos','Explorar datos']
  a.multiselect(key='trucks').set_value(['C5']).run()
  assert not a.exception and a.metric[0].value=='57'

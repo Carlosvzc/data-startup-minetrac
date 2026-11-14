@@ -30,7 +30,7 @@ def pronostico(res: dict, semanas: int) -> pd.DataFrame:
 def fig_serie(res, suavizado, semanas):
     s = res['serie']; f = pd.to_datetime(s['fechas']); v = pd.Series(s['valores'], index=f)
     fig = go.Figure()
-    fig.add_bar(x=f, y=v, name='Anotaciones por semana', marker_color=GRAY)
+    fig.add_bar(x=f, y=v, name='Intervenciones por semana', marker_color=GRAY)
     if suavizado > 1:
         fig.add_scatter(x=f, y=v.rolling(suavizado, min_periods=1).mean(), name=f'Promedio móvil {suavizado} sem.', line=dict(color=INK, width=2.5))
     p = pronostico(res, semanas)

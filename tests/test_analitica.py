@@ -12,16 +12,18 @@ def test_ols_recupera_coeficientes_conocidos():
 
 
 def test_ols_coincide_con_sklearn_en_datos_reales():
-    lib = pd.read_csv('data/clean/libreta_eventos.csv')
-    X, y, _ = matriz_diseno(serie_semanal(lib))
+    bit = pd.read_csv('data/clean/mantenimiento.csv')
+    X, y, _ = matriz_diseno(serie_semanal(bit))
     o = ols_a_mano(X, y)
     assert comparar_con_sklearn(X, y, o['beta'])['coinciden']
 
 
 def test_serie_semanal_completa_y_suma():
-    lib = pd.read_csv('data/clean/libreta_eventos.csv')
-    s = serie_semanal(lib)
-    assert len(s) == 132 and (s >= 0).all() and s.index.freqstr in ('W-MON', None) and s.sum() == 516
+    bit = pd.read_csv('data/clean/mantenimiento.csv')
+    s = serie_semanal(bit)
+    assert len(s) == 132 and (s >= 0).all() and s.index.freqstr in ('W-MON', None) and s.sum() == 251
+    # una intervención que toca varios sistemas cuenta una sola vez
+    assert s.sum() < len(bit)
 
 
 def test_adf_detecta_ruido_blanco_y_caminata():

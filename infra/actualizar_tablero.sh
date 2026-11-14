@@ -2,15 +2,17 @@
 # Actualiza SOLO el tablero de MineTrac en la EC2 existente (alcance: camiones).
 # Se ejecuta en AWS CloudShell, con tu usuario IAM (no la cuenta raiz), desde la carpeta donde descomprimiste el paquete:
 #     unzip minetrac_actualizacion_camiones.zip && cd minetrac_actualizacion_camiones && bash actualizar_tablero.sh
-# No sube datos ni claves. Para volver a mostrar la libreta y la prediccion de toda la flota: MINETRAC_ALCANCE=flota en la unidad del servicio.
+# No sube datos ni claves. Para volver a mostrar la libreta de toda la flota: MINETRAC_ALCANCE=flota en la unidad del servicio.
 set -euo pipefail
 BUCKET="minetrac-reales-251869518832-20261026"; REGION="us-east-1"; INSTANCE="i-081fa473088bece22"
 export AWS_DEFAULT_REGION="$REGION"
 ARN="$(aws sts get-caller-identity --query Arn --output text)"; echo "Identidad: $ARN"
 case "$ARN" in *:root) echo "Usa un usuario IAM individual, no la cuenta raiz."; exit 1;; esac
+[ -f e2_resultados.json ] || { echo "Falta e2_resultados.json."; exit 1; }
 [ -f deploy/minetrac.zip ] || { echo "Falta deploy/minetrac.zip: ejecuta el script desde la carpeta descomprimida."; exit 1; }
 
-echo "1/4 Subiendo el paquete del tablero"
+echo "1/4 Subiendo el paquete del tablero y los resultados de la prediccion"
+aws s3 cp e2_resultados.json "s3://$BUCKET/clean/e2_resultados.json" --only-show-errors
 aws s3 cp deploy/minetrac.zip "s3://$BUCKET/deploy/minetrac.zip" --only-show-errors
 
 echo "2/4 Comprobando que la instancia esta en linea en Systems Manager"
@@ -28,4 +30,4 @@ echo "4/4 Verificando"
 IP="$(aws ec2 describe-instances --instance-ids "$INSTANCE" --query 'Reservations[0].Instances[0].PublicIpAddress' --output text)"
 sleep 5
 echo "HTTP $(curl -s -o /dev/null -w '%{http_code}' --max-time 20 http://$IP:8501/_stcore/health) en http://$IP:8501/"
-echo "Listo. Abre esa direccion, pulsa 'Recargar datos' y comprueba que hay 6 pestanas (sin Libreta ni Prediccion)."
+echo "Listo. Abre esa direccion, pulsa 'Recargar datos' y comprueba que hay 7 pestanas (la nueva es Prediccion)."

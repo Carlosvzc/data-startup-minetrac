@@ -1,4 +1,4 @@
-"""Análisis del E2: serie semanal de la libreta, descomposición, ADF, ACF/PACF y regresión lineal a mano.
+"""Análisis del E2: serie semanal de intervenciones de los camiones, descomposición, ADF, ACF/PACF y regresión lineal a mano.
 
 La regresión usa la ecuación normal con NumPy puro (β = (XᵀX)⁻¹Xᵀy). scikit-learn solo se usa para comprobar
 que el resultado coincide; no interviene en el cálculo.
@@ -9,17 +9,20 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-INICIO_SERIE = '2024-04-01'     # primer lunes con anotaciones completas en la libreta
-FIN_SERIE = '2026-10-05'        # último lunes de una semana completa (la libreta llega al 14 de octubre)
+INICIO_SERIE = '2024-04-01'     # primer lunes desde el que la bitácora tiene registros continuos (antes hay 3 intervenciones sueltas)
+FIN_SERIE = '2026-10-05'        # último lunes de una semana completa (la bitácora llega al 14 de octubre)
 
 
-def serie_semanal(libreta: pd.DataFrame) -> pd.Series:
-    """Anotaciones por semana (lunes a domingo). Las semanas sin anotaciones valen 0."""
-    f = pd.to_datetime(libreta['fecha'], errors='coerce').dropna()
+def serie_semanal(bitacora: pd.DataFrame) -> pd.Series:
+    """Intervenciones por semana (lunes a domingo). Una intervención que toca varios sistemas cuenta una vez.
+    Las semanas sin intervenciones valen 0. Recibe la tabla de la bitácora (una fila por intervención y sistema)."""
+    if 'evento_id' in bitacora.columns:
+        bitacora = bitacora.drop_duplicates('evento_id')
+    f = pd.to_datetime(bitacora['fecha'], errors='coerce').dropna()
     f = f[(f >= INICIO_SERIE) & (f < pd.Timestamp(FIN_SERIE) + pd.Timedelta(days=7))]
     semana = f.dt.to_period('W-SUN').dt.start_time
     idx = pd.date_range(INICIO_SERIE, FIN_SERIE, freq='W-MON')
-    return semana.value_counts().reindex(idx, fill_value=0).sort_index().astype(float).rename('anotaciones')
+    return semana.value_counts().reindex(idx, fill_value=0).sort_index().astype(float).rename('intervenciones')
 
 
 def descomponer(serie: pd.Series, periodo: int = 52) -> dict:
@@ -52,12 +55,12 @@ def acf_pacf(serie: pd.Series, nlags: int = 26) -> dict:
 
 
 def matriz_diseno(serie: pd.Series) -> tuple[np.ndarray, np.ndarray, list[str]]:
-    """y = anotaciones de la semana. X = [1, tendencia (semanas), anotaciones de la semana anterior]."""
+    """y = intervenciones de la semana. X = [1, tendencia (semanas), intervenciones de la semana anterior]."""
     y = serie.values[1:]
     t = np.arange(1, len(serie), dtype=float)
     rezago = serie.values[:-1]
     X = np.column_stack([np.ones_like(t), t, rezago])
-    return X, y.astype(float), ['constante', 'tendencia (semanas)', 'anotaciones semana anterior']
+    return X, y.astype(float), ['constante', 'tendencia (semanas)', 'intervenciones semana anterior']
 
 
 def ols_a_mano(X: np.ndarray, y: np.ndarray) -> dict:
@@ -89,9 +92,24 @@ def comparar_con_sklearn(X: np.ndarray, y: np.ndarray, beta: np.ndarray) -> dict
     return {'sklearn_beta': m.coef_.tolist(), 'max_dif_abs': d, 'coinciden': bool(np.allclose(m.coef_, beta, atol=1e-9))}
 
 
-def resultados_e2(libreta: pd.DataFrame) -> dict:
+def sensibilidad(bitacora: pd.DataFrame) -> list[dict]:
+    """Repite la regresión con distintos criterios de fecha para ver si la conclusión depende de las fechas inferidas."""
+    casos = [('Solo fechas firmes (ok)', ['ok']),
+             ('Firmes + texto interpretado y año corregido', ['ok', 'texto_interpretado', 'anio_corregido']),
+             ('Todas las fechas (incluye heredadas de la fila anterior)', None)]
+    filas = []
+    for nombre, calidades in casos:
+        b = bitacora if calidades is None else bitacora[bitacora['fecha_calidad'].isin(calidades)]
+        X, y, _ = matriz_diseno(serie_semanal(b))
+        o = ols_a_mano(X, y)
+        filas.append({'criterio': nombre, 'intervenciones': int(serie_semanal(b).sum()), 'beta_tendencia': float(o['beta'][1]),
+                      'beta_rezago': float(o['beta'][2]), 'r2': float(o['r2'])})
+    return filas
+
+
+def resultados_e2(bitacora: pd.DataFrame) -> dict:
     """Todo el análisis del E2 en un diccionario serializable (lo consume el tablero)."""
-    s = serie_semanal(libreta)
+    s = serie_semanal(bitacora)
     dif = s.diff().dropna()
     dec = descomponer(s, 52)
     X, y, nombres = matriz_diseno(s)
@@ -111,4 +129,5 @@ def resultados_e2(libreta: pd.DataFrame) -> dict:
                       'media_residuos': o['media_residuos'], 'fechas': fechas[1:], 'real': y.tolist(),
                       'ajustado': o['ajustado'].tolist(), 'residuos': o['residuos'].tolist(), 'acf_residuos': acf_pacf(pd.Series(o['residuos']), 20)['acf']},
         'comparacion_sklearn': cmp,
+        'sensibilidad': sensibilidad(bitacora),
     }

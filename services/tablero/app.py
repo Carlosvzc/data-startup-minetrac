@@ -144,11 +144,11 @@ st.markdown('<div class="mt-context"><span>' + safe(date_label(period[0])) + ' a
             + str(mm.camion_id.nunique()) + ' camiones</span><span>' + safe(system) + '</span><span>'
             + f"{k['con_monto']:,}" + ' de ' + f"{k['intervenciones']:,}" + ' con monto anotado</span></div>', unsafe_allow_html=True)
 
-_nombres = ['Vista general', 'Mantenimiento y refacciones', 'Ciclos', 'Flota y operación'] + (['Libreta de taller', 'Predicción'] if SHOW_LIB else []) + ['Calidad de datos', 'Explorar datos']
+_nombres = ['Vista general', 'Mantenimiento y refacciones', 'Ciclos', 'Flota y operación'] + (['Libreta de taller'] if SHOW_LIB else []) + ['Predicción', 'Calidad de datos', 'Explorar datos']
 _tabs = st.tabs(_nombres)
 overview, maintenance, cycles, fleet = _tabs[:4]
-taller, pred = (_tabs[4], _tabs[5]) if SHOW_LIB else (None, None)
-quality, detail = _tabs[-2:]
+taller = _tabs[4] if SHOW_LIB else None
+pred, quality, detail = _tabs[-3:]
 
 with overview:
     st.subheader('Qué cuesta y dónde se concentra')
@@ -281,47 +281,50 @@ with quality:
         st.write('En modo AWS, el tablero lee la fuente privada con credenciales temporales del rol de instancia. Si la fuente falla, informa el error y no la reemplaza por una copia local.')
     st.download_button('Descargar auditoría', json.dumps(b, ensure_ascii=False, indent=2), 'auditoria_minetrac.json', 'application/json')
 
-if SHOW_LIB:   # la predicción semanal usa la serie de la libreta; se rehará con los camiones
-    with pred:
-        import e2
-        st.subheader('Cuántas fallas esperar en las próximas semanas')
-        st.caption('Serie semanal de anotaciones de la libreta de taller (abril de 2024 a octubre de 2026). Modelo: regresión lineal calculada a mano con NumPy '
-                   '(tendencia y anotaciones de la semana anterior). Es una referencia para planear el taller, no una promesa. Esta pestaña no usa los filtros de camiones.')
-        r2 = e2.cargar(mode, os.environ.get('MINETRAC_BUCKET', ''), os.environ.get('AWS_DEFAULT_REGION', 'us-east-1'), ROOT)
-        if r2 is None:
-            st.info('Todavía no hay resultados del análisis en esta fuente. Ejecuta scripts/pipeline_e2.py para generarlos.')
-        else:
-            c1, c2 = st.columns(2)
-            horizonte = c1.slider('Semanas a predecir', 1, 12, 8, key='horizonte')
-            suav = c2.select_slider('Suavizado de la serie (semanas)', options=[1, 4, 8, 13], value=4, key='suavizado')
-            fig, p = e2.fig_serie(r2, suav, horizonte)
-            g = r2['regresion']
-            k = st.columns(4)
-            k[0].metric('Anotaciones esperadas', f"{p.prediccion.sum():.0f}")
-            k[1].metric('Promedio por semana', f"{p.prediccion.mean():.1f}")
-            k[2].metric('R² del modelo', f"{g['r2']:.2f}")
-            k[3].metric('Error típico (RMSE)', f"{g['rmse']:.1f}")
-            chart('Historia y predicción', fig, 'Barras: lo anotado cada semana. Línea dorada: lo que predice el modelo; la banda marca el rango razonable.', 'e2a')
-            a, b = st.columns(2, gap='medium')
-            with a:
-                chart('Tendencia y estacionalidad', e2.fig_descomposicion(r2), 'Descomposición aditiva con ciclo de 52 semanas. Con 2.5 ciclos de historia, la estacionalidad es indicativa; la tendencia es lo confiable.', 'e2b')
-            with b:
-                st.markdown('##### Qué dice el análisis')
-                ad, dd = r2['adf_serie'], r2['adf_diferencia']
-                st.markdown(f"- **Estacionariedad.** La serie original no lo es (ADF p = {ad['p_valor']:.2f}); con una diferencia sí (p < 0.001). Por eso la regresión usa la semana anterior y una tendencia.\n"
-                            f"- **Memoria.** Los primeros rezagos tienen autocorrelación de {r2['acf_pacf']['acf'][1]:.2f} a {max(r2['acf_pacf']['acf'][1:5]):.2f}, sobre la banda de 95%: la actividad de una semana se parece a la de las anteriores.\n"
-                            f"- **Residuos.** Durbin-Watson = {g['durbin_watson']:.2f} (cerca de 2: sin autocorrelación) y media ≈ 0. Shapiro-Wilk p = {g['shapiro_p']:.5f}: los residuos no son del todo normales porque los datos son conteos.\n"
-                            f"- **Comprobación.** Los coeficientes a mano coinciden con scikit-learn hasta {r2['comparacion_sklearn']['max_dif_abs']:.0e}.")
-                st.dataframe(e2.tabla_coef(r2).style.format({'Coeficiente β': '{:.4f}', 'Error estándar': '{:.4f}', 't': '{:.2f}', 'p': '{:.3f}'}), hide_index=True, width='stretch')
-            a, b = st.columns(2, gap='medium')
-            with a:
-                chart('Autocorrelación (ACF) de la serie', e2.fig_acf(r2, 'acf_pacf', 'acf'), 'Barras fuera de la banda dorada son correlaciones significativas.', 'e2c')
-            with b:
-                chart('Autocorrelación parcial (PACF)', e2.fig_acf(r2, 'acf_pacf', 'pacf'), 'Ayuda a ver cuántos rezagos aportan información propia.', 'e2d')
-            chart('Diagnóstico de residuos', e2.fig_residuos(r2), 'Centrados en cero, pero con más dispersión cuando el valor ajustado es alto y una cola a la derecha: es normal en conteos y confirma que el modelo es solo una referencia.', 'e2e')
-            st.markdown('<div class="mt-notice"><b>Alcance.</b> La serie viene de la libreta (equipos que no son camiones), transcrita de fotos y sin validar. '
-                        'Con 131 semanas el modelo explica poco (R² bajo) y sirve como referencia de ritmo, no como pronóstico de fallas individuales.</div>', unsafe_allow_html=True)
-            st.download_button('Descargar predicción en CSV', p.to_csv(index=False).encode('utf-8-sig'), 'prediccion_semanal.csv', 'text/csv')
+with pred:
+    import e2
+    st.subheader('Cuántas fallas esperar en las próximas semanas')
+    st.caption('Serie semanal de intervenciones de los 7 camiones (abril de 2024 a octubre de 2026). Modelo: regresión lineal calculada a mano con NumPy '
+               '(tendencia e intervenciones de la semana anterior). Es una referencia para planear el taller, no una promesa. Esta pestaña usa toda la bitácora y no los filtros de arriba.')
+    r2 = e2.cargar(mode, os.environ.get('MINETRAC_BUCKET', ''), os.environ.get('AWS_DEFAULT_REGION', 'us-east-1'), ROOT)
+    if r2 is None:
+        st.info('Todavía no hay resultados del análisis en esta fuente. Ejecuta scripts/pipeline_e2.py para generarlos.')
+    else:
+        c1, c2 = st.columns(2)
+        horizonte = c1.slider('Semanas a predecir', 1, 12, 8, key='horizonte')
+        suav = c2.select_slider('Suavizado de la serie (semanas)', options=[1, 4, 8, 13], value=4, key='suavizado')
+        fig, p = e2.fig_serie(r2, suav, horizonte)
+        g = r2['regresion']
+        k = st.columns(4)
+        k[0].metric('Intervenciones esperadas', f"{p.prediccion.sum():.0f}")
+        k[1].metric('Promedio por semana', f"{p.prediccion.mean():.1f}")
+        k[2].metric('R² del modelo', f"{g['r2']:.2f}")
+        k[3].metric('Error típico (RMSE)', f"{g['rmse']:.1f}")
+        chart('Historia y predicción', fig, 'Barras: lo registrado cada semana. Línea dorada: lo que predice el modelo; la banda marca el rango razonable.', 'e2a')
+        a, b = st.columns(2, gap='medium')
+        with a:
+            chart('Tendencia y estacionalidad', e2.fig_descomposicion(r2), 'Descomposición aditiva con ciclo de 52 semanas. Con 2.5 ciclos de historia, la estacionalidad es indicativa; la tendencia es lo confiable.', 'e2b')
+        with b:
+            st.markdown('##### Qué dice el análisis')
+            ad, dd = r2['adf_serie'], r2['adf_diferencia']
+            acf_v = r2['acf_pacf']['acf']; banda = r2['acf_pacf']['banda']
+            fuera = [str(i) for i in range(1, 5) if abs(acf_v[i]) > banda]
+            est = (f"La serie original es estacionaria al 5 % (ADF p = {ad['p_valor']:.3f}), aunque con una tendencia suave que la regresión incluye" if ad['estacionaria']
+                   else f"La serie original no es estacionaria (ADF p = {ad['p_valor']:.2f})")
+            st.markdown(f"- **Estacionariedad.** {est}; con una diferencia lo es con holgura (p < 0.001).\n"
+                        f"- **Memoria.** Los rezagos {', '.join(fuera) if fuera else 'ninguno de los primeros 4'} superan la banda de 95 % (±{banda:.2f}): la actividad de una semana se parece a la de semanas anteriores, sin ser un patrón fuerte.\n"
+                        f"- **Residuos.** Durbin-Watson = {g['durbin_watson']:.2f} (cerca de 2: sin autocorrelación) y media ≈ 0. Shapiro-Wilk p = {g['shapiro_p']:.5f}: los residuos no son del todo normales porque los datos son conteos.\n"
+                        f"- **Comprobación.** Los coeficientes a mano coinciden con scikit-learn hasta {r2['comparacion_sklearn']['max_dif_abs']:.0e}.")
+            st.dataframe(e2.tabla_coef(r2).style.format({'Coeficiente β': '{:.4f}', 'Error estándar': '{:.4f}', 't': '{:.2f}', 'p': '{:.3f}'}), hide_index=True, width='stretch')
+        a, b = st.columns(2, gap='medium')
+        with a:
+            chart('Autocorrelación (ACF) de la serie', e2.fig_acf(r2, 'acf_pacf', 'acf'), 'Barras fuera de la banda dorada son correlaciones significativas.', 'e2c')
+        with b:
+            chart('Autocorrelación parcial (PACF)', e2.fig_acf(r2, 'acf_pacf', 'pacf'), 'Ayuda a ver cuántos rezagos aportan información propia.', 'e2d')
+        chart('Diagnóstico de residuos', e2.fig_residuos(r2), 'Centrados en cero, con una cola a la derecha (semanas con muchas intervenciones juntas) y las líneas diagonales propias de los conteos enteros. Confirma que el modelo es solo una referencia.', 'e2e')
+        st.markdown(f'<div class="mt-notice"><b>Alcance.</b> La serie viene de la bitácora de los 7 camiones ({r2["serie"]["total"]} intervenciones con fecha, de abril de 2024 a octubre de 2026). '
+                    f'Con {g["n"]} semanas el modelo explica poco (R² = {g["r2"]:.2f}) y sirve como referencia de ritmo, no como pronóstico de fallas individuales. Algunas fechas están inferidas por el orden de la hoja (ver Calidad de datos).</div>', unsafe_allow_html=True)
+        st.download_button('Descargar predicción en CSV', p.to_csv(index=False).encode('utf-8-sig'), 'prediccion_semanal.csv', 'text/csv')
 
 with detail:
     st.subheader('Intervenciones de camiones en tu selección')

@@ -20,6 +20,6 @@ E0, E1 y E2 entregadas o en entrega. Siguen E3 (17 nov), E4 (30 nov) y E5 (2 dic
 
 ## 3. Pendientes de nube
 
-- Redesplegar el tablero con el alcance de camiones (ver `infra/e2_aws.sh` y `scripts/actualizar_aws.sh`).
+- Redesplegar el tablero con el alcance de camiones (ver `infra/e2_aws.sh` y `infra/actualizar_tablero.sh`).
 - Cerrar el puerto 8000 al terminar la evaluación; la IP pública no es fija.
 - Repetir la captura de IAM y seguridad con la instancia real (i-081fa473088bece22).

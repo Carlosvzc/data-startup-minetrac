@@ -1,0 +1,21 @@
+# API de modelos en Kubernetes: 2 réplicas con sondas de salud y límites de recursos.
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: minetrac-modelos, labels: {app: minetrac-modelos}}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: minetrac-modelos}}
+  template:
+    metadata: {labels: {app: minetrac-modelos}}
+    spec:
+      containers:
+        - name: modelos
+          image: minetrac-modelos:1.0
+          imagePullPolicy: IfNotPresent
+          ports: [{containerPort: 8010}]
+          readinessProbe: {httpGet: {path: /salud, port: 8010}, initialDelaySeconds: 3, periodSeconds: 5}
+          livenessProbe: {httpGet: {path: /salud, port: 8010}, initialDelaySeconds: 10, periodSeconds: 10}
+          resources:
+            requests: {cpu: 100m, memory: 192Mi}
+            limits: {cpu: 500m, memory: 512Mi}
+          securityContext: {runAsNonRoot: true, allowPrivilegeEscalation: false}

@@ -1,0 +1,260 @@
+{
+  "arima": {
+    "orden": [
+      0,
+      1,
+      1
+    ],
+    "aic": 523.6901155291948,
+    "bic": 529.4405101755972,
+    "sigma2": 3.058718095228234,
+    "theta1": -0.8775391016920058,
+    "validacion": {
+      "semanas_prueba": 12,
+      "mae_arima": 1.8755769437173673,
+      "mae_ingenuo": 2.5,
+      "cobertura_95": 1.0
+    },
+    "pronostico_7d": [
+      {
+        "semana": "2026-10-12",
+        "pronostico": 2.01,
+        "inferior": 0.0,
+        "superior": 5.437
+      }
+    ],
+    "pronostico_30d": [
+      {
+        "semana": "2026-10-12",
+        "pronostico": 2.01,
+        "inferior": 0.0,
+        "superior": 5.437
+      },
+      {
+        "semana": "2026-10-19",
+        "pronostico": 2.01,
+        "inferior": 0.0,
+        "superior": 5.463
+      },
+      {
+        "semana": "2026-10-26",
+        "pronostico": 2.01,
+        "inferior": 0.0,
+        "superior": 5.488
+      },
+      {
+        "semana": "2026-11-02",
+        "pronostico": 2.01,
+        "inferior": 0.0,
+        "superior": 5.514
+      }
+    ]
+  },
+  "clasificador": {
+    "n_total": 284,
+    "n_entrenamiento": 227,
+    "n_prueba": 57,
+    "periodo_entrenamiento": [
+      "2023-08-04",
+      "2026-04-14"
+    ],
+    "periodo_prueba": [
+      "2026-04-14",
+      "2026-09-07"
+    ],
+    "positivos_entrenamiento": 0.42731277533039647,
+    "positivos_prueba": 0.6666666666666666,
+    "modelos": {
+      "Referencia: clase más frecuente": {
+        "accuracy": 0.3333333333333333,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "auc": 0.5,
+        "f1_cv_media": 0.0,
+        "f1_cv_desv": 0.0,
+        "matriz_confusion": [
+          [
+            19,
+            0
+          ],
+          [
+            38,
+            0
+          ]
+        ]
+      },
+      "Referencia: siempre \"repite\"": {
+        "accuracy": 0.6666666666666666,
+        "precision": 0.6666666666666666,
+        "recall": 1.0,
+        "f1": 0.8,
+        "auc": 0.5,
+        "f1_cv_media": 0.614324088258873,
+        "f1_cv_desv": 0.12131562786332657,
+        "matriz_confusion": [
+          [
+            0,
+            19
+          ],
+          [
+            0,
+            38
+          ]
+        ]
+      },
+      "Naive Bayes": {
+        "accuracy": 0.7719298245614035,
+        "precision": 0.7450980392156863,
+        "recall": 1.0,
+        "f1": 0.8539325842696629,
+        "auc": 0.6911357340720222,
+        "f1_cv_media": 0.63804333010783,
+        "f1_cv_desv": 0.11772806806087599,
+        "matriz_confusion": [
+          [
+            6,
+            13
+          ],
+          [
+            0,
+            38
+          ]
+        ]
+      },
+      "KNN (k=7)": {
+        "accuracy": 0.5263157894736842,
+        "precision": 0.72,
+        "recall": 0.47368421052631576,
+        "f1": 0.5714285714285714,
+        "auc": 0.6585872576177285,
+        "f1_cv_media": 0.3378831824151517,
+        "f1_cv_desv": 0.18059363522266966,
+        "matriz_confusion": [
+          [
+            12,
+            7
+          ],
+          [
+            20,
+            18
+          ]
+        ]
+      },
+      "SVM (núcleo RBF)": {
+        "accuracy": 0.5614035087719298,
+        "precision": 0.7407407407407407,
+        "recall": 0.5263157894736842,
+        "f1": 0.6153846153846154,
+        "auc": 0.6537396121883656,
+        "f1_cv_media": 0.19904306220095694,
+        "f1_cv_desv": 0.13388924350157091,
+        "matriz_confusion": [
+          [
+            12,
+            7
+          ],
+          [
+            18,
+            20
+          ]
+        ]
+      },
+      "Árbol de decisión (profundidad 3)": {
+        "accuracy": 0.3333333333333333,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "auc": 0.6578947368421053,
+        "f1_cv_media": 0.23024629061374516,
+        "f1_cv_desv": 0.2021469846900298,
+        "matriz_confusion": [
+          [
+            19,
+            0
+          ],
+          [
+            38,
+            0
+          ]
+        ]
+      }
+    },
+    "modelo_elegido": "Naive Bayes",
+    "criterio": "mayor F1 medio en validación cruzada temporal del conjunto de entrenamiento"
+  },
+  "busqueda_arima": [
+    {
+      "p": 2,
+      "d": 1,
+      "q": 3,
+      "aic": 522.6706,
+      "bic": 539.9218,
+      "ljung_box_p": 0.8223,
+      "converge": false
+    },
+    {
+      "p": 0,
+      "d": 1,
+      "q": 1,
+      "aic": 523.6901,
+      "bic": 529.4405,
+      "ljung_box_p": 0.1143,
+      "converge": true
+    },
+    {
+      "p": 3,
+      "d": 1,
+      "q": 1,
+      "aic": 523.7235,
+      "bic": 538.0995,
+      "ljung_box_p": 0.7597,
+      "converge": true
+    },
+    {
+      "p": 3,
+      "d": 1,
+      "q": 2,
+      "aic": 524.416,
+      "bic": 541.6672,
+      "ljung_box_p": 0.8322,
+      "converge": true
+    },
+    {
+      "p": 3,
+      "d": 1,
+      "q": 3,
+      "aic": 524.4725,
+      "bic": 544.5989,
+      "ljung_box_p": 0.8669,
+      "converge": false
+    },
+    {
+      "p": 3,
+      "d": 0,
+      "q": 1,
+      "aic": 524.6882,
+      "bic": 541.985,
+      "ljung_box_p": 0.8711,
+      "converge": true
+    },
+    {
+      "p": 0,
+      "d": 1,
+      "q": 2,
+      "aic": 525.3826,
+      "bic": 534.0082,
+      "ljung_box_p": 0.1211,
+      "converge": true
+    },
+    {
+      "p": 3,
+      "d": 0,
+      "q": 0,
+      "aic": 525.4344,
+      "bic": 539.8484,
+      "ljung_box_p": 0.7065,
+      "converge": true
+    }
+  ]
+}

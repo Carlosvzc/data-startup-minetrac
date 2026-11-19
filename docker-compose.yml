@@ -1,6 +1,7 @@
-# Pila local del E2 sin costo: PostgreSQL + ElasticMQ (compatible con SQS) + ingesta + worker + tablero.
+# Pila local sin costo: PostgreSQL + ElasticMQ (compatible con SQS) + ingesta + worker + tablero (E2) + API de modelos (E3).
 #   docker compose up --build
 #   curl -F archivo=@data/sample/ejemplo_ingesta.csv http://localhost:8000/ingesta
+#   curl -X POST localhost:8010/pronostico -H 'content-type: application/json' -d '{"horizonte_dias":30}'
 services:
   postgres:
     image: postgres:16-alpine
@@ -26,6 +27,10 @@ services:
     environment: *env
     depends_on: {postgres: {condition: service_healthy}, sqs: {condition: service_started}}
     restart: on-failure
+  modelos:
+    build: {context: ., dockerfile: Dockerfile.modelos}
+    ports: ["8010:8010"]
+    restart: unless-stopped
   tablero:
     build: {context: ., dockerfile: Dockerfile.tablero}
     environment: {MINETRAC_STORAGE: local}

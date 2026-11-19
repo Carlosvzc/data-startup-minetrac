@@ -1,0 +1,18 @@
+# API de modelos (E3). Multi-stage: las dependencias se instalan en una etapa de compilación y la imagen final solo lleva
+# el entorno ya armado, el código y los artefactos del modelo, y corre sin permisos de administrador.
+FROM python:3.13-slim AS compilar
+WORKDIR /build
+COPY requirements-modelos.txt .
+RUN python -m venv /opt/venv && /opt/venv/bin/pip install --no-cache-dir -r requirements-modelos.txt
+
+FROM python:3.13-slim
+ENV PATH="/opt/venv/bin:$PATH" PYTHONUNBUFFERED=1
+RUN useradd --system --uid 10001 --no-create-home modelos
+WORKDIR /app
+COPY --from=compilar /opt/venv /opt/venv
+COPY services/__init__.py services/__init__.py
+COPY services/modelos services/modelos
+USER modelos
+EXPOSE 8010
+HEALTHCHECK --interval=15s --timeout=3s --retries=3 CMD python -c "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8010/salud')"
+CMD ["uvicorn", "services.modelos.main:app", "--host", "0.0.0.0", "--port", "8010"]

@@ -1,0 +1,9 @@
+# Versiones fijas: el clasificador se guarda con joblib y debe cargarse con la misma versión de scikit-learn con la que se entrenó.
+fastapi==0.162.0
+uvicorn[standard]==0.54.0
+pandas==2.3.3
+numpy==2.5.3
+scipy==1.18.1
+statsmodels==0.15.0
+scikit-learn==1.9.1
+joblib==1.6.0

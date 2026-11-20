@@ -3,8 +3,8 @@ from reportlab.platypus import Paragraph, Spacer, PageBreak
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib import colors
 
-TITULOS={'E0':'Propuesta de negocio','E1':'Dashboard empresarial','E2':'Cimientos en la nube'}
-FECHAS={'E0':'20 de octubre de 2026','E1':'26 de octubre de 2026','E2':'Noviembre de 2026'}
+TITULOS={'E0':'Propuesta de negocio','E1':'Dashboard empresarial','E2':'Cimientos en la nube','E3':'Inteligencia en producción'}
+FECHAS={'E0':'20 de octubre de 2026','E1':'26 de octubre de 2026','E2':'Noviembre de 2026','E3':'19 de noviembre de 2026'}
 
 def portada(entrega, regular, bold):
     title=ParagraphStyle('PortadaTitulo'+entrega,fontName=bold,fontSize=27,leading=34,textColor=colors.black,spaceAfter=18)

@@ -2,6 +2,7 @@
 from __future__ import annotations
 import json
 import os
+import threading
 from pathlib import Path
 import joblib
 import pandas as pd
@@ -15,14 +16,26 @@ app = FastAPI(title='MineTrac · API de modelos', version='1.0',
 _estado: dict = {}
 
 
+_candado = threading.Lock()
+
+
 def _cargar():
-    if not _estado:
-        serie = pd.read_csv(ARTEFACTOS / 'serie_semanal.csv', index_col=0, parse_dates=True).iloc[:, 0]
-        serie.index = pd.DatetimeIndex(serie.index, freq='W-MON')
-        _estado['serie'] = serie
-        _estado['clasificador'] = joblib.load(ARTEFACTOS / 'clasificador.joblib')
-        _estado['metricas'] = json.loads((ARTEFACTOS / 'metricas_e3.json').read_text(encoding='utf-8'))
+    """Carga serie, ARIMA ya ajustado y clasificador una sola vez. El candado evita que peticiones simultáneas
+    al arrancar vean un estado a medias."""
+    if 'listo' not in _estado:
+        with _candado:
+            if 'listo' not in _estado:
+                serie = pd.read_csv(ARTEFACTOS / 'serie_semanal.csv', index_col=0, parse_dates=True).iloc[:, 0]
+                serie.index = pd.DatetimeIndex(serie.index, freq='W-MON')
+                _estado.update(serie=serie, ajuste=m.ajustar_arima(serie), clasificador=joblib.load(ARTEFACTOS / 'clasificador.joblib'),
+                               metricas=json.loads((ARTEFACTOS / 'metricas_e3.json').read_text(encoding='utf-8')))
+                _estado['listo'] = True
     return _estado
+
+
+@app.on_event('startup')
+def _arrancar():
+    _cargar()
 
 
 class PeticionPronostico(BaseModel):
@@ -54,7 +67,8 @@ def pronostico(p: PeticionPronostico):
     semanas = max(1, round(p.horizonte_dias / 7))
     if semanas > 12:
         raise HTTPException(status_code=422, detail='El horizonte máximo es de 84 días (12 semanas).')
-    df = m.pronosticar(_cargar()['serie'], semanas, p.nivel)
+    e = _cargar()
+    df = m.pronosticar(e['serie'], semanas, p.nivel, ajuste=e['ajuste'])
     return {'modelo': f'ARIMA{tuple(m.ORDEN_ARIMA)}', 'nivel': p.nivel, 'semanas': semanas,
             'intervenciones_esperadas_total': round(float(df['pronostico'].sum()), 2),
             'pronostico': df.round(3).to_dict('records'),

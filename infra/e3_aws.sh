@@ -2,6 +2,7 @@
 # E3 en AWS. Se ejecuta en CloudShell (us-east-1), con tu usuario IAM, desde la carpeta donde descomprimiste minetrac_e3.zip.
 #   bash e3_aws.sh imagen     # 1) construye la imagen en AWS CodeBuild y la guarda en ECR
 #   bash e3_aws.sh ec2        # 2) descarga la imagen y corre la API de modelos en la EC2 (puerto 8010)
+#   bash e3_aws.sh ecs        # (reinicia ECS con la imagen nueva; la creación inicial fue con e3_ecs.sh)
 #   bash e3_aws.sh apprunner  # 3) despliega la misma imagen en AWS App Runner (contenedor administrado)
 #   bash e3_aws.sh lambda     # 4) despliega la clasificación como función serverless (Lambda con URL)
 #   bash e3_aws.sh locust     # 5) prueba de carga de 50 usuarios contra la EC2
@@ -56,6 +57,15 @@ ec2)
   echo "3/3 Descargando y arrancando el contenedor"
   ssm minetrac-e3-run '["set -e","aws ecr get-login-password --region '$REGION' | docker login --username AWS --password-stdin '$ECR'","docker pull -q '$ECR'/minetrac-modelos:1.0","docker rm -f minetrac-modelos 2>/dev/null || true","docker run -d --name minetrac-modelos --restart unless-stopped -p 8010:8010 '$ECR'/minetrac-modelos:1.0","sleep 8","curl -s localhost:8010/salud"]'
   echo "Prueba:  curl http://$IP:8010/salud   y abre  http://$IP:8010/docs"
+  ;;
+ecs)
+  echo "Actualizando el servicio de ECS con la imagen nueva (2 a 4 minutos)"
+  aws ecs update-service --cluster minetrac --service minetrac-modelos --force-new-deployment --query service.status --output text
+  sleep 20; aws ecs wait services-stable --cluster minetrac --services minetrac-modelos
+  TAREA=$(aws ecs list-tasks --cluster minetrac --service-name minetrac-modelos --query 'taskArns[0]' --output text)
+  ENI=$(aws ecs describe-tasks --cluster minetrac --tasks "$TAREA" --query 'tasks[0].attachments[0].details[?name==`networkInterfaceId`].value' --output text)
+  IPF=$(aws ec2 describe-network-interfaces --network-interface-ids "$ENI" --query 'NetworkInterfaces[0].Association.PublicIp' --output text)
+  echo "Prueba:"; curl -s --max-time 15 http://$IPF:8010/salud; echo; echo "Abre  http://$IPF:8010/docs"
   ;;
 apprunner)
   echo "1/2 Rol de acceso de App Runner a ECR"

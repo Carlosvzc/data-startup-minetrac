@@ -113,3 +113,10 @@ def test_funcion_serverless_coincide_con_la_api(tmp_path, monkeypatch):
     api = cli.post('/clasificar', json=cuerpo).json()
     assert abs(lam['probabilidad'] - api['probabilidad']) < 1e-4 and lam['repite_30d'] == api['repite_30d']
     assert h.lambda_handler({'body': json.dumps({**cuerpo, 'sistema': 'x'})}, None)['statusCode'] == 422
+
+
+def test_pronostico_con_ajuste_precalculado_da_lo_mismo():
+    s = serie_sintetica()
+    a = m.pronosticar(s, 4)
+    b = m.pronosticar(s, 4, ajuste=m.ajustar_arima(s))
+    pd.testing.assert_frame_equal(a, b)

@@ -40,13 +40,13 @@ def ajustar_arima(serie: pd.Series, orden=ORDEN_ARIMA):
         return ARIMA(serie, order=orden, trend='c' if orden[1] == 0 else 'n').fit()
 
 
-def pronosticar(serie: pd.Series, semanas: int, nivel: float = 0.95, orden=ORDEN_ARIMA) -> pd.DataFrame:
+def pronosticar(serie: pd.Series, semanas: int, nivel: float = 0.95, orden=ORDEN_ARIMA, ajuste=None) -> pd.DataFrame:
     """Pronóstico de intervenciones por semana con banda de confianza. Los conteos no pueden ser negativos."""
     if not 1 <= semanas <= 12:
         raise ValueError('semanas debe estar entre 1 y 12')
     if not 0.5 <= nivel < 1:
         raise ValueError('nivel debe estar entre 0.5 y 1')
-    res = ajustar_arima(serie, orden)
+    res = ajuste if ajuste is not None else ajustar_arima(serie, orden)   # la API pasa el ajuste ya hecho
     f = res.get_forecast(semanas)
     ic = f.conf_int(alpha=1 - nivel)
     fechas = pd.date_range(serie.index[-1] + pd.Timedelta(days=7), periods=semanas, freq='W-MON')

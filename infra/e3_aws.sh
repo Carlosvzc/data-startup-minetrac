@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 # E3 en AWS. Se ejecuta en CloudShell (us-east-1), con tu usuario IAM, desde la carpeta donde descomprimiste minetrac_e3.zip.
-#   bash e3_aws.sh ec2        # 1) construye la imagen y corre la API de modelos en la EC2 (puerto 8010)
-#   bash e3_aws.sh apprunner  # 2) sube la imagen a ECR y la despliega en AWS App Runner (contenedor administrado)
-#   bash e3_aws.sh lambda     # 3) despliega la clasificación como función serverless (Lambda con URL)
-#   bash e3_aws.sh locust     # 4) prueba de carga de 50 usuarios contra la EC2
+#   bash e3_aws.sh imagen     # 1) construye la imagen en AWS CodeBuild y la guarda en ECR
+#   bash e3_aws.sh ec2        # 2) descarga la imagen y corre la API de modelos en la EC2 (puerto 8010)
+#   bash e3_aws.sh apprunner  # 3) despliega la misma imagen en AWS App Runner (contenedor administrado)
+#   bash e3_aws.sh lambda     # 4) despliega la clasificación como función serverless (Lambda con URL)
+#   bash e3_aws.sh locust     # 5) prueba de carga de 50 usuarios contra la EC2
 set -euo pipefail
 REGION=us-east-1; BUCKET=minetrac-reales-251869518832-20261026
 INSTANCIA=i-081fa473088bece22; ROL=minetrac-e1-reales-ReadRole-XxCmmx32Dnlz
-export AWS_DEFAULT_REGION=$REGION
+export AWS_DEFAULT_REGION=$REGION AWS_PAGER=""
 CUENTA=$(aws sts get-caller-identity --query Account --output text)
+ECR=$(aws sts get-caller-identity --query Account --output text).dkr.ecr.$REGION.amazonaws.com
 IP=$(aws ec2 describe-instances --instance-ids $INSTANCIA --query 'Reservations[0].Instances[0].PublicIpAddress' --output text)
 ssm() { # ejecuta comandos en la EC2, espera hasta 15 minutos y muestra el resultado
   local id est; id=$(aws ssm send-command --instance-ids $INSTANCIA --document-name AWS-RunShellScript --comment "$1" --parameters "commands=$2" --query Command.CommandId --output text)
@@ -22,31 +24,45 @@ ssm() { # ejecuta comandos en la EC2, espera hasta 15 minutos y muestra el resul
 paquete() { aws s3 cp minetrac_e3.zip s3://$BUCKET/deploy/minetrac_e3.zip --only-show-errors; }
 
 case "${1:-}" in
-ec2)
+imagen)
   [ -f minetrac_e3.zip ] || { echo "Ejecuta el script desde la carpeta donde está minetrac_e3.zip"; exit 1; }
-  echo "1/4 Subiendo paquete"; paquete
-  echo "2/4 Permiso de lectura del paquete para la instancia"
-  aws iam put-role-policy --role-name $ROL --policy-name minetrac-e3-paquete --policy-document "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":\"s3:GetObject\",\"Resource\":\"arn:aws:s3:::$BUCKET/deploy/minetrac_e3.zip\"}]}"
-  echo "3/4 Abriendo el puerto 8010"
+  echo "1/4 Subiendo el paquete y creando el repositorio de imágenes (ECR)"; paquete
+  aws ecr create-repository --repository-name minetrac-modelos >/dev/null 2>&1 || echo "(el repositorio ECR ya existía)"
+  echo "2/4 Rol de CodeBuild"
+  aws iam create-role --role-name minetrac-codebuild --assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"codebuild.amazonaws.com"},"Action":"sts:AssumeRole"}]}' >/dev/null 2>&1 || echo "(el rol ya existía)"
+  aws iam put-role-policy --role-name minetrac-codebuild --policy-name construir --policy-document "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"logs:CreateLogGroup\",\"logs:CreateLogStream\",\"logs:PutLogEvents\"],\"Resource\":\"*\"},{\"Effect\":\"Allow\",\"Action\":\"ecr:GetAuthorizationToken\",\"Resource\":\"*\"},{\"Effect\":\"Allow\",\"Action\":[\"ecr:BatchCheckLayerAvailability\",\"ecr:InitiateLayerUpload\",\"ecr:UploadLayerPart\",\"ecr:CompleteLayerUpload\",\"ecr:PutImage\",\"ecr:BatchGetImage\",\"ecr:GetDownloadUrlForLayer\"],\"Resource\":\"arn:aws:ecr:$REGION:$CUENTA:repository/minetrac-modelos\"},{\"Effect\":\"Allow\",\"Action\":[\"s3:GetObject\",\"s3:GetObjectVersion\"],\"Resource\":\"arn:aws:s3:::$BUCKET/deploy/minetrac_e3.zip\"},{\"Effect\":\"Allow\",\"Action\":[\"s3:GetBucketAcl\",\"s3:GetBucketLocation\"],\"Resource\":\"arn:aws:s3:::$BUCKET\"}]}"
+  sleep 12
+  echo "3/4 Proyecto de construcción"
+  ENT="{\"type\":\"LINUX_CONTAINER\",\"image\":\"aws/codebuild/amazonlinux2-x86_64-standard:5.0\",\"computeType\":\"BUILD_GENERAL1_MEDIUM\",\"privilegedMode\":true,\"environmentVariables\":[{\"name\":\"ECR_URI\",\"value\":\"$ECR\"}]}"
+  SRC="{\"type\":\"S3\",\"location\":\"$BUCKET/deploy/minetrac_e3.zip\"}"
+  aws codebuild create-project --name minetrac-modelos --source "$SRC" --artifacts type=NO_ARTIFACTS --environment "$ENT" --service-role arn:aws:iam::$CUENTA:role/minetrac-codebuild >/dev/null 2>&1 \
+    || aws codebuild update-project --name minetrac-modelos --source "$SRC" --artifacts type=NO_ARTIFACTS --environment "$ENT" --service-role arn:aws:iam::$CUENTA:role/minetrac-codebuild >/dev/null
+  echo "4/4 Construyendo la imagen (tarda unos 5 minutos)"
+  ID=$(aws codebuild start-build --project-name minetrac-modelos --query build.id --output text)
+  for i in $(seq 1 90); do
+    sleep 10; EST=$(aws codebuild batch-get-builds --ids "$ID" --query 'builds[0].buildStatus' --output text); printf '.'
+    [ "$EST" != IN_PROGRESS ] && break
+  done; echo
+  echo "Resultado: $EST"
+  [ "$EST" = SUCCEEDED ] || { aws codebuild batch-get-builds --ids "$ID" --query 'builds[0].phases[?phaseStatus==`FAILED`].[phaseType,contexts[0].message]' --output text; exit 1; }
+  aws ecr describe-images --repository-name minetrac-modelos --query 'imageDetails[0].[imageTags[0],imageSizeInBytes]' --output text
+  ;;
+ec2)
+  echo "1/3 Permiso de la instancia para descargar la imagen"
+  aws iam put-role-policy --role-name $ROL --policy-name minetrac-e3-ecr --policy-document "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":\"ecr:GetAuthorizationToken\",\"Resource\":\"*\"},{\"Effect\":\"Allow\",\"Action\":[\"ecr:BatchCheckLayerAvailability\",\"ecr:BatchGetImage\",\"ecr:GetDownloadUrlForLayer\"],\"Resource\":\"arn:aws:ecr:$REGION:$CUENTA:repository/minetrac-modelos\"}]}"
+  echo "2/3 Puerto 8010"
   SG=$(aws ec2 describe-instances --instance-ids $INSTANCIA --query 'Reservations[0].Instances[0].SecurityGroups[0].GroupId' --output text)
-  aws ec2 authorize-security-group-ingress --group-id $SG --protocol tcp --port 8010 --cidr 0.0.0.0/0 2>/dev/null || echo "(el puerto 8010 ya estaba abierto)"
-  echo "4/4 Construyendo y arrancando el contenedor (tarda unos 3 minutos)"
-  ssm minetrac-e3 '["set -e","mkdir -p /opt/minetrac-e3 && cd /opt/minetrac-e3","aws s3 cp s3://'$BUCKET'/deploy/minetrac_e3.zip e3.zip --region '$REGION'","unzip -oq e3.zip","docker image prune -f >/dev/null","docker build -q -f Dockerfile.modelos -t minetrac-modelos:1.0 .","docker rm -f minetrac-modelos 2>/dev/null || true","docker run -d --name minetrac-modelos --restart unless-stopped -p 8010:8010 minetrac-modelos:1.0","sleep 8","curl -s localhost:8010/salud"]'
+  aws ec2 authorize-security-group-ingress --group-id $SG --protocol tcp --port 8010 --cidr 0.0.0.0/0 >/dev/null 2>&1 || echo "(el puerto 8010 ya estaba abierto)"
+  echo "3/3 Descargando y arrancando el contenedor"
+  ssm minetrac-e3-run '["set -e","aws ecr get-login-password --region '$REGION' | docker login --username AWS --password-stdin '$ECR'","docker pull -q '$ECR'/minetrac-modelos:1.0","docker rm -f minetrac-modelos 2>/dev/null || true","docker run -d --name minetrac-modelos --restart unless-stopped -p 8010:8010 '$ECR'/minetrac-modelos:1.0","sleep 8","curl -s localhost:8010/salud"]'
   echo "Prueba:  curl http://$IP:8010/salud   y abre  http://$IP:8010/docs"
   ;;
 apprunner)
-  echo "1/4 Permisos de la instancia para publicar en ECR"
-  aws ecr create-repository --repository-name minetrac-modelos >/dev/null 2>&1 || echo "(el repositorio ECR ya existía)"
-  aws iam put-role-policy --role-name $ROL --policy-name minetrac-e3-ecr --policy-document "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":\"ecr:GetAuthorizationToken\",\"Resource\":\"*\"},{\"Effect\":\"Allow\",\"Action\":[\"ecr:BatchCheckLayerAvailability\",\"ecr:InitiateLayerUpload\",\"ecr:UploadLayerPart\",\"ecr:CompleteLayerUpload\",\"ecr:PutImage\",\"ecr:BatchGetImage\"],\"Resource\":\"arn:aws:ecr:$REGION:$CUENTA:repository/minetrac-modelos\"}]}"
-  sleep 10
-  echo "2/4 Publicando la imagen en ECR desde la instancia"
-  ECR=$CUENTA.dkr.ecr.$REGION.amazonaws.com
-  ssm minetrac-e3-ecr '["set -e","aws ecr get-login-password --region '$REGION' | docker login --username AWS --password-stdin '$ECR'","docker tag minetrac-modelos:1.0 '$ECR'/minetrac-modelos:1.0","docker push -q '$ECR'/minetrac-modelos:1.0"]'
-  echo "3/4 Rol de acceso de App Runner a ECR"
+  echo "1/2 Rol de acceso de App Runner a ECR"
   aws iam create-role --role-name minetrac-apprunner-ecr --assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"build.apprunner.amazonaws.com"},"Action":"sts:AssumeRole"}]}' >/dev/null 2>&1 || echo "(el rol ya existía)"
   aws iam attach-role-policy --role-name minetrac-apprunner-ecr --policy-arn arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess
   sleep 10
-  echo "4/4 Creando el servicio en App Runner"
+  echo "2/2 Creando el servicio en App Runner"
   aws apprunner create-service --service-name minetrac-modelos \
     --source-configuration "{\"ImageRepository\":{\"ImageIdentifier\":\"$ECR/minetrac-modelos:1.0\",\"ImageRepositoryType\":\"ECR\",\"ImageConfiguration\":{\"Port\":\"8010\"}},\"AuthenticationConfiguration\":{\"AccessRoleArn\":\"arn:aws:iam::$CUENTA:role/minetrac-apprunner-ecr\"},\"AutoDeploymentsEnabled\":false}" \
     --instance-configuration '{"Cpu":"1 vCPU","Memory":"2 GB"}' --health-check-configuration '{"Protocol":"HTTP","Path":"/salud"}' \

@@ -1,11 +1,11 @@
 # API de modelos (E3). Multi-stage: las dependencias se instalan en una etapa de compilación y la imagen final solo lleva
 # el entorno ya armado, el código y los artefactos del modelo, y corre sin permisos de administrador.
-FROM python:3.13-slim AS compilar
+FROM public.ecr.aws/docker/library/python:3.13-slim AS compilar
 WORKDIR /build
 COPY requirements-modelos.txt .
 RUN python -m venv /opt/venv && /opt/venv/bin/pip install --no-cache-dir -r requirements-modelos.txt
 
-FROM python:3.13-slim
+FROM public.ecr.aws/docker/library/python:3.13-slim
 ENV PATH="/opt/venv/bin:$PATH" PYTHONUNBUFFERED=1
 RUN useradd --system --uid 10001 --no-create-home modelos
 WORKDIR /app

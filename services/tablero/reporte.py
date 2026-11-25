@@ -19,8 +19,8 @@ from reportlab.lib.units import cm
 from reportlab.platypus import BaseDocTemplate, Frame, Image, KeepTogether, PageTemplate, Paragraph, Spacer, Table, TableStyle
 from core import eventos, resumen
 
-INK, STEEL, GOLD, BLUE, LINE, SOFT = '#1f2328', '#5b6770', '#f2b600', '#3e5c76', '#dde1e5', '#9aa6b0'
-SEV = {'Alta': '#b3261e', 'Media': '#c77d00', 'Info': '#3e5c76'}
+INK, STEEL, GOLD, BLUE, LINE, SOFT = '#0f2a44', '#4f6478', '#f5a300', '#2a6f97', '#d9e3ec', '#8db4d3'
+SEV = {'Alta': '#b3261e', 'Media': '#c77d00', 'Info': '#2a6f97'}
 MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
 
 
@@ -56,7 +56,7 @@ def _limpiar(ax):
         ax.spines[s].set_visible(False)
     for s in ('left', 'bottom'):
         ax.spines[s].set_color('#c9cfd4')
-    ax.tick_params(colors='#434c54', labelsize=8)
+    ax.tick_params(colors='#33475a', labelsize=8)
     ax.set_axisbelow(True)
 
 
@@ -81,7 +81,7 @@ def g_camiones(mm):
             t[c] = 0
     fig, ax = plt.subplots(figsize=(6.4, 2.4))
     ax.bar(t.index, t['Con monto'], color=INK, width=.6, label='Con monto')
-    ax.bar(t.index, t['Sin monto'], bottom=t['Con monto'], color='#d3d8dc', width=.6, label='Sin monto')
+    ax.bar(t.index, t['Sin monto'], bottom=t['Con monto'], color='#cfdbe6', width=.6, label='Sin monto')
     ax.legend(frameon=False, fontsize=8, loc='upper left', ncol=2); ax.set_ylabel('Intervenciones', fontsize=8, color=STEEL); _limpiar(ax)
     return fig
 
@@ -99,14 +99,14 @@ def g_mensual(mm):
     ax.fill_between(range(len(s)), s.values, color=GOLD, alpha=.25); ax.plot(range(len(s)), s.values, color=INK, lw=1.8)
     paso = max(1, len(s) // 8)
     ax.set_xticks(range(0, len(s), paso)); ax.set_xticklabels([f'{MESES[p.month - 1]} {str(p.year)[2:]}' for p in s.index[::paso]])
-    ax.set_ylabel('Intervenciones', fontsize=8, color=STEEL); ax.grid(axis='y', color='#eceff1'); _limpiar(ax)
+    ax.set_ylabel('Intervenciones', fontsize=8, color=STEEL); ax.grid(axis='y', color='#e6eef5'); _limpiar(ax)
     return fig
 
 
 def g_prediccion(hist, pred):
     fig, ax = plt.subplots(figsize=(6.4, 2.3))
     h = hist.tail(26)
-    ax.bar(h.index, h.values, color='#d3d8dc', width=5)
+    ax.bar(h.index, h.values, color='#cfdbe6', width=5)
     ax.fill_between(pred.semana, pred.bajo, pred.alto, color=GOLD, alpha=.25, lw=0)
     ax.plot(pred.semana, pred.prediccion, color=GOLD, lw=2.4, marker='o', ms=3.5)
     ax.set_ylabel('Intervenciones por semana', fontsize=8, color=STEEL); _limpiar(ax)
@@ -121,7 +121,7 @@ def _tarjetas(k, est):
     celdas = [[Paragraph(v, est['kv']), ] for v, _ in vals]
     t = Table([[Paragraph(v, est['kv']) for v, _ in vals], [Paragraph(l, est['kl']) for _, l in vals]], colWidths=[4.3 * cm] * 4)
     t.setStyle(TableStyle([('BOX', (0, 0), (-1, -1), .6, colors.HexColor(LINE)), ('LINEAFTER', (0, 0), (-2, -1), .6, colors.HexColor(LINE)),
-                           ('LINETOP', (0, 0), (-1, 0), 3, colors.HexColor(GOLD)), ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#f8f9fa')),
+                           ('LINETOP', (0, 0), (-1, 0), 3, colors.HexColor(GOLD)), ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#f4f8fb')),
                            ('LEFTPADDING', (0, 0), (-1, -1), 10), ('TOPPADDING', (0, 0), (-1, 0), 9), ('BOTTOMPADDING', (0, 0), (-1, 0), 1),
                            ('TOPPADDING', (0, 1), (-1, 1), 0), ('BOTTOMPADDING', (0, 1), (-1, 1), 8)]))
     return t
@@ -136,7 +136,7 @@ def _tabla_alertas(al, est, max_filas=14):
         filas.append([Paragraph(f'<font color="{col}"><b>{r.severidad}</b></font>', est['cel']), Paragraph(r.camion_id, est['celb']),
                       Paragraph(f'<b>{r.tipo}.</b> {r.detalle}', est['cel']), Paragraph(r.accion, est['cel'])])
     t = Table(filas, colWidths=[1.5 * cm, 1.6 * cm, 8.2 * cm, 5.7 * cm], repeatRows=1)
-    t.setStyle(TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#eceff1')), ('LINEBELOW', (0, 0), (-1, -1), .4, colors.HexColor(LINE)),
+    t.setStyle(TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#e6eef5')), ('LINEBELOW', (0, 0), (-1, -1), .4, colors.HexColor(LINE)),
                            ('VALIGN', (0, 0), (-1, -1), 'TOP'), ('TOPPADDING', (0, 0), (-1, -1), 4), ('BOTTOMPADDING', (0, 0), (-1, -1), 4)]))
     out = [t]
     if len(al) > max_filas:

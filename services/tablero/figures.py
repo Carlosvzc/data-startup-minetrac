@@ -3,11 +3,11 @@ import pandas as pd
 import plotly.graph_objects as go
 from core import eventos, resumen, serie_diaria, spectral, tiene_dia
 
-TEAL = '#2b3138'   # grafito: serie principal
-BLUE = '#3e5c76'   # azul acero: serie secundaria
-GRAY = '#d3d8dc'   # sin dato
-GOLD = '#f2b600'   # amarillo de obra: lo que hay que mirar
-SOFT = '#9aa6b0'   # acero claro: resto de barras
+TEAL = '#1b4965'   # grafito: serie principal
+BLUE = '#2a6f97'   # azul acero: serie secundaria
+GRAY = '#cfdbe6'   # sin dato
+GOLD = '#f5a300'   # amarillo de obra: lo que hay que mirar
+SOFT = '#8db4d3'   # acero claro: resto de barras
 DIAS = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo']
 
 
@@ -17,11 +17,11 @@ def _estilo(figs, altos):
             continue
         f.update_layout(template='plotly_white', paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
                         margin=dict(l=8, r=30, t=30, b=15), height=altos[i],
-                        font=dict(family='Barlow, Segoe UI, Arial', size=13, color='#434c54'),
-                        hoverlabel=dict(bgcolor='white', bordercolor='#dde1e5', font_color='#1f2328', font_size=13),
+                        font=dict(family='Barlow, Segoe UI, Arial', size=13, color='#33475a'),
+                        hoverlabel=dict(bgcolor='white', bordercolor='#d9e3ec', font_color='#0f2a44', font_size=13),
                         legend=dict(orientation='h', x=0, y=1.17, font_size=11), bargap=.32)
         f.update_xaxes(showgrid=False, zeroline=False, linecolor='#c9cfd4', tickfont_size=11)
-        f.update_yaxes(showgrid=True, gridcolor='#eef0f2', zeroline=False, linecolor='rgba(0,0,0,0)', tickfont_size=11)
+        f.update_yaxes(showgrid=True, gridcolor='#e8eef4', zeroline=False, linecolor='rgba(0,0,0,0)', tickfont_size=11)
 
 
 
@@ -102,7 +102,7 @@ def views(m):
     aux['vida'] = vida
     if len(vida):
         vida = vida.sort_values('mean')
-        best = vida.iloc[-1]
+        best = vida.iloc[0]   # el componente del título (el que se repite en menos días) es el que se resalta
         f4 = go.Figure(go.Bar(x=vida['mean'], y=vida.componente, orientation='h',
                               marker_color=[GOLD if x == best.componente else SOFT for x in vida.componente],
                               text=[f"{v:.0f} d (n={int(n)})" for v, n in zip(vida['mean'], vida['count'])], textposition='outside',
@@ -126,7 +126,7 @@ def views(m):
     if spec is not None:
         sp = spec[spec.periodo_dias.between(2, 60)].sort_values('periodo_dias')
         f5 = go.Figure(go.Scatter(x=sp.periodo_dias, y=sp.amplitud, mode='lines', line=dict(color=BLUE, width=2), fill='tozeroy',
-                                  fillcolor='rgba(77,132,181,.07)', hovertemplate='Periodo: %{x:.2f} días<br>Amplitud: %{y:.3f}<extra></extra>'))
+                                  fillcolor='rgba(42,111,151,.10)', hovertemplate='Periodo: %{x:.2f} días<br>Amplitud: %{y:.3f}<extra></extra>'))
         for pk in peaks[:2]:
             f5.add_vline(x=pk['periodo_dias'], line_dash='dot', line_color=TEAL)
             f5.add_annotation(x=pk['periodo_dias'], y=pk['amplitud'], text=f"<b>{pk['periodo_dias']:.1f} días</b>", showarrow=True,

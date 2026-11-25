@@ -5,13 +5,13 @@ import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-INK, GOLD, BLUE, SOFT, GRAY = '#2b3138', '#f2b600', '#3e5c76', '#9aa6b0', '#d3d8dc'
+INK, GOLD, BLUE, SOFT, GRAY = '#1b4965', '#f5a300', '#2a6f97', '#8db4d3', '#cfdbe6'
 
 
 def _base(fig, h=340):
     fig.update_layout(height=h, margin=dict(l=10, r=10, t=30, b=10), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
                       font=dict(family='Barlow, sans-serif', size=13, color=INK), legend=dict(orientation='h', y=1.12, x=0))
-    fig.update_xaxes(showgrid=False); fig.update_yaxes(gridcolor='#eef0f2', zeroline=False)
+    fig.update_xaxes(showgrid=False); fig.update_yaxes(gridcolor='#e8eef4', zeroline=False)
     return fig
 
 
@@ -35,7 +35,7 @@ def fig_serie(res, suavizado, semanas):
         fig.add_scatter(x=f, y=v.rolling(suavizado, min_periods=1).mean(), name=f'Promedio móvil {suavizado} sem.', line=dict(color=INK, width=2.5))
     p = pronostico(res, semanas)
     fig.add_scatter(x=p.semana, y=p.alto, mode='lines', line=dict(width=0), showlegend=False, hoverinfo='skip')
-    fig.add_scatter(x=p.semana, y=p.bajo, mode='lines', line=dict(width=0), fill='tonexty', fillcolor='rgba(242,182,0,.25)', name='Banda ±1.96·RMSE', hoverinfo='skip')
+    fig.add_scatter(x=p.semana, y=p.bajo, mode='lines', line=dict(width=0), fill='tonexty', fillcolor='rgba(245,163,0,.25)', name='Banda ±1.96·RMSE', hoverinfo='skip')
     fig.add_scatter(x=p.semana, y=p.prediccion, name='Predicción', line=dict(color=GOLD, width=3), mode='lines+markers')
     return _base(fig, 380), p
 

@@ -48,24 +48,24 @@ def cuerpo_html(titulo: str, lectura: str, k: dict, resumen_alertas: dict, alert
     """Correo con el mismo lenguaje visual del tablero. Todo el texto que viene de datos se escapa."""
     e = html.escape
     tarjetas = ''.join(
-        f'<td style="padding:14px 16px;border-top:3px solid #f2b600;background:#f8f9fa;border:1px solid #dde1e5;border-top:3px solid #f2b600">'
-        f'<div style="font:700 22px Arial,sans-serif;color:#1f2328">{e(v)}</div><div style="font:11px Arial,sans-serif;color:#5b6770;margin-top:3px">{e(l)}</div></td>'
+        f'<td style="padding:14px 16px;border-top:3px solid #f5a300;background:#f4f8fb;border:1px solid #d9e3ec;border-top:3px solid #f5a300">'
+        f'<div style="font:700 22px Arial,sans-serif;color:#0f2a44">{e(v)}</div><div style="font:11px Arial,sans-serif;color:#4f6478;margin-top:3px">{e(l)}</div></td>'
         for v, l in [(f"{k['intervenciones']:,}", 'Intervenciones'), ('$' + f"{k['gasto_mxn']:,.0f}", 'Gasto registrado (parcial)'),
                      (f"{resumen_alertas.get('Alta', 0)}", 'Alertas altas'), (f"{resumen_alertas.get('Media', 0)}", 'Alertas medias')])
-    col = {'Alta': '#b3261e', 'Media': '#c77d00', 'Info': '#3e5c76'}
+    col = {'Alta': '#b3261e', 'Media': '#c77d00', 'Info': '#2a6f97'}
     filas = ''.join(
-        f'<tr><td style="padding:8px 10px;border-bottom:1px solid #eceff1;font:700 12px Arial;color:{col.get(a["severidad"], "#1f2328")}">{e(a["severidad"])}</td>'
-        f'<td style="padding:8px 10px;border-bottom:1px solid #eceff1;font:700 12px Arial;color:#1f2328">{e(a["camion_id"])}</td>'
-        f'<td style="padding:8px 10px;border-bottom:1px solid #eceff1;font:12px Arial;color:#2f3a43">{e(a["tipo"])}. {e(a["detalle"])}</td></tr>' for a in alertas_top)
-    return (f'<div style="background:#f0f1f2;padding:24px 0"><table align="center" width="620" cellpadding="0" cellspacing="0" style="background:#fff;border:1px solid #dde1e5">'
-            f'<tr><td style="background:#1f2328;padding:22px 26px"><div style="font:700 11px Arial;color:#f2b600;letter-spacing:1.5px">MINETRAC · CONTROL DE MAQUINARIA</div>'
+        f'<tr><td style="padding:8px 10px;border-bottom:1px solid #e6eef5;font:700 12px Arial;color:{col.get(a["severidad"], "#0f2a44")}">{e(a["severidad"])}</td>'
+        f'<td style="padding:8px 10px;border-bottom:1px solid #e6eef5;font:700 12px Arial;color:#0f2a44">{e(a["camion_id"])}</td>'
+        f'<td style="padding:8px 10px;border-bottom:1px solid #e6eef5;font:12px Arial;color:#2f3a43">{e(a["tipo"])}. {e(a["detalle"])}</td></tr>' for a in alertas_top)
+    return (f'<div style="background:#e8eef4;padding:24px 0"><table align="center" width="620" cellpadding="0" cellspacing="0" style="background:#fff;border:1px solid #d9e3ec">'
+            f'<tr><td style="background:#0f2a44;padding:22px 26px"><div style="font:700 11px Arial;color:#f5a300;letter-spacing:1.5px">MINETRAC · CONTROL DE MAQUINARIA</div>'
             f'<div style="font:700 22px Arial;color:#fff;margin-top:6px">{e(titulo)}</div><div style="font:12px Arial;color:#cfd5da;margin-top:4px">{e(periodo)}</div></td></tr>'
-            f'<tr><td style="height:5px;background:#f2b600"></td></tr>'
-            f'<tr><td style="padding:22px 26px"><p style="font:15px/1.5 Arial;color:#1f2328;margin:0 0 16px">{e(lectura)}</p>'
+            f'<tr><td style="height:5px;background:#f5a300"></td></tr>'
+            f'<tr><td style="padding:22px 26px"><p style="font:15px/1.5 Arial;color:#0f2a44;margin:0 0 16px">{e(lectura)}</p>'
             f'<table width="100%" cellspacing="6" cellpadding="0"><tr>{tarjetas}</tr></table>'
-            f'<h3 style="font:700 15px Arial;color:#1f2328;margin:20px 0 8px">Lo más urgente</h3>'
+            f'<h3 style="font:700 15px Arial;color:#0f2a44;margin:20px 0 8px">Lo más urgente</h3>'
             f'<table width="100%" cellspacing="0" cellpadding="0">{filas or "<tr><td style=font:13px Arial>Sin alertas con los datos actuales.</td></tr>"}</table>'
-            f'<p style="font:12px/1.5 Arial;color:#5b6770;margin:18px 0 0">El reporte completo va adjunto en PDF. Información real de la bitácora de camiones de Máquinas Centella; '
+            f'<p style="font:12px/1.5 Arial;color:#4f6478;margin:18px 0 0">El reporte completo va adjunto en PDF. Información real de la bitácora de camiones de Máquinas Centella; '
             f'los montos son parciales porque no todas las intervenciones tienen monto anotado.</p></td></tr></table></div>')
 
 

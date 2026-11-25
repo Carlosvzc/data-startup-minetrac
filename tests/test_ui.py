@@ -43,3 +43,21 @@ def test_ui_alertas_y_correo_sin_configurar(monkeypatch):
  assert next(b for b in a.button if b.label=='Enviar resumen').disabled   # sin configuración no se puede enviar
  a.multiselect(key='alert_sev').set_value(['Alta']).run()
  assert not a.exception
+
+
+def test_ui_acceso_privado(monkeypatch):
+ import sys; sys.path.insert(0,str(ROOT/'services/tablero')); import acceso
+ monkeypatch.setenv('MINETRAC_USUARIOS','carlos:'+acceso.hash_clave('clave-larga-123'))
+ a=AppTest.from_file(str(ROOT/'services/tablero/app.py'),default_timeout=60).run()
+ assert not a.exception and len(a.metric)==0                      # sin sesión no se ve nada del tablero
+ a.text_input(key='login_u').set_value('carlos'); a.text_input(key='login_c').set_value('mala'); a.run()
+ next(b for b in a.button if b.label=='Entrar').click().run()
+ assert len(a.metric)==0 and a.error
+ a.text_input(key='login_c').set_value('clave-larga-123'); next(b for b in a.button if b.label=='Entrar').click().run()
+ assert not a.exception and a.metric[0].value=='257'
+
+
+def test_acceso_aws_sin_cuentas_no_abre(monkeypatch):
+ monkeypatch.delenv('MINETRAC_USUARIOS',raising=False); monkeypatch.setenv('MINETRAC_STORAGE','s3')
+ a=AppTest.from_file(str(ROOT/'services/tablero/app.py'),default_timeout=60).run()
+ assert len(a.metric)==0

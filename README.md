@@ -57,6 +57,10 @@ La pestaña **Alertas y reportes** del tablero calcula alertas de mantenimiento 
   - Opcional: `MINETRAC_DOMINIOS_PERMITIDOS=empresa.com,otra.com` para limitar a quién se puede enviar.
 - **Envío semanal programado:** `python scripts/enviar_resumen.py --para a@empresa.com --enviar` (con cron o EventBridge). Sin `--enviar` solo genera el PDF.
 
+## Acceso privado
+
+En AWS (`MINETRAC_STORAGE=s3`) el tablero pide usuario y contraseña y no abre si no hay cuentas. Se crean con `python scripts/crear_acceso.py carlos diego profesor` y la línea resultante se pone como `MINETRAC_USUARIOS` en el servidor (nunca en Git). Además conviene cerrar en el grupo de seguridad los puertos de las APIs (8000 y 8010) y, si se puede, limitar el 8501 a las IP que lo necesiten. Con HTTP simple la contraseña viaja sin cifrar: para uso real se pone HTTPS (ALB con certificado).
+
 ## Ejecutar con Docker
 
 Primero ejecutamos scripts/pipeline_e1.py con los dos Excel originales. Así generamos data/clean/, que no está en Git. Después ejecutamos docker compose up --build. Montamos esa carpeta en /app/data/clean como volumen de solo lectura. La imagen se construye sin copiar los datos completos. Comprobamos la configuración con docker compose config.

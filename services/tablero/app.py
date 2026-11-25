@@ -6,6 +6,7 @@ import streamlit as st
 from core import resumen, recomendaciones, ciclo_cercano, rango_periodo, filtrar_periodo
 from figures import views
 import libreta as lb
+import acceso
 import alertas as alr
 import correo as mail
 import reporte as rpt
@@ -16,6 +17,30 @@ HERE = Path(__file__).resolve().parent
 st.set_page_config(page_title='MineTrac | Control de mantenimiento', page_icon='⛏', layout='wide', initial_sidebar_state='expanded')
 st.markdown('<style>' + (HERE / 'fonts.css').read_text(encoding='utf-8') + (HERE / 'styles.css').read_text(encoding='utf-8-sig') + '</style>', unsafe_allow_html=True)
 mode = os.environ.get('MINETRAC_STORAGE', 'local')
+
+if acceso.requerido(mode):
+    _tabla = acceso.cuentas()
+    if not _tabla:
+        st.markdown('<div class="mt-login"><div class="mt-eyebrow">MINETRAC</div><h2>Acceso no configurado</h2><p>Este servidor exige usuario y contraseña, pero todavía no hay cuentas. '
+                    'Pide al responsable que configure MINETRAC_USUARIOS.</p></div>', unsafe_allow_html=True)
+        st.stop()
+    if not st.session_state.get('autenticado'):
+        _, centro, _ = st.columns([1, 1.1, 1])
+        with centro:
+            st.markdown('<div class="mt-login"><div class="mt-eyebrow">MINETRAC · MÁQUINAS CENTELLA</div><h2>Acceso privado</h2><p>Ingresa con tu usuario para ver el tablero.</p></div>', unsafe_allow_html=True)
+            with st.form('login'):
+                u = st.text_input('Usuario', key='login_u')
+                c = st.text_input('Contraseña', type='password', key='login_c')
+                enviado = st.form_submit_button('Entrar', type='primary', width='stretch')
+            if enviado:
+                if st.session_state.get('intentos', 0) >= 5:
+                    st.error('Demasiados intentos. Cierra y vuelve a abrir la página.')
+                elif acceso.verificar(u, c, _tabla):
+                    st.session_state['autenticado'] = True; st.session_state['usuario'] = u.strip().lower(); st.rerun()
+                else:
+                    st.session_state['intentos'] = st.session_state.get('intentos', 0) + 1
+                    st.error('Usuario o contraseña incorrectos.')
+        st.stop()
 # Alcance actual: solo camiones. Con MINETRAC_ALCANCE=flota se muestra también la libreta de los demás equipos.
 SHOW_LIB = os.environ.get('MINETRAC_ALCANCE', 'camiones') == 'flota'
 
@@ -98,6 +123,10 @@ with st.sidebar:
     if st.button('Recargar datos', width='stretch'):
         st.cache_data.clear()
         st.rerun()
+    if st.session_state.get('autenticado'):
+        st.caption('Sesión de ' + safe(st.session_state.get('usuario', '')))
+        if st.button('Cerrar sesión', width='stretch'):
+            st.session_state.clear(); st.rerun()
     st.caption('MineTrac · Evidencia 1')
     st.caption('Todos los importes se muestran en MXN.')
 

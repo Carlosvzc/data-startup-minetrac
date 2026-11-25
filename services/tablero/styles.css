@@ -108,3 +108,5 @@ footer{visibility:hidden}
 @media(max-width:1000px){.block-container{padding:1.4rem 1.3rem 3rem}[data-testid="stMetricValue"]{font-size:38px}.mt-hero{padding:24px}.mt-hero h1{font-size:38px}.mt-lectura{font-size:17px}}
 @media(max-width:650px){.block-container{padding:1rem .8rem 2rem}.mt-action{min-height:unset}.mt-hero h1{font-size:32px}.mt-hero-chip{min-width:96px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.mt-login{background:linear-gradient(120deg,#14181c,#2a3037);border-radius:20px;padding:30px 34px;margin:12vh 0 14px;box-shadow:var(--sh-h);border-bottom:4px solid var(--gold)}
+.mt-login h2{color:#fff!important;margin:0 0 6px!important;padding:0}.mt-login p{color:#c4ccd2;margin:0;font-size:16px}

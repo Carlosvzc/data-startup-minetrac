@@ -46,6 +46,17 @@ Desde la raíz del repositorio, con los dos Excel en `data/raw/` o indicando su 
 
 `pipeline_e1.py` limpia la bitácora, calcula indicadores y FFT, y escribe `data/raw/`, `data/clean/`, `data/sample/` y `docs/auditoria.csv`. Para ver también el resto de la flota (libreta de taller y predicción semanal, fuera del alcance actual) se arranca el tablero con `MINETRAC_ALCANCE=flota`.
 
+## Alertas, reporte PDF y correo (tablero)
+
+La pestaña **Alertas y reportes** del tablero calcula alertas de mantenimiento de los camiones con la bitácora real (`services/tablero/alertas.py`): servicio preventivo atrasado (120 y 240 días), repeticiones del mismo componente en menos de 30 días, sistemas con 3 o más intervenciones en 90 días, picos de actividad y camiones sin registros recientes. Se evalúan a la fecha del último dato, no a la de hoy. Todavía no hay alertas por horómetro porque la empresa no captura horas trabajadas. Los umbrales se cambian en `UMBRALES`.
+
+- **Reporte PDF:** el botón descarga el reporte de la selección actual (indicadores, gráficas, alertas y predicción). También se genera desde la terminal con `python scripts/enviar_resumen.py` (guarda `docs/ejemplo_reporte.pdf` y no envía nada).
+- **Correo:** el envío siempre es manual (casilla de confirmación, máximo 5 destinatarios y 5 envíos por sesión). Se configura con variables de entorno, nunca en el código:
+  - SMTP: `MINETRAC_CORREO_DE`, `MINETRAC_SMTP_HOST`, `MINETRAC_SMTP_PUERTO` (587 por defecto), `MINETRAC_SMTP_USUARIO`, `MINETRAC_SMTP_CLAVE`.
+  - Amazon SES: `MINETRAC_CORREO=ses` y `MINETRAC_CORREO_DE` (verificado en SES); usa el rol de la instancia.
+  - Opcional: `MINETRAC_DOMINIOS_PERMITIDOS=empresa.com,otra.com` para limitar a quién se puede enviar.
+- **Envío semanal programado:** `python scripts/enviar_resumen.py --para a@empresa.com --enviar` (con cron o EventBridge). Sin `--enviar` solo genera el PDF.
+
 ## Ejecutar con Docker
 
 Primero ejecutamos scripts/pipeline_e1.py con los dos Excel originales. Así generamos data/clean/, que no está en Git. Después ejecutamos docker compose up --build. Montamos esa carpeta en /app/data/clean como volumen de solo lectura. La imagen se construye sin copiar los datos completos. Comprobamos la configuración con docker compose config.

@@ -10,7 +10,7 @@ def test_ui_real_filters_and_limits(monkeypatch):
  assert len(a.metric)==12 and a.metric[4].value=='540'  # pestaña de la libreta
  assert len(a.get("plotly_chart"))==15
  assert a.date_input[0].value[0]==date(2023,8,4)
- assert a.checkbox[0].value is True
+ assert a.checkbox(key='include_undated').value is True
  a.multiselect(key='trucks').set_value(['C5']).run()
  assert not a.exception and a.metric[0].value=='57'
  a.date_input[0].set_value((date(2026,10,1),date(2026,10,14))).run()
@@ -30,6 +30,16 @@ def test_ui_alcance_solo_camiones():
  assert [m.value for m in a.metric][:4]==['257','$928,832','$12,384','26.8']
  assert len(a.metric)==8 and a.metric[6].value=='0.10'   # 4 tarjetas + 4 de la predicción (R² = 0.10)
  assert len(a.get("plotly_chart"))==11
- assert [t.label for t in a.tabs]==['Vista general','Mantenimiento y refacciones','Ciclos','Flota y operación','Predicción','Calidad de datos','Explorar datos']
+ assert [t.label for t in a.tabs]==['Vista general','Alertas y reportes','Mantenimiento y refacciones','Ciclos','Flota y operación','Predicción','Calidad de datos','Explorar datos']
  a.multiselect(key='trucks').set_value(['C5']).run()
  assert not a.exception and a.metric[0].value=='57'
+
+
+def test_ui_alertas_y_correo_sin_configurar(monkeypatch):
+ for v in ['MINETRAC_CORREO_DE','MINETRAC_SMTP_HOST','MINETRAC_SMTP_USUARIO','MINETRAC_SMTP_CLAVE']:
+  monkeypatch.delenv(v,raising=False)
+ a=AppTest.from_file(str(ROOT/'services/tablero/app.py'),default_timeout=60).run()
+ assert not a.exception
+ assert next(b for b in a.button if b.label=='Enviar resumen').disabled   # sin configuración no se puede enviar
+ a.multiselect(key='alert_sev').set_value(['Alta']).run()
+ assert not a.exception

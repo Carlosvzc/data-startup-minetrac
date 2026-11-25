@@ -6,6 +6,10 @@ import streamlit as st
 from core import resumen, recomendaciones, ciclo_cercano, rango_periodo, filtrar_periodo
 from figures import views
 import libreta as lb
+import alertas as alr
+import correo as mail
+import reporte as rpt
+import resumen_envio as envio
 
 ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
@@ -97,8 +101,14 @@ with st.sidebar:
     st.caption('MineTrac · Evidencia 1')
     st.caption('Todos los importes se muestran en MXN.')
 
-st.markdown('<div class="mt-stripe"></div><div class="mt-hero"><h1>Mantenimiento de la flota</h1>'
-            '<p>Qué se repara, cuánto cuesta y qué conviene atender primero. Empieza por el resumen y baja a las pestañas para ver el detalle.</p></div>', unsafe_allow_html=True)
+_corte = alr.fecha_corte(mant)
+_alertas = alr.calcular(mant, _corte)
+_ra = alr.resumen_alertas(_alertas)
+st.markdown('<div class="mt-hero"><div class="mt-hero-main"><div class="mt-eyebrow">MINETRAC · MÁQUINAS CENTELLA</div><h1>Mantenimiento de la flota</h1>'
+            '<p>Qué se repara, cuánto cuesta y qué conviene atender primero.</p></div>'
+            '<div class="mt-hero-side"><div class="mt-hero-chip"><b>' + str(_ra['Alta']) + '</b><span>alertas altas</span></div>'
+            '<div class="mt-hero-chip"><b>' + str(_ra['Media']) + '</b><span>alertas medias</span></div>'
+            '<div class="mt-hero-chip soft"><b>' + safe(date_label(_corte)) + '</b><span>datos hasta</span></div></div></div>', unsafe_allow_html=True)
 st.markdown('<div class="mt-aviso"><b>Datos reales de Máquinas Centella.</b> Bitácora de reparaciones de los 7 camiones. '
             'Por ahora el alcance son los camiones; el resto de la flota se agrega después. <b>Las horas trabajadas, toneladas, tarifas e ingresos</b> la empresa los lleva a mano y aún no están capturados; no los simulamos ni los estimamos.</div>', unsafe_allow_html=True)
 if len(period) != 2:
@@ -144,10 +154,10 @@ st.markdown('<div class="mt-context"><span>' + safe(date_label(period[0])) + ' a
             + str(mm.camion_id.nunique()) + ' camiones</span><span>' + safe(system) + '</span><span>'
             + f"{k['con_monto']:,}" + ' de ' + f"{k['intervenciones']:,}" + ' con monto anotado</span></div>', unsafe_allow_html=True)
 
-_nombres = ['Vista general', 'Mantenimiento y refacciones', 'Ciclos', 'Flota y operación'] + (['Libreta de taller'] if SHOW_LIB else []) + ['Predicción', 'Calidad de datos', 'Explorar datos']
+_nombres = ['Vista general', 'Alertas y reportes', 'Mantenimiento y refacciones', 'Ciclos', 'Flota y operación'] + (['Libreta de taller'] if SHOW_LIB else []) + ['Predicción', 'Calidad de datos', 'Explorar datos']
 _tabs = st.tabs(_nombres)
-overview, maintenance, cycles, fleet = _tabs[:4]
-taller = _tabs[4] if SHOW_LIB else None
+overview, alerts_tab, maintenance, cycles, fleet = _tabs[:5]
+taller = _tabs[5] if SHOW_LIB else None
 pred, quality, detail = _tabs[-3:]
 
 with overview:
@@ -163,6 +173,80 @@ with overview:
         with col:
             etiqueta = safe(tag.split('/')[-1].strip().capitalize())
             st.markdown(f'<div class="mt-action"><div class="mt-num">{n}</div><div><div class="mt-action-tag">{etiqueta}</div><h4>{safe(title)}</h4><p>{safe(text)}</p></div></div>', unsafe_allow_html=True)
+
+@st.cache_data(show_spinner=False)
+def pdf_seleccion(mm_, periodo, filtros):
+    """Reporte de la selección actual; se guarda en caché para que descargar no regenere el PDF en cada clic."""
+    import e2 as _e2
+    r2_ = _e2.cargar(mode, os.environ.get('MINETRAC_BUCKET', ''), os.environ.get('AWS_DEFAULT_REGION', 'us-east-1'), ROOT)
+    hist = pred_ = None
+    if r2_ is not None:
+        hist = pd.Series(r2_['serie']['valores'], index=pd.to_datetime(r2_['serie']['fechas'])); pred_ = _e2.pronostico(r2_, 4)
+    return rpt.generar_pdf(mm_, _alertas, periodo, filtros, _corte, hist, pred_, lectura(resumen(mm_), views(mm_)[1]))
+
+
+with alerts_tab:
+    st.subheader('Qué atender primero')
+    st.caption(f'Alertas calculadas con la bitácora de los camiones, a la fecha de corte {date_label(_corte)} (último dato registrado). '
+               'Usan días y repeticiones; todavía no hay horas trabajadas para alertar por horómetro.')
+    ca = st.columns(3)
+    for col, (sev, nota) in zip(ca, [('Alta', 'Atender pronto'), ('Media', 'Revisar esta semana'), ('Info', 'Confirmar datos')]):
+        with col:
+            st.markdown(f'<div class="mt-sev mt-sev-{sev.lower()}"><b>{_ra[sev]}</b><span>{sev}</span><i>{nota}</i></div>', unsafe_allow_html=True)
+    fa, fb = st.columns([1, 2])
+    sev_sel = fa.multiselect('Nivel', ['Alta', 'Media', 'Info'], default=['Alta', 'Media'], key='alert_sev')
+    cam_sel = fb.multiselect('Camiones', sorted(mant.camion_id.unique()), default=[], key='alert_trucks', placeholder='Los 7 camiones')
+    vista = _alertas[_alertas.severidad.isin(sev_sel)]
+    if cam_sel:
+        vista = vista[vista.camion_id.isin(cam_sel)]
+    if vista.empty:
+        st.info('No hay alertas con esta selección.')
+    cols_a = st.columns(2, gap='medium')
+    for n_a, (_, a) in enumerate(vista.iterrows()):
+        with cols_a[n_a % 2]:
+            st.markdown(f'<div class="mt-alert mt-alert-{a.severidad.lower()}"><div class="mt-alert-top"><span class="mt-pill">{safe(a.severidad)}</span><b>{safe(a.camion_id)}</b>'
+                        f'<em>{safe(a.tipo)}</em></div><p>{safe(a.detalle)}</p><small>Qué hacer: {safe(a.accion)}</small></div>', unsafe_allow_html=True)
+    st.markdown('<div class="mt-notice"><b>Cómo leerlas.</b> Si una alerta de servicio parece exagerada, puede faltar capturar ese servicio en la bitácora: '
+                'confírmalo con el taller antes de actuar. Los umbrales (120 y 240 días sin servicio, 3 intervenciones del mismo sistema en 90 días) son un punto de partida que la empresa puede ajustar.</div>', unsafe_allow_html=True)
+
+    st.subheader('Reporte en PDF')
+    st.caption('Incluye los indicadores, las gráficas y las alertas de la selección que tienes en los filtros, más la predicción de las próximas semanas.')
+    filtros_txt = f"{mm.camion_id.nunique()} camiones · {system}"
+    periodo_txt = f'{period[0]:%d/%m/%Y} a {period[1]:%d/%m/%Y}'
+    st.download_button('Descargar reporte PDF', pdf_seleccion(mm, periodo_txt, filtros_txt), f'reporte_minetrac_{_corte:%Y%m%d}.pdf', 'application/pdf', type='primary', key='dl_pdf')
+
+    st.subheader('Enviar por correo')
+    st.caption('Manda el resumen de toda la flota (alertas y PDF adjunto) a quien lo necesite. El envío es siempre manual: solo se manda cuando confirmas.')
+    listo, info = mail.configurado()
+    if not listo:
+        st.markdown('<div class="mt-notice"><b>El correo todavía no está configurado en este servidor.</b> ' + safe(info) +
+                    ' Se configura con variables de entorno (ver README). Mientras tanto puedes descargar el PDF y adjuntarlo tú.</div>', unsafe_allow_html=True)
+    destino = st.text_input('Correos de destino', key='mail_to', placeholder='nombre@empresa.com, otro@empresa.com', help='Separa varios con coma.')
+    confirmo = st.checkbox('Confirmo que quiero enviar este resumen a esas personas.', key='mail_ok')
+    if st.button('Enviar resumen', disabled=not listo, key='mail_btn'):
+        dest = mail.separar_destinatarios(destino)
+        ok_, malos = mail.validos(dest)
+        permitidos = [d.strip().lower() for d in os.environ.get('MINETRAC_DOMINIOS_PERMITIDOS', '').split(',') if d.strip()]
+        if not ok_ or malos:
+            st.error('Revisa los correos: ' + (', '.join(malos) if malos else 'escribe al menos uno.'))
+        elif len(ok_) > 5:
+            st.error('Máximo 5 destinatarios por envío.')
+        elif permitidos and any(c.split('@')[1] not in permitidos for c in ok_):
+            st.error('Solo se puede enviar a los dominios autorizados: ' + ', '.join(permitidos) + '.')
+        elif not confirmo:
+            st.warning('Marca la casilla de confirmación para enviar.')
+        elif st.session_state.get('mail_n', 0) >= 5:
+            st.error('Alcanzaste el límite de 5 envíos en esta sesión.')
+        else:
+            try:
+                with st.spinner('Preparando y enviando…'):
+                    asunto, html_c, texto, pdf_b, _ = envio.paquete(mant, ROOT)
+                    mail.enviar(mail.construir_mensaje(ok_, asunto, html_c, texto, pdf_b, f'reporte_minetrac_{_corte:%Y%m%d}.pdf'))
+                st.session_state['mail_n'] = st.session_state.get('mail_n', 0) + 1
+                st.success(f'Enviado a {len(ok_)} destinatario(s).')
+            except Exception:
+                st.error('No pudimos enviar el correo. Revisa la configuración del servidor de correo e inténtalo de nuevo.')
+
 
 with maintenance:
     st.subheader('Qué se ha reparado y cuándo')

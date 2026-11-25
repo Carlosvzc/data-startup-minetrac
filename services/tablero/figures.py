@@ -18,10 +18,10 @@ def _estilo(figs, altos):
         f.update_layout(template='plotly_white', paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
                         margin=dict(l=8, r=30, t=30, b=15), height=altos[i],
                         font=dict(family='Barlow, Segoe UI, Arial', size=13, color='#434c54'),
-                        hoverlabel=dict(bgcolor='white', font_color='#1f2328'),
+                        hoverlabel=dict(bgcolor='white', bordercolor='#dde1e5', font_color='#1f2328', font_size=13),
                         legend=dict(orientation='h', x=0, y=1.17, font_size=11), bargap=.32)
         f.update_xaxes(showgrid=False, zeroline=False, linecolor='#c9cfd4', tickfont_size=11)
-        f.update_yaxes(showgrid=False, zeroline=False, linecolor='#c9cfd4', tickfont_size=11)
+        f.update_yaxes(showgrid=True, gridcolor='#eef0f2', zeroline=False, linecolor='rgba(0,0,0,0)', tickfont_size=11)
 
 
 

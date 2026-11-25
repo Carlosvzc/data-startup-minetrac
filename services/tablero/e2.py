@@ -11,7 +11,7 @@ INK, GOLD, BLUE, SOFT, GRAY = '#2b3138', '#f2b600', '#3e5c76', '#9aa6b0', '#d3d8
 def _base(fig, h=340):
     fig.update_layout(height=h, margin=dict(l=10, r=10, t=30, b=10), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
                       font=dict(family='Barlow, sans-serif', size=13, color=INK), legend=dict(orientation='h', y=1.12, x=0))
-    fig.update_xaxes(showgrid=False); fig.update_yaxes(gridcolor='#eceff1', zeroline=False)
+    fig.update_xaxes(showgrid=False); fig.update_yaxes(gridcolor='#eef0f2', zeroline=False)
     return fig
 
 

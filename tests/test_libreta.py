@@ -11,7 +11,7 @@ from etl_libreta import parsear   # noqa: E402
 MUESTRA = """## K9 (Cargador 9) · 1 foto
 
 - 15/jul/24: Servicio 250.
-- 20/nov/24: Joystick nuevo, compra con Cudave a $12,000 / Tracsa $1,100 USD.
+- 20/nov/24: Joystick nuevo, compra con Eudave a $12,000 / Tracsa $1,100 USD.
 - 06/ene/24 [así escrito]: Chumacera trabada.
 - 10/feb/25: Bomba de diesel nueva Tracsa $9,000. Está desforzado.
 - 21/sep/25: Le quitan el control para ponérselo al T1.
@@ -39,8 +39,8 @@ def test_parser_fechas_montos_y_proveedores():
 
 def test_parser_no_expone_nombres_de_proveedores():
     df, _, mapa = parsear(MUESTRA)
-    assert 'Tracsa' not in df.to_csv() and 'Cudave' not in df.to_csv()
-    assert set(mapa) == {'Tracsa', 'Cudave'}
+    assert 'Tracsa' not in df.to_csv() and 'Eudave' not in df.to_csv()
+    assert set(mapa) == {'Tracsa', 'Eudave'}
 
 
 LIB = ROOT / 'data/clean/libreta_eventos.csv'

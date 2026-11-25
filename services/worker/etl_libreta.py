@@ -18,7 +18,9 @@ MESES = {'ene': 1, 'enero': 1, 'feb': 2, 'febrero': 2, 'mar': 3, 'marzo': 3, 'ab
          'oct': 10, 'octubre': 10, 'nov': 11, 'noviembre': 11, 'dic': 12, 'diciembre': 12}
 CATEGORIAS = {'K': 'Cargador', 'M': 'Minicargador', 'R': 'Retroexcavadora', 'T': 'Tractor'}
 
-PROVEEDORES = ['Tracsa', 'Cudave', 'Cadeco', 'Lypasa', 'Apymsa', 'Retromack', 'Potencia Fluida', 'Binosa', 'Caterpillar']
+PROVEEDORES = ['Tracsa', 'Eudave', 'Cadeco', 'Lypasa', 'Apymsa', 'Retromack', 'Potencia Fluida', 'Binosa', 'Caterpillar']
+# Variantes de escritura de un mismo proveedor (la libreta es manuscrita y la transcripción se corrigió con el equipo)
+VARIANTES_PROVEEDOR = {'Eudave': r'Eudave|Cudave', 'Lypasa': r'Lypasa|Rypaosa'}
 SISTEMAS = [  # el orden importa: se toma el primero que coincida
     ('Servicio preventivo', r'\bservicio\b(?!.*(de|del) (bomba|diferencial))|filtros? (nuevos|de aceite)|cambio de aceite'),
     ('Llantas', r'llanta|neum[aá]tic|rin\b'),
@@ -187,7 +189,7 @@ def parsear(texto, mapa_proveedores=None):
                 calidad = 'dia_desconocido'
         texto_e = resto
         pesos, usd = _montos(texto_e)
-        prov = [p for p in PROVEEDORES if re.search(re.escape(p), texto_e, re.I)]
+        prov = [p for p in PROVEEDORES if re.search(VARIANTES_PROVEEDOR.get(p, re.escape(p)), texto_e, re.I)]
         for p in prov:
             mapa.setdefault(p, f'P{len(mapa) + 1:02d}')
         sistema = _primer(SISTEMAS, texto_e, 'Sin clasificar')

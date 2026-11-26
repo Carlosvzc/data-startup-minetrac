@@ -107,28 +107,34 @@ def chart(title, fig, caption, key):
 
 
 with st.sidebar:
-    st.markdown('<div class="mt-brand"><span>⛏</span>MineTrac</div><div class="mt-sidebar-sub">CONTROL DE MAQUINARIA</div>', unsafe_allow_html=True)
-    st.subheader('Filtros')
-    st.caption('Elige qué quieres ver. Todo el tablero se actualiza al instante.')
     begin, end = rango_periodo(mant)
-    period = st.date_input('Periodo de análisis', value=(begin, end), min_value=begin, max_value=end, key='period', format='DD/MM/YYYY')
-    trucks = st.multiselect('Camiones', sorted(mant.camion_id.unique()), default=[], key='trucks', placeholder='Los 7 camiones',
-                            help='Déjalo vacío para incluir todos los camiones.')
-    system = st.selectbox('Sistema', ['Todos los sistemas'] + sorted(mant.sistema.unique()), key='system')
-    include_undated = st.checkbox('Incluir intervenciones sin día conocido', value=True, key='include_undated', help='Las contamos por camión y sistema. No las colocamos en una fecha ni las usamos para ampliar el periodo.')
+    _p = st.session_state.get('period', (begin, end))
+    _activos = (1 if (isinstance(_p, (tuple, list)) and len(_p) == 2 and tuple(_p) != (begin, end)) else 0) \
+        + (1 if st.session_state.get('trucks') else 0) \
+        + (1 if st.session_state.get('system', 'Todos los sistemas') != 'Todos los sistemas' else 0) \
+        + (1 if st.session_state.get('include_undated', True) is False else 0)
+    st.markdown('<div class="mt-brand"><span>⛏</span>MineTrac</div><div class="mt-sidebar-sub">CONTROL DE MAQUINARIA</div>'
+                '<div class="mt-side-estado"><i class="mt-dot"></i><div><b>' + ('Filtros activos: ' + str(_activos) if _activos else 'Flota completa') + '</b>'
+                '<small>' + ('Datos conectados a AWS' if mode == 's3' else 'Demostración local') + '</small></div></div>', unsafe_allow_html=True)
+    st.markdown('<div class="mt-side-titulo"><span>◷</span>Periodo</div>', unsafe_allow_html=True)
+    with st.container(border=True):
+        period = st.date_input('Periodo de análisis', value=(begin, end), min_value=begin, max_value=end, key='period', format='DD/MM/YYYY')
+        include_undated = st.checkbox('Incluir intervenciones sin día conocido', value=True, key='include_undated', help='Las contamos por camión y sistema. No las colocamos en una fecha ni las usamos para ampliar el periodo.')
+    st.markdown('<div class="mt-side-titulo"><span>⛟</span>Flota y sistema</div>', unsafe_allow_html=True)
+    with st.container(border=True):
+        trucks = st.multiselect('Camiones', sorted(mant.camion_id.unique()), default=[], key='trucks', placeholder='Los 7 camiones',
+                                help='Déjalo vacío para incluir todos los camiones.')
+        system = st.selectbox('Sistema', ['Todos los sistemas'] + sorted(mant.sistema.unique()), key='system')
     st.button('Restablecer filtros', on_click=reset_filters, width='stretch')
-    st.divider()
-    st.caption('FUENTE DE INFORMACIÓN')
-    st.markdown('<span class="mt-badge">' + ('Datos conectados a AWS' if mode == 's3' else 'Demostración local') + '</span>', unsafe_allow_html=True)
+    st.markdown('<div class="mt-side-titulo"><span>☁</span>Datos</div>', unsafe_allow_html=True)
     if st.button('Recargar datos', width='stretch'):
         st.cache_data.clear()
         st.rerun()
     if st.session_state.get('autenticado'):
-        st.caption('Sesión de ' + safe(st.session_state.get('usuario', '')))
+        st.markdown('<div class="mt-side-user"><i>' + safe(str(st.session_state.get('usuario', '?'))[:1].upper()) + '</i><span>' + safe(st.session_state.get('usuario', '')) + '</span></div>', unsafe_allow_html=True)
         if st.button('Cerrar sesión', width='stretch'):
             st.session_state.clear(); st.rerun()
-    st.caption('MineTrac · Evidencia 1')
-    st.caption('Todos los importes se muestran en MXN.')
+    st.markdown('<div class="mt-side-pie">MineTrac · Evidencia 1<br>Importes en MXN</div>', unsafe_allow_html=True)
 
 _corte = alr.fecha_corte(mant)
 _alertas = alr.calcular(mant, _corte)

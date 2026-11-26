@@ -9,8 +9,8 @@ Tecnológico Nacional de México campus Colima · Ingeniería en Inteligencia Ar
 **URL pública:** http://98.93.132.212:8501/ (tablero) y http://98.93.132.212:8000/docs (API de ingesta). La dirección no es fija: cambia si se detiene la instancia, y la actualizamos aquí.
 
 ## Equipo
-- Carlos Alejandro Vizcaino Anguiano · Cloud Lead
-- Diego Reyes Natilla · Data Lead
+- Carlos Alejandro Vizcaino Anguiano · Cloud Lead (desarrollo y carga de información)
+- Diego Reyes Natilla · Data Lead (recolección, limpieza y análisis de datos proporcionados por el cliente)
 
 ## Entregables
 | Entrega | Documento |
